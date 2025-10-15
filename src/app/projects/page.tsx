@@ -73,7 +73,7 @@ export default function AllProjectsPage() {
       <motion.header
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="sticky top-0 z-40 bg-dark-bg/90 backdrop-blur-xl border-b border-dark-border"
+        className="sticky top-0 z-40 bg-dark-bg/90 backdrop-blur-xl"
       >
         <div className="max-w-container mx-auto px-container-x py-6">
           <div className="flex items-center justify-center">
