@@ -484,14 +484,14 @@ export const ProjectsSection: React.FC = () => {
                                 {/* Favorite Button */}
                                 <button
                                   onClick={() => toggleFavoriteFromModal(project.id)}
-                                  className={`absolute top-3 left-3 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 ${
+                                  className={`absolute top-4 left-4 w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 ${
                                     favoriteProjects.includes(project.id)
                                       ? 'bg-point-yellow text-dark-bg shadow-glow-yellow'
                                       : 'bg-dark-bg/80 text-text-secondary hover:bg-point-yellow/20 hover:text-point-yellow'
                                   }`}
                                 >
                                   <Star 
-                                    size={16} 
+                                    size={20} 
                                     fill={favoriteProjects.includes(project.id) ? 'currentColor' : 'none'}
                                   />
                                 </button>
