@@ -220,36 +220,61 @@ export const ProjectsSection: React.FC = () => {
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            className="flex justify-center mb-8"
+            className="flex justify-center mb-12"
           >
             <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
               whileHover={{ y: -8 }}
-              whileTap={{ scale: 0.98 }}
               onClick={() => setShowProjectSelection(true)}
               className="group cursor-pointer"
             >
               <div className="bg-dark-surface rounded-2xl overflow-hidden border border-dark-border hover:border-point-yellow/50 transition-all duration-75 shadow-glow-yellow hover:shadow-glow-yellow-lg h-full">
-                {/* Project Image Area */}
+                {/* Project Image */}
                 <div className="relative h-48 bg-gradient-to-br from-point-yellow/20 to-point-yellow-dark/20 overflow-hidden">
                   <div className="absolute inset-0 bg-dark-bg/60 group-hover:bg-dark-bg/40 transition-all duration-75" />
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-16 h-16 rounded-full bg-point-yellow/20 flex items-center justify-center">
-                      <Plus size={24} className="text-point-yellow" />
+                    <div className="text-point-yellow/60 text-6xl font-bold">
+                      +
                     </div>
                   </div>
                 </div>
 
                 {/* Project Content */}
                 <div className="p-6">
+                  {/* Tags */}
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    <span className="px-2 py-1 bg-point-yellow/10 text-point-yellow text-xs rounded-lg border border-point-yellow/30">
+                      프로젝트 추가
+                    </span>
+                  </div>
+
+                  {/* Title & Subtitle */}
                   <h3 className="text-xl font-bold text-white mb-2 group-hover:text-point-yellow transition-colors duration-75">
                     대표 프로젝트를 추가해보세요
                   </h3>
                   <p className="text-sm text-point-yellow/80 mb-3">
                     프로젝트 선택하기
                   </p>
+
+                  {/* Description */}
                   <p className="text-text-secondary text-sm mb-4 line-clamp-2">
                     클릭하여 프로젝트를 선택하고 즐겨찾기하세요
                   </p>
+
+                  {/* Meta Info */}
+                  <div className="flex items-center gap-4 text-xs text-text-tertiary">
+                    <span className="flex items-center gap-1">
+                      <Plus size={12} />
+                      최대 3개
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Star size={12} />
+                      즐겨찾기
+                    </span>
+                  </div>
                 </div>
               </div>
             </motion.div>

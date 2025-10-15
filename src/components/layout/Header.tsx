@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, Home, Briefcase, GraduationCap, Wrench, Mail, Star, RefreshCw, Plus, Award, MapPin, Route } from 'lucide-react';
+import { Menu, X, Home, Briefcase, GraduationCap, Wrench, Mail, Star, RefreshCw, Plus, Award, MapPin, FolderOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -43,7 +43,7 @@ export const Header: React.FC = () => {
     { label: '경유지 추가', href: '/#experience', icon: <Plus size={18} /> },
     { label: '운전 점수', href: '/#skills', icon: <Award size={18} /> },
     { label: '목적지 설정', href: '/#contact', icon: <MapPin size={18} /> },
-    { label: '전체 경로보기', href: '/projects', icon: <Route size={18} /> },
+    { label: '전체 경로보기', href: '/projects', icon: <FolderOpen size={18} /> },
   ];
 
   return (
