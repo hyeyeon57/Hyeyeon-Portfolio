@@ -17,20 +17,20 @@ export const Header: React.FC = () => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
 
-      // Update active section based on scroll position (only on home page)
-      if (pathname === '/') {
-        const sections = ['home', 'skills', 'experience', 'projects', 'contact'];
-        for (const section of sections) {
-          const element = document.getElementById(section);
-          if (element) {
-            const rect = element.getBoundingClientRect();
-            if (rect.top <= 100 && rect.bottom >= 100) {
-              setActiveSection(section);
-              break;
-            }
-          }
-        }
-      }
+              // Update active section based on scroll position (only on home page)
+              if (pathname === '/') {
+                const sections = ['home', 'favorites', 'experience', 'skills', 'contact'];
+                for (const section of sections) {
+                  const element = document.getElementById(section);
+                  if (element) {
+                    const rect = element.getBoundingClientRect();
+                    if (rect.top <= 100 && rect.bottom >= 100) {
+                      setActiveSection(section);
+                      break;
+                    }
+                  }
+                }
+              }
     };
     
     window.addEventListener('scroll', handleScroll);
@@ -39,9 +39,9 @@ export const Header: React.FC = () => {
 
   const navItems = [
     { label: '현위치', href: '/#home', icon: <RefreshCw size={18} /> },
-    { label: '운전 점수', href: '/#skills', icon: <Award size={18} /> },
+    { label: '즐겨찾기 설정', href: '/#favorites', icon: <Star size={18} /> },
     { label: '경유지 추가', href: '/#experience', icon: <Plus size={18} /> },
-    { label: '즐겨찾기 설정', href: '/projects', icon: <Star size={18} /> },
+    { label: '운전 점수', href: '/#skills', icon: <Award size={18} /> },
     { label: '목적지 설정', href: '/#contact', icon: <MapPin size={18} /> },
     { label: '전체 경로보기', href: '/projects', icon: <Route size={18} /> },
   ];

@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { ArrowLeft, ExternalLink, Calendar, Users, Award, Filter } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowLeft, ExternalLink, Calendar, Users, Award, Filter, X } from 'lucide-react';
 import Link from 'next/link';
 import { projects } from '@/data/portfolio';
 import { Button } from '@/components/ui/Button';
@@ -169,7 +169,8 @@ export default function AllProjectsPage() {
       </div>
 
       {/* Project Modal */}
-      {selectedProject && (
+      <AnimatePresence>
+        {selectedProject && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -193,7 +194,7 @@ export default function AllProjectsPage() {
                 onClick={() => setSelectedProject(null)}
                 className="w-10 h-10 rounded-full bg-dark-bg hover:bg-point-yellow/20 border border-dark-border hover:border-point-yellow transition-all duration-300 flex items-center justify-center text-text-secondary hover:text-point-yellow"
               >
-                ×
+                <X size={20} />
               </button>
             </div>
 
@@ -287,7 +288,8 @@ export default function AllProjectsPage() {
             </div>
           </motion.div>
         </motion.div>
-      )}
+        )}
+      </AnimatePresence>
     </div>
   );
 }
