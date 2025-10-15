@@ -73,7 +73,7 @@ export const Header: React.FC = () => {
           </motion.div>
 
           {/* Desktop Navigation */}
-          <ul className="hidden md:flex items-center gap-2 lg:gap-3 bg-dark-surface/90 backdrop-blur-sm rounded-2xl px-3 py-2 shadow-glow-yellow border border-dark-border">
+          <ul className="hidden md:flex items-center gap-2 lg:gap-3">
             {navItems.map((item) => {
               const isActive = item.href.startsWith('#') 
                 ? activeSection === item.href.replace('#', '')
@@ -86,10 +86,10 @@ export const Header: React.FC = () => {
                     <Link
                       href={item.href}
                       className={cn(
-                        'flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-all duration-75 cursor-pointer',
+                        'flex items-center gap-2 font-medium transition-all duration-75 cursor-pointer',
                         isActive
-                          ? 'bg-gradient-to-r from-point-yellow to-point-yellow-dark text-dark-bg shadow-glow-yellow'
-                          : 'text-text-secondary hover:bg-dark-bg hover:text-point-yellow'
+                          ? 'text-point-yellow'
+                          : 'text-text-secondary hover:text-point-yellow'
                       )}
                     >
                       {item.icon}
@@ -99,10 +99,10 @@ export const Header: React.FC = () => {
                     <Link
                       href={item.href}
                       className={cn(
-                        'flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-all duration-75 cursor-pointer',
+                        'flex items-center gap-2 font-medium transition-all duration-75 cursor-pointer',
                         isActive
-                          ? 'bg-gradient-to-r from-point-yellow to-point-yellow-dark text-dark-bg shadow-glow-yellow'
-                          : 'text-text-secondary hover:bg-dark-bg hover:text-point-yellow'
+                          ? 'text-point-yellow'
+                          : 'text-text-secondary hover:text-point-yellow'
                       )}
                     >
                       {item.icon}
@@ -135,7 +135,7 @@ export const Header: React.FC = () => {
               transition={{ duration: 0.2 }}
               className="md:hidden mt-4 overflow-hidden"
             >
-              <ul className="flex flex-col gap-2 bg-dark-surface rounded-2xl p-4 shadow-glow-yellow-lg border border-dark-border">
+              <ul className="flex flex-col gap-2">
                 {navItems.map((item, index) => {
                   const isActive = item.href.startsWith('#') 
                     ? activeSection === item.href.replace('#', '')
@@ -153,10 +153,10 @@ export const Header: React.FC = () => {
                         <Link
                           href={item.href}
                           className={cn(
-                            'flex items-center gap-3 px-5 py-3 rounded-xl transition-all duration-75 font-medium cursor-pointer',
+                            'flex items-center gap-3 font-medium cursor-pointer',
                             isActive
-                              ? 'bg-gradient-to-r from-point-yellow to-point-yellow-dark text-dark-bg shadow-glow-yellow'
-                              : 'text-text-secondary hover:bg-dark-bg hover:text-point-yellow'
+                              ? 'text-point-yellow'
+                              : 'text-text-secondary hover:text-point-yellow'
                           )}
                           onClick={() => setIsMobileMenuOpen(false)}
                         >
@@ -167,10 +167,10 @@ export const Header: React.FC = () => {
                         <Link
                           href={item.href}
                           className={cn(
-                            'flex items-center gap-3 px-5 py-3 rounded-xl transition-all duration-75 font-medium cursor-pointer',
+                            'flex items-center gap-3 font-medium cursor-pointer',
                             isActive
-                              ? 'bg-gradient-to-r from-point-yellow to-point-yellow-dark text-dark-bg shadow-glow-yellow'
-                              : 'text-text-secondary hover:bg-dark-bg hover:text-point-yellow'
+                              ? 'text-point-yellow'
+                              : 'text-text-secondary hover:text-point-yellow'
                           )}
                           onClick={() => setIsMobileMenuOpen(false)}
                         >
