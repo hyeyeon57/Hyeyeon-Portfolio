@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, ExternalLink, Calendar, Users, Award, Filter, X } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Calendar, Users, Award, Filter, X, Star } from 'lucide-react';
 import Link from 'next/link';
 import { projects } from '@/data/portfolio';
 import { Button } from '@/components/ui/Button';
@@ -10,12 +10,12 @@ import { Button } from '@/components/ui/Button';
 export default function AllProjectsPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedProject, setSelectedProject] = useState<typeof projects[0] | null>(null);
+  const [favoriteProjects, setFavoriteProjects] = useState<string[]>([]);
 
   const categories = [
     { id: 'all', label: '전체', count: projects.length },
-    { id: 'new', label: '신규', count: projects.filter(p => p.category === 'new').length },
-    { id: 'renewal', label: '리뉴얼', count: projects.filter(p => p.category === 'renewal').length },
-    { id: 'app', label: '앱', count: projects.filter(p => p.category === 'app').length },
+    { id: 'app-web', label: '앱+웹', count: projects.filter(p => p.category === 'app-web').length },
+    { id: 'web-app', label: '웹+앱', count: projects.filter(p => p.category === 'web-app').length },
     { id: 'web', label: '웹', count: projects.filter(p => p.category === 'web').length },
     { id: 'proposal', label: '기획서', count: projects.filter(p => p.category === 'proposal').length },
     { id: 'usability', label: '사용성 평가', count: projects.filter(p => p.category === 'usability').length },
@@ -24,6 +24,17 @@ export default function AllProjectsPage() {
   const filteredProjects = selectedCategory === 'all' 
     ? projects 
     : projects.filter(project => project.category === selectedCategory);
+
+  const toggleFavorite = (projectId: string) => {
+    setFavoriteProjects(prev => {
+      if (prev.includes(projectId)) {
+        return prev.filter(id => id !== projectId);
+      } else if (prev.length < 3) {
+        return [...prev, projectId];
+      }
+      return prev;
+    });
+  };
 
   return (
     <div className="min-h-screen bg-dark-bg">
@@ -108,6 +119,23 @@ export default function AllProjectsPage() {
                       FEATURED
                     </div>
                   )}
+                  {/* Favorite Button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleFavorite(project.id);
+                    }}
+                    className={`absolute top-4 left-4 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 ${
+                      favoriteProjects.includes(project.id)
+                        ? 'bg-point-yellow text-dark-bg shadow-glow-yellow'
+                        : 'bg-dark-bg/80 text-text-secondary hover:bg-point-yellow/20 hover:text-point-yellow'
+                    }`}
+                  >
+                    <Star 
+                      size={16} 
+                      fill={favoriteProjects.includes(project.id) ? 'currentColor' : 'none'}
+                    />
+                  </button>
                   <div className="absolute bottom-4 left-4 px-3 py-1 bg-dark-bg/80 text-point-yellow rounded-lg text-xs font-semibold">
                     {categories.find(c => c.id === project.category)?.label}
                   </div>

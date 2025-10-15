@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ExternalLink, Calendar, Users, Award } from 'lucide-react';
+import { X, ExternalLink, Calendar, Users, Award, Star } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { projects } from '@/data/portfolio';
@@ -10,8 +10,20 @@ import { Button } from '@/components/ui/Button';
 
 export const ProjectsSection: React.FC = () => {
   const [selectedProject, setSelectedProject] = useState<typeof projects[0] | null>(null);
+  const [favoriteProjects, setFavoriteProjects] = useState<string[]>([]);
 
   const displayedProjects = projects.slice(0, 3);
+
+  const toggleFavorite = (projectId: string) => {
+    setFavoriteProjects(prev => {
+      if (prev.includes(projectId)) {
+        return prev.filter(id => id !== projectId);
+      } else if (prev.length < 3) {
+        return [...prev, projectId];
+      }
+      return prev;
+    });
+  };
 
   return (
     <section id="projects" className="py-20 bg-dark-surface border-t border-dark-border relative overflow-hidden">
@@ -78,10 +90,26 @@ export const ProjectsSection: React.FC = () => {
                       FEATURED
                     </div>
                   )}
+                  {/* Favorite Button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleFavorite(project.id);
+                    }}
+                    className={`absolute top-4 left-4 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 ${
+                      favoriteProjects.includes(project.id)
+                        ? 'bg-point-yellow text-dark-bg shadow-glow-yellow'
+                        : 'bg-dark-bg/80 text-text-secondary hover:bg-point-yellow/20 hover:text-point-yellow'
+                    }`}
+                  >
+                    <Star 
+                      size={16} 
+                      fill={favoriteProjects.includes(project.id) ? 'currentColor' : 'none'}
+                    />
+                  </button>
                   <div className="absolute bottom-4 left-4 px-3 py-1 bg-dark-bg/80 text-point-yellow rounded-lg text-xs font-semibold">
-                    {project.category === 'new' ? '신규' : 
-                     project.category === 'renewal' ? '리뉴얼' : 
-                     project.category === 'app' ? '앱' : 
+                    {project.category === 'app-web' ? '앱+웹' : 
+                     project.category === 'web-app' ? '웹+앱' : 
                      project.category === 'web' ? '웹' : 
                      project.category === 'proposal' ? '기획서' : 
                      project.category === 'usability' ? '사용성 평가' : '기타'}
