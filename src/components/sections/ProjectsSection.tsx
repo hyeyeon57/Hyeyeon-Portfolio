@@ -438,7 +438,7 @@ export const ProjectsSection: React.FC = () => {
                       animate={{ scale: 1, y: 0 }}
                       exit={{ scale: 0.9, y: 20 }}
                       onClick={(e) => e.stopPropagation()}
-                      className="bg-dark-surface rounded-3xl max-w-4xl w-full max-h-[80vh] overflow-hidden border border-dark-border"
+                      className="bg-dark-surface rounded-3xl max-w-5xl w-full max-h-[85vh] overflow-hidden border border-dark-border"
                     >
                       {/* Modal Header */}
                       <div className="sticky top-0 bg-dark-surface border-b border-dark-border px-6 py-4 flex items-center justify-between z-10">
@@ -467,17 +467,17 @@ export const ProjectsSection: React.FC = () => {
                         </div>
 
                         {/* Projects Grid */}
-                        <div className="grid grid-cols-3 gap-4">
+                        <div className="grid grid-cols-2 gap-6">
                           {projects.map((project) => (
                             <div
                               key={project.id}
-                              className="bg-dark-surface rounded-2xl overflow-hidden border border-dark-border hover:border-point-yellow/50 transition-all duration-75 h-full shadow-lg shadow-white/10"
+                              className="bg-dark-surface rounded-2xl overflow-hidden border border-dark-border hover:border-point-yellow/50 transition-all duration-75 h-full shadow-lg shadow-white/10 project-selection-card"
                             >
                               {/* Project Image */}
-                              <div className="relative h-28 bg-gradient-to-br from-point-yellow/20 to-point-yellow-dark/20 overflow-hidden">
+                              <div className="relative h-40 bg-gradient-to-br from-point-yellow/20 to-point-yellow-dark/20 overflow-hidden">
                                 <div className="absolute inset-0 bg-dark-bg/60" />
                                 <div className="absolute inset-0 flex items-center justify-center">
-                                  <div className="text-point-yellow/60 text-2xl font-bold">
+                                  <div className="text-point-yellow/60 text-4xl font-bold">
                                     {project.title.charAt(0)}
                                   </div>
                                 </div>
@@ -506,13 +506,13 @@ export const ProjectsSection: React.FC = () => {
                               </div>
 
                               {/* Project Content */}
-                              <div className="p-3">
+                              <div className="p-4">
                                 {/* Tags */}
-                                <div className="flex flex-wrap gap-1 mb-1">
-                                  {project.tags.slice(0, 1).map((tag, i) => (
+                                <div className="flex flex-wrap gap-2 mb-2">
+                                  {project.tags.slice(0, 2).map((tag, i) => (
                                     <span
                                       key={i}
-                                      className="px-1.5 py-0.5 bg-point-yellow/10 text-point-yellow text-xs rounded border border-point-yellow/30"
+                                      className="px-2 py-1 bg-point-yellow/10 text-point-yellow text-sm rounded border border-point-yellow/30"
                                     >
                                       {tag}
                                     </span>
@@ -520,26 +520,26 @@ export const ProjectsSection: React.FC = () => {
                                 </div>
 
                                 {/* Title & Subtitle */}
-                                <h4 className="text-sm font-bold text-white mb-1 line-clamp-1">
+                                <h4 className="text-lg font-bold text-white mb-2 line-clamp-1">
                                   {project.title}
                                 </h4>
-                                <p className="text-xs text-point-yellow/80 mb-1 line-clamp-1">
+                                <p className="text-sm text-point-yellow/80 mb-2 line-clamp-1">
                                   {project.subtitle}
                                 </p>
 
                                 {/* Description */}
-                                <p className="text-text-secondary text-xs mb-2 line-clamp-2">
+                                <p className="text-text-secondary text-sm mb-3 line-clamp-2">
                                   {project.description}
                                 </p>
 
                                 {/* Meta Info */}
-                                <div className="flex items-center gap-2 text-xs text-text-tertiary">
+                                <div className="flex items-center gap-3 text-sm text-text-tertiary">
                                   <span className="flex items-center gap-1">
-                                    <Calendar size={8} />
+                                    <Calendar size={12} />
                                     {project.date}
                                   </span>
                                   <span className="flex items-center gap-1">
-                                    <Users size={8} />
+                                    <Users size={12} />
                                     {project.team}
                                   </span>
                                 </div>

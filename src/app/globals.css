@@ -168,3 +168,12 @@ body {
   pointer-events: none;
   z-index: 9999;
 }
+
+/* 프로젝트 선택 모달 카드 - 커서 없음 */
+.project-selection-card {
+  cursor: default !important;
+}
+
+.project-selection-card:hover {
+  cursor: default !important;
+}
