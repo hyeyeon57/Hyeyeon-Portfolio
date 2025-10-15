@@ -474,28 +474,28 @@ export const ProjectsSection: React.FC = () => {
                               className="bg-dark-surface rounded-2xl overflow-hidden border border-dark-border hover:border-point-yellow/50 transition-all duration-75 shadow-glow-yellow hover:shadow-glow-yellow-lg h-full"
                             >
                               {/* Project Image */}
-                              <div className="relative h-48 bg-gradient-to-br from-point-yellow/20 to-point-yellow-dark/20 overflow-hidden">
+                              <div className="relative h-32 bg-gradient-to-br from-point-yellow/20 to-point-yellow-dark/20 overflow-hidden">
                                 <div className="absolute inset-0 bg-dark-bg/60" />
                                 <div className="absolute inset-0 flex items-center justify-center">
-                                  <div className="text-point-yellow/60 text-6xl font-bold">
+                                  <div className="text-point-yellow/60 text-4xl font-bold">
                                     {project.title.charAt(0)}
                                   </div>
                                 </div>
                                 {/* Favorite Button */}
                                 <button
                                   onClick={() => toggleFavoriteFromModal(project.id)}
-                                  className={`absolute top-4 left-4 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 ${
+                                  className={`absolute top-3 left-3 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200 ${
                                     favoriteProjects.includes(project.id)
                                       ? 'bg-point-yellow text-dark-bg shadow-glow-yellow'
                                       : 'bg-dark-bg/80 text-text-secondary hover:bg-point-yellow/20 hover:text-point-yellow'
                                   }`}
                                 >
                                   <Star 
-                                    size={16} 
+                                    size={12} 
                                     fill={favoriteProjects.includes(project.id) ? 'currentColor' : 'none'}
                                   />
                                 </button>
-                                <div className="absolute bottom-4 left-4 px-3 py-1 bg-dark-bg/80 text-point-yellow rounded-lg text-xs font-semibold">
+                                <div className="absolute bottom-3 left-3 px-2 py-1 bg-dark-bg/80 text-point-yellow rounded-lg text-xs font-semibold">
                                   {project.category === 'new' ? '신규' : 
                                    project.category === 'renewal' ? '리뉴얼' : 
                                    project.category === 'app' ? '앱' : 
@@ -506,10 +506,10 @@ export const ProjectsSection: React.FC = () => {
                               </div>
 
                               {/* Project Content */}
-                              <div className="p-6">
+                              <div className="p-4">
                                 {/* Tags */}
-                                <div className="flex flex-wrap gap-2 mb-3">
-                                  {project.tags.slice(0, 3).map((tag, i) => (
+                                <div className="flex flex-wrap gap-1 mb-2">
+                                  {project.tags.slice(0, 2).map((tag, i) => (
                                     <span
                                       key={i}
                                       className="px-2 py-1 bg-point-yellow/10 text-point-yellow text-xs rounded-lg border border-point-yellow/30"
@@ -520,26 +520,26 @@ export const ProjectsSection: React.FC = () => {
                                 </div>
 
                                 {/* Title & Subtitle */}
-                                <h4 className="text-xl font-bold text-white mb-2">
+                                <h4 className="text-lg font-bold text-white mb-1">
                                   {project.title}
                                 </h4>
-                                <p className="text-sm text-point-yellow/80 mb-3">
+                                <p className="text-xs text-point-yellow/80 mb-2">
                                   {project.subtitle}
                                 </p>
 
                                 {/* Description */}
-                                <p className="text-text-secondary text-sm mb-4 line-clamp-2">
+                                <p className="text-text-secondary text-xs mb-3 line-clamp-2">
                                   {project.description}
                                 </p>
 
                                 {/* Meta Info */}
-                                <div className="flex items-center gap-4 text-xs text-text-tertiary">
+                                <div className="flex items-center gap-3 text-xs text-text-tertiary">
                                   <span className="flex items-center gap-1">
-                                    <Calendar size={12} />
+                                    <Calendar size={10} />
                                     {project.date}
                                   </span>
                                   <span className="flex items-center gap-1">
-                                    <Users size={12} />
+                                    <Users size={10} />
                                     {project.team}
                                   </span>
                                 </div>
