@@ -467,35 +467,35 @@ export const ProjectsSection: React.FC = () => {
                         </div>
 
                         {/* Projects Grid */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                           {projects.map((project) => (
                             <div
                               key={project.id}
                               className="bg-dark-surface rounded-2xl overflow-hidden border border-dark-border hover:border-point-yellow/50 transition-all duration-75 shadow-glow-yellow hover:shadow-glow-yellow-lg h-full"
                             >
                               {/* Project Image */}
-                              <div className="relative h-32 bg-gradient-to-br from-point-yellow/20 to-point-yellow-dark/20 overflow-hidden">
+                              <div className="relative h-24 bg-gradient-to-br from-point-yellow/20 to-point-yellow-dark/20 overflow-hidden">
                                 <div className="absolute inset-0 bg-dark-bg/60" />
                                 <div className="absolute inset-0 flex items-center justify-center">
-                                  <div className="text-point-yellow/60 text-4xl font-bold">
+                                  <div className="text-point-yellow/60 text-2xl font-bold">
                                     {project.title.charAt(0)}
                                   </div>
                                 </div>
                                 {/* Favorite Button */}
                                 <button
                                   onClick={() => toggleFavoriteFromModal(project.id)}
-                                  className={`absolute top-3 left-3 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200 ${
+                                  className={`absolute top-2 left-2 w-5 h-5 rounded-full flex items-center justify-center transition-all duration-200 ${
                                     favoriteProjects.includes(project.id)
                                       ? 'bg-point-yellow text-dark-bg shadow-glow-yellow'
                                       : 'bg-dark-bg/80 text-text-secondary hover:bg-point-yellow/20 hover:text-point-yellow'
                                   }`}
                                 >
                                   <Star 
-                                    size={12} 
+                                    size={10} 
                                     fill={favoriteProjects.includes(project.id) ? 'currentColor' : 'none'}
                                   />
                                 </button>
-                                <div className="absolute bottom-3 left-3 px-2 py-1 bg-dark-bg/80 text-point-yellow rounded-lg text-xs font-semibold">
+                                <div className="absolute bottom-2 left-2 px-1.5 py-0.5 bg-dark-bg/80 text-point-yellow rounded text-xs font-semibold">
                                   {project.category === 'new' ? '신규' : 
                                    project.category === 'renewal' ? '리뉴얼' : 
                                    project.category === 'app' ? '앱' : 
@@ -506,13 +506,13 @@ export const ProjectsSection: React.FC = () => {
                               </div>
 
                               {/* Project Content */}
-                              <div className="p-4">
+                              <div className="p-3">
                                 {/* Tags */}
-                                <div className="flex flex-wrap gap-1 mb-2">
-                                  {project.tags.slice(0, 2).map((tag, i) => (
+                                <div className="flex flex-wrap gap-1 mb-1">
+                                  {project.tags.slice(0, 1).map((tag, i) => (
                                     <span
                                       key={i}
-                                      className="px-2 py-1 bg-point-yellow/10 text-point-yellow text-xs rounded-lg border border-point-yellow/30"
+                                      className="px-1.5 py-0.5 bg-point-yellow/10 text-point-yellow text-xs rounded border border-point-yellow/30"
                                     >
                                       {tag}
                                     </span>
@@ -520,26 +520,26 @@ export const ProjectsSection: React.FC = () => {
                                 </div>
 
                                 {/* Title & Subtitle */}
-                                <h4 className="text-lg font-bold text-white mb-1">
+                                <h4 className="text-sm font-bold text-white mb-1 line-clamp-1">
                                   {project.title}
                                 </h4>
-                                <p className="text-xs text-point-yellow/80 mb-2">
+                                <p className="text-xs text-point-yellow/80 mb-1 line-clamp-1">
                                   {project.subtitle}
                                 </p>
 
                                 {/* Description */}
-                                <p className="text-text-secondary text-xs mb-3 line-clamp-2">
+                                <p className="text-text-secondary text-xs mb-2 line-clamp-2">
                                   {project.description}
                                 </p>
 
                                 {/* Meta Info */}
-                                <div className="flex items-center gap-3 text-xs text-text-tertiary">
+                                <div className="flex items-center gap-2 text-xs text-text-tertiary">
                                   <span className="flex items-center gap-1">
-                                    <Calendar size={10} />
+                                    <Calendar size={8} />
                                     {project.date}
                                   </span>
                                   <span className="flex items-center gap-1">
-                                    <Users size={10} />
+                                    <Users size={8} />
                                     {project.team}
                                   </span>
                                 </div>
