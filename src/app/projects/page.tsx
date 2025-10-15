@@ -12,6 +12,7 @@ export default function AllProjectsPage() {
   const [selectedProject, setSelectedProject] = useState<typeof projects[0] | null>(null);
   const [favoriteProjects, setFavoriteProjects] = useState<string[]>([]);
   const [showLimitNotification, setShowLimitNotification] = useState(false);
+  const [notificationPosition, setNotificationPosition] = useState<{ x: number; y: number } | null>(null);
 
   const categories = [
     { id: 'all', label: '전체', count: projects.length },
@@ -26,7 +27,13 @@ export default function AllProjectsPage() {
     ? projects 
     : projects.filter(project => project.category === selectedCategory);
 
-  const toggleFavorite = (projectId: string) => {
+  const toggleFavorite = (projectId: string, event: React.MouseEvent) => {
+    const buttonRect = event.currentTarget.getBoundingClientRect();
+    const position = {
+      x: buttonRect.right + 10, // 버튼 오른쪽에 10px 간격
+      y: buttonRect.top - 10    // 버튼 위쪽에 10px 간격
+    };
+    
     setFavoriteProjects(prev => {
       if (prev.includes(projectId)) {
         return prev.filter(id => id !== projectId);
@@ -34,8 +41,12 @@ export default function AllProjectsPage() {
         return [...prev, projectId];
       } else {
         // 3개 제한에 도달했을 때 알림 표시
+        setNotificationPosition(position);
         setShowLimitNotification(true);
-        setTimeout(() => setShowLimitNotification(false), 3000);
+        setTimeout(() => {
+          setShowLimitNotification(false);
+          setNotificationPosition(null);
+        }, 3000);
         return prev;
       }
     });
@@ -128,7 +139,7 @@ export default function AllProjectsPage() {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      toggleFavorite(project.id);
+                      toggleFavorite(project.id, e);
                     }}
                     className={`absolute top-4 left-4 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 ${
                       favoriteProjects.includes(project.id)
@@ -329,24 +340,28 @@ export default function AllProjectsPage() {
 
       {/* Favorite Limit Notification */}
       <AnimatePresence>
-        {showLimitNotification && (
+        {showLimitNotification && notificationPosition && (
           <motion.div
-            initial={{ opacity: 0, y: 50, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 50, scale: 0.9 }}
-            className="fixed bottom-12 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-md mx-auto px-4"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            className="fixed z-50"
+            style={{
+              left: `${notificationPosition.x}px`,
+              top: `${notificationPosition.y}px`,
+            }}
           >
-            <div className="bg-dark-surface border border-point-yellow/50 rounded-3xl px-10 py-8 shadow-glow-yellow-lg backdrop-blur-sm">
-              <div className="flex flex-col items-center gap-6 text-center">
-                <div className="w-16 h-16 rounded-full bg-point-yellow/20 flex items-center justify-center">
-                  <Star size={32} className="text-point-yellow" />
+            <div className="bg-dark-surface border border-point-yellow/50 rounded-3xl px-6 py-4 shadow-glow-yellow-lg backdrop-blur-sm">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-point-yellow/20 flex items-center justify-center">
+                  <Star size={20} className="text-point-yellow" />
                 </div>
                 <div>
-                  <p className="text-white font-bold text-xl mb-2">
-                    즐겨찾기는 3개까지 가능합니다
+                  <p className="text-white font-bold text-sm">
+                    즐겨찾기 3개 제한
                   </p>
-                  <p className="text-text-secondary text-lg">
-                    새로 추가하려면 기존 경로를 해제하세요
+                  <p className="text-text-secondary text-xs">
+                    기존 경로를 해제하세요
                   </p>
                 </div>
               </div>
