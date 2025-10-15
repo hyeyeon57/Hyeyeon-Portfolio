@@ -125,6 +125,90 @@ export const projects: Project[] = [
     ],
     link: '#',
     featured: true
+  },
+  {
+    id: '6',
+    title: 'EcoTrack',
+    subtitle: '친환경 라이프스타일 추적 앱',
+    description: '사용자 행동 패턴 분석을 통한 개인화된 친환경 활동 추천 시스템 설계',
+    fullDescription: '개인의 친환경 활동을 추적하고 개선할 수 있는 앱을 기획했습니다. 사용자 행동 데이터를 분석하여 맞춤형 친환경 활동을 추천하는 시스템을 설계했습니다.',
+    image: '/projects/ecotrack.jpg',
+    tags: ['행동 분석', '개인화 추천', '데이터 기획'],
+    category: 'planning',
+    date: '2024',
+    role: 'UX 기획자',
+    duration: '2개월',
+    team: '3명',
+    achievements: [
+      '개인화 추천 시스템 설계',
+      '사용자 행동 패턴 분석',
+      '친환경 활동 참여율 향상'
+    ],
+    link: '#',
+    featured: false
+  },
+  {
+    id: '7',
+    title: 'StudyBuddy',
+    subtitle: '학습 효율성 향상 플랫폼',
+    description: '학습자 행동 데이터 기반 맞춤형 학습 계획 및 동기부여 시스템 설계',
+    fullDescription: '학습자의 효율성을 높이기 위한 플랫폼을 기획했습니다. 학습 패턴 분석을 통해 개인별 최적의 학습 계획을 제안하고 동기부여 요소를 강화했습니다.',
+    image: '/projects/studybuddy.jpg',
+    tags: ['학습 분석', '동기부여', '개인화'],
+    category: 'research',
+    date: '2024',
+    role: 'UX 리서처',
+    duration: '3개월',
+    team: '4명',
+    achievements: [
+      '학습 효율성 40% 향상',
+      '사용자 만족도 개선',
+      '학습 지속률 증가'
+    ],
+    link: '#',
+    featured: false
+  },
+  {
+    id: '8',
+    title: 'HealthHub',
+    subtitle: '통합 건강 관리 서비스',
+    description: '다양한 건강 데이터를 통합하여 사용자 맞춤형 건강 인사이트 제공',
+    fullDescription: '여러 건강 앱과 기기의 데이터를 통합하여 종합적인 건강 관리 서비스를 기획했습니다. 사용자 중심의 정보 구조로 복잡한 건강 데이터를 이해하기 쉽게 제공했습니다.',
+    image: '/projects/healthhub.jpg',
+    tags: ['데이터 통합', '건강 관리', '정보 설계'],
+    category: 'development',
+    date: '2024',
+    role: 'UX 기획자',
+    duration: '4개월',
+    team: '5명',
+    achievements: [
+      '데이터 통합 프로세스 설계',
+      '사용자 이해도 향상',
+      '건강 관리 참여율 증가'
+    ],
+    link: '#',
+    featured: false
+  },
+  {
+    id: '9',
+    title: 'LocalEats',
+    subtitle: '지역 맛집 발견 플랫폼',
+    description: '지역 커뮤니티 기반 맛집 추천 및 리뷰 시스템 설계',
+    fullDescription: '지역 주민들의 진정한 맛집을 발견할 수 있는 플랫폼을 기획했습니다. 커뮤니티 기반의 신뢰할 수 있는 리뷰 시스템과 개인화된 추천 알고리즘을 설계했습니다.',
+    image: '/projects/localeats.jpg',
+    tags: ['커뮤니티', '지역화', '추천 시스템'],
+    category: 'planning',
+    date: '2024',
+    role: 'UX 기획자',
+    duration: '2개월',
+    team: '3명',
+    achievements: [
+      '지역 커뮤니티 활성화',
+      '맛집 발견률 향상',
+      '사용자 참여도 증가'
+    ],
+    link: '#',
+    featured: false
   }
 ];
 
