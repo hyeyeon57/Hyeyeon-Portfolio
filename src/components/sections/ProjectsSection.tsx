@@ -4,14 +4,14 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ExternalLink, Calendar, Users, Award } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { projects } from '@/data/portfolio';
 import { Button } from '@/components/ui/Button';
 
 export const ProjectsSection: React.FC = () => {
-  const [showAll, setShowAll] = useState(false);
   const [selectedProject, setSelectedProject] = useState<typeof projects[0] | null>(null);
 
-  const displayedProjects = showAll ? projects : projects.slice(0, 3);
+  const displayedProjects = projects.slice(0, 3);
 
   return (
     <section id="projects" className="py-20 bg-dark-surface border-t border-dark-border relative overflow-hidden">
@@ -123,21 +123,22 @@ export const ProjectsSection: React.FC = () => {
         </div>
 
         {/* Show All Button */}
-        {!showAll && projects.length > 3 && (
+        {projects.length > 3 && (
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             className="text-center"
           >
-            <Button
-              variant="outline"
-              size="lg"
-              onClick={() => setShowAll(true)}
-              className="px-8 py-3 border-2 border-point-yellow text-point-yellow hover:bg-point-yellow hover:text-dark-bg transition-all duration-300 rounded-2xl font-semibold"
-            >
-              🔘 전체 경로보기
-            </Button>
+            <Link href="/projects">
+              <Button
+                variant="outline"
+                size="lg"
+                className="px-8 py-3 border-2 border-point-yellow text-point-yellow hover:bg-point-yellow hover:text-dark-bg transition-all duration-300 rounded-2xl font-semibold"
+              >
+                🔘 전체 경로보기
+              </Button>
+            </Link>
           </motion.div>
         )}
       </div>
