@@ -2,8 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, ExternalLink, Calendar, Users, Award, Filter, X, Star } from 'lucide-react';
-import Link from 'next/link';
+import { ExternalLink, Calendar, Users, Award, Filter, X, Star } from 'lucide-react';
 import { projects } from '@/data/portfolio';
 import { Button } from '@/components/ui/Button';
 
@@ -77,20 +76,10 @@ export default function AllProjectsPage() {
         className="sticky top-0 z-40 bg-dark-bg/90 backdrop-blur-xl border-b border-dark-border"
       >
         <div className="max-w-container mx-auto px-container-x py-6">
-          <div className="flex items-center justify-between">
-            <Link 
-              href="/"
-              className="flex items-center gap-3 text-text-secondary hover:text-point-yellow transition-colors"
-            >
-              <ArrowLeft size={20} />
-              <span className="font-medium">홈으로 돌아가기</span>
-            </Link>
-            
+          <div className="flex items-center justify-center">
             <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-point-yellow via-point-yellow-light to-point-yellow-dark text-transparent bg-clip-text">
               전체 경로보기
             </h1>
-            
-            <div className="w-24" /> {/* Spacer for centering */}
           </div>
         </div>
       </motion.header>
