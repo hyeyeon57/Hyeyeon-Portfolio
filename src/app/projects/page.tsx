@@ -141,40 +141,40 @@ export default function AllProjectsPage() {
               className="group cursor-pointer"
             >
               <div className="bg-dark-surface rounded-2xl overflow-hidden border border-dark-border hover:border-point-yellow/50 transition-all duration-75 shadow-glow-yellow hover:shadow-glow-yellow-lg h-full">
-                {/* Project Image */}
-                <div className="relative h-48 bg-gradient-to-br from-point-yellow/20 to-point-yellow-dark/20 overflow-hidden">
-                  <div className="absolute inset-0 bg-dark-bg/60 group-hover:bg-dark-bg/40 transition-all duration-75" />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-point-yellow/60 text-6xl font-bold">
-                      {project.title.charAt(0)}
-                    </div>
-                  </div>
-                  {project.featured && (
-                    <div className="absolute top-4 right-4 px-3 py-1 bg-point-yellow text-dark-bg rounded-full text-xs font-bold">
-                      FEATURED
-                    </div>
-                  )}
-                  {/* Favorite Button */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleFavorite(project.id, e);
-                    }}
-                    className={`absolute top-4 left-4 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 ${
-                      favoriteProjects.includes(project.id)
-                        ? 'bg-point-yellow text-dark-bg shadow-glow-yellow'
-                        : 'bg-dark-bg/80 text-text-secondary hover:bg-point-yellow/20 hover:text-point-yellow'
-                    }`}
-                  >
-                    <Star 
-                      size={16} 
-                      fill={favoriteProjects.includes(project.id) ? 'currentColor' : 'none'}
-                    />
-                  </button>
-                  <div className="absolute bottom-4 left-4 px-3 py-1 bg-dark-bg/80 text-point-yellow rounded-lg text-xs font-semibold">
-                    {categories.find(c => c.id === project.category)?.label}
-                  </div>
-                </div>
+                        {/* Project Image */}
+                        <div className="relative h-48 bg-gradient-to-br from-point-yellow/20 to-point-yellow-dark/20 overflow-hidden">
+                          <div className="absolute inset-0 bg-dark-bg/60 group-hover:bg-dark-bg/40 transition-all duration-75" />
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="text-point-yellow/60 text-6xl font-bold">
+                              {project.title.charAt(0)}
+                            </div>
+                          </div>
+                          {project.featured && (
+                            <div className="absolute top-4 right-4 px-3 py-1 bg-point-yellow text-dark-bg rounded-full text-xs font-bold">
+                              FEATURED
+                            </div>
+                          )}
+                          {/* Favorite Button */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleFavorite(project.id, e);
+                            }}
+                            className={`absolute top-4 left-4 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 ${
+                              favoriteProjects.includes(project.id)
+                                ? 'bg-point-yellow text-dark-bg shadow-glow-yellow'
+                                : 'bg-dark-bg/80 text-text-secondary hover:bg-point-yellow/20 hover:text-point-yellow'
+                            }`}
+                          >
+                            <Star 
+                              size={16} 
+                              fill={favoriteProjects.includes(project.id) ? 'currentColor' : 'none'}
+                            />
+                          </button>
+                          <div className="absolute bottom-4 left-4 px-3 py-1 bg-dark-bg/80 text-point-yellow rounded-lg text-xs font-semibold">
+                            {categories.find(c => c.id === project.category)?.label}
+                          </div>
+                        </div>
 
                 {/* Project Content */}
                 <div className="p-6">

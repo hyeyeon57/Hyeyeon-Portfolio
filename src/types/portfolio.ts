@@ -3,61 +3,62 @@ export interface Project {
   title: string;
   subtitle: string;
   description: string;
-  thumbnail: string;
+  fullDescription: string;
+  image: string;
   category: string;
   tags: string[];
-  year: string;
+  date: string;
   role: string;
   duration: string;
-  isFeatured: boolean;
-  images: string[];
-  features: string[];
-  challenges?: string;
-  solution?: string;
-  results?: string;
+  team: string;
+  featured: boolean;
+  achievements: string[];
   link?: string;
-  github?: string;
 }
 
 export interface Education {
+  id: string;
   school: string;
   degree: string;
-  field: string;
   period: string;
-  description?: string;
+  description: string;
 }
 
 export interface Experience {
+  id: string;
   company: string;
   position: string;
   period: string;
-  description: string[];
-  achievements?: string[];
+  description: string;
+  achievements: string[];
 }
 
 export interface Skill {
+  id: string;
+  name: string;
   category: string;
-  tools: {
-    name: string;
-    level: number; // 1-5
-    icon?: string;
-  }[];
+  level: number;
+  description: string;
 }
 
 export interface PersonalInfo {
   name: string;
+  englishName: string;
   title: string;
-  email: string;
-  phone?: string;
-  location?: string;
   bio: string;
-  avatar: string;
-  social?: {
-    github?: string;
-    linkedin?: string;
-    behance?: string;
-    instagram?: string;
+  description: string;
+  email: string;
+  phone: string;
+  location: string;
+  social: {
+    github: string;
+    linkedin: string;
+    instagram: string;
+    notion: string;
   };
+  availableDate: string;
+  resumeUrl: string;
+  coverLetterUrl: string;
 }
 
 
