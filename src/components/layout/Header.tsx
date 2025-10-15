@@ -88,7 +88,7 @@ export const Header: React.FC = () => {
                       className={cn(
                         'flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-all duration-75 cursor-pointer',
                         isActive
-                          ? 'bg-point-yellow text-dark-bg shadow-glow-yellow'
+                          ? 'bg-gradient-to-r from-point-yellow to-point-yellow-dark text-dark-bg shadow-glow-yellow'
                           : 'text-text-secondary hover:bg-dark-bg hover:text-point-yellow'
                       )}
                     >
@@ -101,7 +101,7 @@ export const Header: React.FC = () => {
                       className={cn(
                         'flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-all duration-75 cursor-pointer',
                         isActive
-                          ? 'bg-point-yellow text-dark-bg shadow-glow-yellow'
+                          ? 'bg-gradient-to-r from-point-yellow to-point-yellow-dark text-dark-bg shadow-glow-yellow'
                           : 'text-text-secondary hover:bg-dark-bg hover:text-point-yellow'
                       )}
                     >
@@ -155,7 +155,7 @@ export const Header: React.FC = () => {
                           className={cn(
                             'flex items-center gap-3 px-5 py-3 rounded-xl transition-all duration-75 font-medium cursor-pointer',
                             isActive
-                              ? 'bg-point-yellow text-dark-bg shadow-glow-yellow'
+                              ? 'bg-gradient-to-r from-point-yellow to-point-yellow-dark text-dark-bg shadow-glow-yellow'
                               : 'text-text-secondary hover:bg-dark-bg hover:text-point-yellow'
                           )}
                           onClick={() => setIsMobileMenuOpen(false)}
@@ -169,7 +169,7 @@ export const Header: React.FC = () => {
                           className={cn(
                             'flex items-center gap-3 px-5 py-3 rounded-xl transition-all duration-75 font-medium cursor-pointer',
                             isActive
-                              ? 'bg-point-yellow text-dark-bg shadow-glow-yellow'
+                              ? 'bg-gradient-to-r from-point-yellow to-point-yellow-dark text-dark-bg shadow-glow-yellow'
                               : 'text-text-secondary hover:bg-dark-bg hover:text-point-yellow'
                           )}
                           onClick={() => setIsMobileMenuOpen(false)}
