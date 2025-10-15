@@ -177,3 +177,8 @@ body {
 .project-selection-card:hover {
   cursor: default !important;
 }
+
+/* 프로젝트 선택 모달의 즐겨찾기 버튼만 커서 표시 */
+.project-selection-card button {
+  cursor: pointer !important;
+}
