@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/Button';
 export const ProjectsSection: React.FC = () => {
   const [selectedProject, setSelectedProject] = useState<typeof projects[0] | null>(null);
   const [favoriteProjects, setFavoriteProjects] = useState<string[]>([]);
+  const [showLimitNotification, setShowLimitNotification] = useState(false);
 
   const displayedProjects = projects.slice(0, 3);
 
@@ -20,8 +21,12 @@ export const ProjectsSection: React.FC = () => {
         return prev.filter(id => id !== projectId);
       } else if (prev.length < 3) {
         return [...prev, projectId];
+      } else {
+        // 3개 제한에 도달했을 때 알림 표시
+        setShowLimitNotification(true);
+        setTimeout(() => setShowLimitNotification(false), 3000);
+        return prev;
       }
-      return prev;
     });
   };
 
@@ -298,6 +303,34 @@ export const ProjectsSection: React.FC = () => {
                 )}
               </div>
             </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Favorite Limit Notification */}
+      <AnimatePresence>
+        {showLimitNotification && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 50, scale: 0.9 }}
+            className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50"
+          >
+            <div className="bg-dark-surface border border-point-yellow/50 rounded-2xl px-6 py-4 shadow-glow-yellow-lg backdrop-blur-sm">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-point-yellow/20 flex items-center justify-center">
+                  <Star size={16} className="text-point-yellow" />
+                </div>
+                <div>
+                  <p className="text-white font-semibold text-sm">
+                    즐겨찾기는 3개까지 가능합니다
+                  </p>
+                  <p className="text-text-secondary text-xs">
+                    새로 추가하려면 기존 경로를 해제하세요
+                  </p>
+                </div>
+              </div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
