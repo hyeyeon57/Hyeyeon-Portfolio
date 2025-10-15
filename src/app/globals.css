@@ -192,3 +192,11 @@ body {
   pointer-events: auto !important;
   position: relative !important;
 }
+
+/* 프로젝트 카드 이미지 영역 텍스트 선택 비활성화 */
+.project-image-area {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+}
