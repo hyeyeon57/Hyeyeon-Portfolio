@@ -3,25 +3,168 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #242424;
+  --foreground: #ffffff;
+  --point-yellow: #FFD700;
+  --surface: #1E1E1E;
+  --border: #2A2A2A;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 80px;
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Pretendard', var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
+
+/* Pretendard 폰트 Import */
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
   }
+  
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* 텍스트 가시성 보장 */
+  .text-white {
+    color: #ffffff !important;
+  }
+  
+  .text-point-yellow {
+    color: #FFD700 !important;
+  }
+  
+  .text-text-secondary {
+    color: #B0B0B0 !important;
+  }
+  
+  .bg-dark-bg {
+    background-color: #242424 !important;
+  }
+  
+  .bg-dark-surface {
+    background-color: #1E1E1E !important;
+  }
+}
+
+/* Custom scrollbar - Dark Mode */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1E1E1E;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #FFD700, #FFC700);
+  border-radius: 10px;
+  border: 2px solid #1E1E1E;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #FFE55C, #FFD700);
+}
+
+/* Custom scrollbar for modal - Dark Mode */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #2A2A2A;
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #FFD700, #FFC700);
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #FFE55C, #FFD700);
+}
+
+/* Smooth animations */
+* {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* Selection color - Yellow Navigation Theme */
+::selection {
+  background-color: #FFD700;
+  color: #121212;
+}
+
+::-moz-selection {
+  background-color: #FFD700;
+  color: #121212;
+}
+
+/* 커서 팔로워 스타일 - 기본 커서 숨김 */
+.cursor-follower-active * {
+  cursor: none !important;
+}
+
+/* 네비게이션과 버튼은 커서 표시 */
+.cursor-follower-active nav *,
+.cursor-follower-active button,
+.cursor-follower-active a,
+.cursor-follower-active [role="button"] {
+  cursor: pointer !important;
+}
+
+/* 텍스트 요소는 커서 표시 */
+.cursor-follower-active input,
+.cursor-follower-active textarea,
+.cursor-follower-active [contenteditable] {
+  cursor: text !important;
+}
+
+/* 특정 요소에서 커서 표시 (선택사항) */
+.cursor-pointer {
+  cursor: pointer !important;
+}
+
+.cursor-text {
+  cursor: text !important;
+}
+
+.cursor-not-allowed {
+  cursor: not-allowed !important;
+}
+
+/* 커서 팔로워 전용 스타일 */
+.cursor-follower {
+  pointer-events: none;
+  z-index: 9999;
 }
