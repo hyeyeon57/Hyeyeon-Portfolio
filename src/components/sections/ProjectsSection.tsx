@@ -438,7 +438,7 @@ export const ProjectsSection: React.FC = () => {
                       animate={{ scale: 1, y: 0 }}
                       exit={{ scale: 0.9, y: 20 }}
                       onClick={(e) => e.stopPropagation()}
-                      className="bg-dark-surface rounded-3xl max-w-6xl w-full max-h-[90vh] overflow-hidden border border-dark-border shadow-glow-yellow-lg"
+                      className="bg-dark-surface rounded-3xl max-w-4xl w-full max-h-[80vh] overflow-hidden border border-dark-border"
                     >
                       {/* Modal Header */}
                       <div className="sticky top-0 bg-dark-surface border-b border-dark-border px-6 py-4 flex items-center justify-between z-10">
@@ -454,7 +454,7 @@ export const ProjectsSection: React.FC = () => {
                       </div>
 
                       {/* Modal Content */}
-                      <div className="p-6 overflow-y-auto custom-scrollbar max-h-[calc(90vh-80px)]">
+                      <div className="p-6 overflow-y-auto custom-scrollbar max-h-[calc(80vh-80px)]">
                         <div className="mb-6">
                           <p className="text-text-secondary text-center">
                             즐겨찾기할 프로젝트를 선택하세요 (최대 3개)
@@ -467,11 +467,11 @@ export const ProjectsSection: React.FC = () => {
                         </div>
 
                         {/* Projects Grid */}
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-3 gap-4">
                           {projects.map((project) => (
                             <div
                               key={project.id}
-                              className="bg-dark-surface rounded-2xl overflow-hidden border border-dark-border hover:border-point-yellow/50 transition-all duration-75 shadow-glow-yellow hover:shadow-glow-yellow-lg h-full"
+                              className="bg-dark-surface rounded-2xl overflow-hidden border border-dark-border hover:border-point-yellow/50 transition-all duration-75 h-full"
                             >
                               {/* Project Image */}
                               <div className="relative h-24 bg-gradient-to-br from-point-yellow/20 to-point-yellow-dark/20 overflow-hidden">
