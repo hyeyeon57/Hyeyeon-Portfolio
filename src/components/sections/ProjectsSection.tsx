@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/Button';
 
 export const ProjectsSection: React.FC = () => {
   const [selectedProject, setSelectedProject] = useState<typeof projects[0] | null>(null);
+  const [showProjectSelection, setShowProjectSelection] = useState(false);
   const [favoriteProjects, setFavoriteProjects] = useState<string[]>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('favoriteProjects');
@@ -45,6 +46,27 @@ export const ProjectsSection: React.FC = () => {
           setShowLimitNotification(false);
           setNotificationPosition(null);
         }, 3000);
+        return prev;
+      }
+      
+      // localStorage에 저장
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('favoriteProjects', JSON.stringify(newFavorites));
+      }
+      
+      return newFavorites;
+    });
+  };
+
+  const toggleFavoriteFromModal = (projectId: string) => {
+    setFavoriteProjects(prev => {
+      let newFavorites;
+      if (prev.includes(projectId)) {
+        newFavorites = prev.filter(id => id !== projectId);
+      } else if (prev.length < 3) {
+        newFavorites = [...prev, projectId];
+      } else {
+        // 3개 제한에 도달했을 때는 아무것도 하지 않음
         return prev;
       }
       
@@ -200,19 +222,26 @@ export const ProjectsSection: React.FC = () => {
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            className="text-center mb-8"
+            className="flex justify-center mb-8"
           >
-            <div className="bg-dark-bg/50 rounded-2xl p-6 border border-point-yellow/20">
-              <div className="flex items-center justify-center gap-2 mb-3">
-                <div className="w-8 h-8 rounded-full bg-point-yellow/20 flex items-center justify-center">
-                  <Plus size={16} className="text-point-yellow" />
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setShowProjectSelection(true)}
+              className="bg-dark-bg/50 rounded-2xl p-8 border border-point-yellow/20 cursor-pointer hover:border-point-yellow/40 hover:bg-dark-bg/70 transition-all duration-300 max-w-md w-full"
+            >
+              <div className="flex flex-col items-center gap-4">
+                <div className="w-16 h-16 rounded-full bg-point-yellow/20 flex items-center justify-center">
+                  <Plus size={24} className="text-point-yellow" />
                 </div>
-                <span className="text-point-yellow font-semibold">대표 프로젝트를 추가해보세요</span>
+                <div className="text-center">
+                  <h3 className="text-point-yellow font-semibold text-lg mb-2">대표 프로젝트를 추가해보세요</h3>
+                  <p className="text-text-secondary text-sm">
+                    클릭하여 프로젝트를 선택하고 즐겨찾기하세요
+                  </p>
+                </div>
               </div>
-              <p className="text-text-secondary text-sm">
-                전체 경로보기에서 프로젝트를 즐겨찾기하여 나만의 컬렉션을 만들어보세요.
-              </p>
-            </div>
+            </motion.div>
           </motion.div>
         )}
 
@@ -356,9 +385,122 @@ export const ProjectsSection: React.FC = () => {
             </motion.div>
           </motion.div>
         )}
-      </AnimatePresence>
+              </AnimatePresence>
 
-      {/* Favorite Limit Notification */}
+              {/* Project Selection Modal */}
+              <AnimatePresence>
+                {showProjectSelection && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-dark-bg/90 backdrop-blur-sm"
+                    onClick={() => setShowProjectSelection(false)}
+                  >
+                    <motion.div
+                      initial={{ scale: 0.9, y: 20 }}
+                      animate={{ scale: 1, y: 0 }}
+                      exit={{ scale: 0.9, y: 20 }}
+                      onClick={(e) => e.stopPropagation()}
+                      className="bg-dark-surface rounded-3xl max-w-6xl w-full max-h-[90vh] overflow-hidden border border-dark-border shadow-glow-yellow-lg"
+                    >
+                      {/* Modal Header */}
+                      <div className="sticky top-0 bg-dark-surface border-b border-dark-border px-6 py-4 flex items-center justify-between z-10">
+                        <h3 className="text-2xl font-bold text-white">
+                          프로젝트 선택
+                        </h3>
+                        <button
+                          onClick={() => setShowProjectSelection(false)}
+                          className="w-10 h-10 rounded-full bg-dark-bg hover:bg-point-yellow/20 border border-dark-border hover:border-point-yellow transition-all duration-300 flex items-center justify-center text-text-secondary hover:text-point-yellow"
+                        >
+                          <X size={20} />
+                        </button>
+                      </div>
+
+                      {/* Modal Content */}
+                      <div className="p-6 overflow-y-auto custom-scrollbar max-h-[calc(90vh-80px)]">
+                        <div className="mb-6">
+                          <p className="text-text-secondary text-center">
+                            즐겨찾기할 프로젝트를 선택하세요 (최대 3개)
+                          </p>
+                          <div className="mt-2 text-center">
+                            <span className="text-point-yellow font-semibold">
+                              선택된 프로젝트: {favoriteProjects.length}/3
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Projects Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          {projects.map((project) => (
+                            <div
+                              key={project.id}
+                              className="bg-dark-bg rounded-2xl overflow-hidden border border-dark-border hover:border-point-yellow/50 transition-all duration-75"
+                            >
+                              {/* Project Image */}
+                              <div className="relative h-32 bg-gradient-to-br from-point-yellow/20 to-point-yellow-dark/20 overflow-hidden">
+                                <div className="absolute inset-0 bg-dark-bg/60" />
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                  <div className="text-point-yellow/60 text-4xl font-bold">
+                                    {project.title.charAt(0)}
+                                  </div>
+                                </div>
+                                {/* Favorite Button */}
+                                <button
+                                  onClick={() => toggleFavoriteFromModal(project.id)}
+                                  className={`absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 ${
+                                    favoriteProjects.includes(project.id)
+                                      ? 'bg-point-yellow text-dark-bg shadow-glow-yellow'
+                                      : 'bg-dark-bg/80 text-text-secondary hover:bg-point-yellow/20 hover:text-point-yellow'
+                                  }`}
+                                >
+                                  <Star 
+                                    size={16} 
+                                    fill={favoriteProjects.includes(project.id) ? 'currentColor' : 'none'}
+                                  />
+                                </button>
+                                <div className="absolute bottom-3 left-3 px-2 py-1 bg-dark-bg/80 text-point-yellow rounded-lg text-xs font-semibold">
+                                  {project.category === 'new' ? '신규' : 
+                                   project.category === 'renewal' ? '리뉴얼' : 
+                                   project.category === 'app' ? '앱' : 
+                                   project.category === 'web' ? '웹' : 
+                                   project.category === 'proposal' ? '기획서' : 
+                                   project.category === 'usability' ? '사용성 평가' : '기타'}
+                                </div>
+                              </div>
+
+                              {/* Project Content */}
+                              <div className="p-4">
+                                <h4 className="text-lg font-bold text-white mb-2">
+                                  {project.title}
+                                </h4>
+                                <p className="text-sm text-point-yellow/80 mb-3">
+                                  {project.subtitle}
+                                </p>
+                                <p className="text-text-secondary text-sm line-clamp-2">
+                                  {project.description}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Close Button */}
+                        <div className="mt-8 text-center">
+                          <button
+                            onClick={() => setShowProjectSelection(false)}
+                            className="px-8 py-3 bg-point-yellow text-dark-bg rounded-xl font-semibold hover:bg-point-yellow-light transition-all duration-300"
+                          >
+                            완료
+                          </button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Favorite Limit Notification */}
       <AnimatePresence>
         {showLimitNotification && notificationPosition && (
           <motion.div
