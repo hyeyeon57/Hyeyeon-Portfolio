@@ -78,7 +78,7 @@ export const Header: React.FC = () => {
               const isActive = item.href.startsWith('#') 
                 ? activeSection === item.href.replace('#', '')
                 : item.href.startsWith('/#')
-                ? activeSection === item.href.replace('/#', '')
+                ? pathname === '/' && activeSection === item.href.replace('/#', '')
                 : pathname === item.href;
               return (
                 <li key={item.href}>
@@ -139,7 +139,7 @@ export const Header: React.FC = () => {
                   const isActive = item.href.startsWith('#') 
                     ? activeSection === item.href.replace('#', '')
                     : item.href.startsWith('/#')
-                    ? activeSection === item.href.replace('/#', '')
+                    ? pathname === '/' && activeSection === item.href.replace('/#', '')
                     : pathname === item.href;
                   return (
                     <motion.li
