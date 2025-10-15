@@ -126,7 +126,8 @@ export const ProjectsSection: React.FC = () => {
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
               whileHover={{ y: -8 }}
-              className="group"
+              className="group cursor-pointer"
+              onClick={() => setSelectedProject(project)}
             >
               <div className="bg-dark-surface rounded-2xl overflow-hidden border border-dark-border hover:border-point-yellow/50 transition-all duration-75 shadow-glow-yellow hover:shadow-glow-yellow-lg h-full">
                 {/* Project Image */}
