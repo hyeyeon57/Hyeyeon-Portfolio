@@ -8,7 +8,7 @@ import { projects } from '@/data/portfolio';
 import { Button } from '@/components/ui/Button';
 
 export default function AllProjectsPage() {
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(['all']);
   const [selectedProject, setSelectedProject] = useState<typeof projects[0] | null>(null);
   const [favoriteProjects, setFavoriteProjects] = useState<string[]>([]);
   const [showLimitNotification, setShowLimitNotification] = useState(false);
@@ -16,16 +16,32 @@ export default function AllProjectsPage() {
 
   const categories = [
     { id: 'all', label: '전체', count: projects.length },
-    { id: 'app-web', label: '앱+웹', count: projects.filter(p => p.category === 'app-web').length },
-    { id: 'web-app', label: '웹+앱', count: projects.filter(p => p.category === 'web-app').length },
+    { id: 'new', label: '신규', count: projects.filter(p => p.category === 'new').length },
+    { id: 'renewal', label: '리뉴얼', count: projects.filter(p => p.category === 'renewal').length },
+    { id: 'app', label: '앱', count: projects.filter(p => p.category === 'app').length },
     { id: 'web', label: '웹', count: projects.filter(p => p.category === 'web').length },
     { id: 'proposal', label: '기획서', count: projects.filter(p => p.category === 'proposal').length },
     { id: 'usability', label: '사용성 평가', count: projects.filter(p => p.category === 'usability').length },
   ];
 
-  const filteredProjects = selectedCategory === 'all' 
+  const filteredProjects = selectedCategories.includes('all') 
     ? projects 
-    : projects.filter(project => project.category === selectedCategory);
+    : projects.filter(project => selectedCategories.includes(project.category));
+
+  const toggleCategory = (categoryId: string) => {
+    setSelectedCategories(prev => {
+      if (categoryId === 'all') {
+        return ['all'];
+      }
+      
+      const newCategories = prev.includes(categoryId)
+        ? prev.filter(id => id !== categoryId)
+        : [...prev.filter(id => id !== 'all'), categoryId];
+      
+      // 모든 카테고리가 해제되면 전체로 돌아감
+      return newCategories.length === 0 ? ['all'] : newCategories;
+    });
+  };
 
   const toggleFavorite = (projectId: string, event: React.MouseEvent) => {
     const buttonRect = event.currentTarget.getBoundingClientRect();
@@ -100,9 +116,9 @@ export default function AllProjectsPage() {
           {categories.map((category) => (
             <button
               key={category.id}
-              onClick={() => setSelectedCategory(category.id)}
+              onClick={() => toggleCategory(category.id)}
               className={`px-6 py-3 rounded-xl font-semibold transition-all duration-100 ${
-                selectedCategory === category.id
+                selectedCategories.includes(category.id)
                   ? 'bg-gradient-to-r from-point-yellow to-point-yellow-dark text-dark-bg shadow-glow-yellow'
                   : 'bg-dark-surface text-text-secondary hover:bg-dark-bg hover:text-point-yellow border border-dark-border'
               }`}
