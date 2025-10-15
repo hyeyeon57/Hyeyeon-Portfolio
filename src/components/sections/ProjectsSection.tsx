@@ -10,7 +10,13 @@ import { Button } from '@/components/ui/Button';
 
 export const ProjectsSection: React.FC = () => {
   const [selectedProject, setSelectedProject] = useState<typeof projects[0] | null>(null);
-  const [favoriteProjects, setFavoriteProjects] = useState<string[]>([]);
+  const [favoriteProjects, setFavoriteProjects] = useState<string[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('favoriteProjects');
+      return saved ? JSON.parse(saved) : [];
+    }
+    return [];
+  });
   const [showLimitNotification, setShowLimitNotification] = useState(false);
   const [notificationPosition, setNotificationPosition] = useState<{ x: number; y: number } | null>(null);
 
@@ -26,10 +32,11 @@ export const ProjectsSection: React.FC = () => {
     };
     
     setFavoriteProjects(prev => {
+      let newFavorites;
       if (prev.includes(projectId)) {
-        return prev.filter(id => id !== projectId);
+        newFavorites = prev.filter(id => id !== projectId);
       } else if (prev.length < 3) {
-        return [...prev, projectId];
+        newFavorites = [...prev, projectId];
       } else {
         // 3개 제한에 도달했을 때 알림 표시
         setNotificationPosition(position);
@@ -40,6 +47,13 @@ export const ProjectsSection: React.FC = () => {
         }, 3000);
         return prev;
       }
+      
+      // localStorage에 저장
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('favoriteProjects', JSON.stringify(newFavorites));
+      }
+      
+      return newFavorites;
     });
   };
 
@@ -180,7 +194,7 @@ export const ProjectsSection: React.FC = () => {
           ))}
         </div>
 
-        {/* Favorite Info */}
+        {/* Add Project Button */}
         {favoriteProjects.length === 0 && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -190,13 +204,13 @@ export const ProjectsSection: React.FC = () => {
           >
             <div className="bg-dark-bg/50 rounded-2xl p-6 border border-point-yellow/20">
               <div className="flex items-center justify-center gap-2 mb-3">
-                <Star size={20} className="text-point-yellow" />
-                <span className="text-point-yellow font-semibold">즐겨찾기 기능</span>
+                <div className="w-8 h-8 rounded-full bg-point-yellow/20 flex items-center justify-center">
+                  <Plus size={16} className="text-point-yellow" />
+                </div>
+                <span className="text-point-yellow font-semibold">대표 프로젝트를 추가해보세요</span>
               </div>
               <p className="text-text-secondary text-sm">
-                프로젝트 카드의 별 버튼을 클릭하여 최대 3개까지 즐겨찾기할 수 있습니다.
-                <br />
-                즐겨찾기한 프로젝트들이 이 섹션에 표시됩니다.
+                전체 경로보기에서 프로젝트를 즐겨찾기하여 나만의 컬렉션을 만들어보세요.
               </p>
             </div>
           </motion.div>

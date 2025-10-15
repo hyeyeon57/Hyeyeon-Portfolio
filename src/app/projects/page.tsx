@@ -9,7 +9,13 @@ import { Button } from '@/components/ui/Button';
 export default function AllProjectsPage() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>(['all']);
   const [selectedProject, setSelectedProject] = useState<typeof projects[0] | null>(null);
-  const [favoriteProjects, setFavoriteProjects] = useState<string[]>([]);
+  const [favoriteProjects, setFavoriteProjects] = useState<string[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('favoriteProjects');
+      return saved ? JSON.parse(saved) : [];
+    }
+    return [];
+  });
   const [showLimitNotification, setShowLimitNotification] = useState(false);
   const [notificationPosition, setNotificationPosition] = useState<{ x: number; y: number } | null>(null);
 
@@ -50,10 +56,11 @@ export default function AllProjectsPage() {
     };
     
     setFavoriteProjects(prev => {
+      let newFavorites;
       if (prev.includes(projectId)) {
-        return prev.filter(id => id !== projectId);
+        newFavorites = prev.filter(id => id !== projectId);
       } else if (prev.length < 3) {
-        return [...prev, projectId];
+        newFavorites = [...prev, projectId];
       } else {
         // 3개 제한에 도달했을 때 알림 표시
         setNotificationPosition(position);
@@ -64,6 +71,13 @@ export default function AllProjectsPage() {
         }, 3000);
         return prev;
       }
+      
+      // localStorage에 저장
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('favoriteProjects', JSON.stringify(newFavorites));
+      }
+      
+      return newFavorites;
     });
   };
 
