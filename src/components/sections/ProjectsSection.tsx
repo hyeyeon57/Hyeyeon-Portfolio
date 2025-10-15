@@ -52,7 +52,7 @@ export const ProjectsSection: React.FC = () => {
         </motion.div>
 
         {/* Projects Grid */}
-        <div className="flex justify-center gap-6 mb-12">
+        <div className="grid grid-cols-4 gap-6 mb-12">
           {displayedProjects.map((project, index) => (
             <motion.div
               key={project.id}
@@ -64,7 +64,7 @@ export const ProjectsSection: React.FC = () => {
               onClick={() => setSelectedProject(project)}
               className="group cursor-pointer"
             >
-              <div className="bg-dark-bg rounded-2xl overflow-hidden border border-dark-border hover:border-point-yellow/50 transition-all duration-300 shadow-glow-yellow hover:shadow-glow-yellow-lg h-full w-64">
+              <div className="bg-dark-bg rounded-2xl overflow-hidden border border-dark-border hover:border-point-yellow/50 transition-all duration-300 shadow-glow-yellow hover:shadow-glow-yellow-lg h-full">
                 {/* Project Image */}
                 <div className="relative h-48 bg-gradient-to-br from-point-yellow/20 to-point-yellow-dark/20 overflow-hidden">
                   <div className="absolute inset-0 bg-dark-bg/60 group-hover:bg-dark-bg/40 transition-all duration-300" />
