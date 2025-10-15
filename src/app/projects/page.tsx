@@ -13,9 +13,12 @@ export default function AllProjectsPage() {
 
   const categories = [
     { id: 'all', label: '전체', count: projects.length },
-    { id: 'planning', label: '기획', count: projects.filter(p => p.category === 'planning').length },
-    { id: 'research', label: '리서치', count: projects.filter(p => p.category === 'research').length },
-    { id: 'development', label: '개발', count: projects.filter(p => p.category === 'development').length },
+    { id: 'new', label: '신규', count: projects.filter(p => p.category === 'new').length },
+    { id: 'renewal', label: '리뉴얼', count: projects.filter(p => p.category === 'renewal').length },
+    { id: 'app', label: '앱', count: projects.filter(p => p.category === 'app').length },
+    { id: 'web', label: '웹', count: projects.filter(p => p.category === 'web').length },
+    { id: 'proposal', label: '기획서', count: projects.filter(p => p.category === 'proposal').length },
+    { id: 'usability', label: '사용성 평가', count: projects.filter(p => p.category === 'usability').length },
   ];
 
   const filteredProjects = selectedCategory === 'all' 

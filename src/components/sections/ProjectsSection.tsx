@@ -79,9 +79,12 @@ export const ProjectsSection: React.FC = () => {
                     </div>
                   )}
                   <div className="absolute bottom-4 left-4 px-3 py-1 bg-dark-bg/80 text-point-yellow rounded-lg text-xs font-semibold">
-                    {project.category === 'planning' ? '기획' : 
-                     project.category === 'research' ? '리서치' : 
-                     project.category === 'development' ? '개발' : '기타'}
+                    {project.category === 'new' ? '신규' : 
+                     project.category === 'renewal' ? '리뉴얼' : 
+                     project.category === 'app' ? '앱' : 
+                     project.category === 'web' ? '웹' : 
+                     project.category === 'proposal' ? '기획서' : 
+                     project.category === 'usability' ? '사용성 평가' : '기타'}
                   </div>
                 </div>
 
