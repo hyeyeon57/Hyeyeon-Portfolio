@@ -73,7 +73,7 @@ export const Header: React.FC = () => {
           </motion.div>
 
           {/* Desktop Navigation */}
-          <ul className="hidden md:flex items-center gap-2 lg:gap-3">
+          <ul className="hidden md:flex items-center gap-6 lg:gap-8">
             {navItems.map((item) => {
               const isActive = item.href.startsWith('#') 
                 ? activeSection === item.href.replace('#', '')
@@ -135,7 +135,7 @@ export const Header: React.FC = () => {
               transition={{ duration: 0.2 }}
               className="md:hidden mt-4 overflow-hidden"
             >
-              <ul className="flex flex-col gap-2">
+              <ul className="flex flex-col gap-4">
                 {navItems.map((item, index) => {
                   const isActive = item.href.startsWith('#') 
                     ? activeSection === item.href.replace('#', '')
