@@ -223,18 +223,31 @@ export const ProjectsSection: React.FC = () => {
             className="flex justify-center mb-8"
           >
             <motion.div
-              whileHover={{ scale: 1.02 }}
+              whileHover={{ y: -8 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setShowProjectSelection(true)}
-              className="bg-dark-bg/50 rounded-2xl p-8 border border-point-yellow/20 cursor-pointer hover:border-point-yellow/40 hover:bg-dark-bg/70 transition-all duration-300 max-w-md w-full"
+              className="group cursor-pointer"
             >
-              <div className="flex flex-col items-center gap-4">
-                <div className="w-16 h-16 rounded-full bg-point-yellow/20 flex items-center justify-center">
-                  <Plus size={24} className="text-point-yellow" />
+              <div className="bg-dark-surface rounded-2xl overflow-hidden border border-dark-border hover:border-point-yellow/50 transition-all duration-75 shadow-glow-yellow hover:shadow-glow-yellow-lg h-full">
+                {/* Project Image Area */}
+                <div className="relative h-48 bg-gradient-to-br from-point-yellow/20 to-point-yellow-dark/20 overflow-hidden">
+                  <div className="absolute inset-0 bg-dark-bg/60 group-hover:bg-dark-bg/40 transition-all duration-75" />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-16 h-16 rounded-full bg-point-yellow/20 flex items-center justify-center">
+                      <Plus size={24} className="text-point-yellow" />
+                    </div>
+                  </div>
                 </div>
-                <div className="text-center">
-                  <h3 className="text-point-yellow font-semibold text-lg mb-2">대표 프로젝트를 추가해보세요</h3>
-                  <p className="text-text-secondary text-sm">
+
+                {/* Project Content */}
+                <div className="p-6">
+                  <h3 className="text-xl font-bold text-white mb-2 group-hover:text-point-yellow transition-colors duration-75">
+                    대표 프로젝트를 추가해보세요
+                  </h3>
+                  <p className="text-sm text-point-yellow/80 mb-3">
+                    프로젝트 선택하기
+                  </p>
+                  <p className="text-text-secondary text-sm mb-4 line-clamp-2">
                     클릭하여 프로젝트를 선택하고 즐겨찾기하세요
                   </p>
                 </div>
