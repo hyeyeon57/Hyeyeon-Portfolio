@@ -14,7 +14,9 @@ export const ProjectsSection: React.FC = () => {
   const [showLimitNotification, setShowLimitNotification] = useState(false);
   const [notificationPosition, setNotificationPosition] = useState<{ x: number; y: number } | null>(null);
 
-  const displayedProjects = projects.slice(0, 3);
+  const displayedProjects = favoriteProjects.length > 0 
+    ? projects.filter(project => favoriteProjects.includes(project.id))
+    : projects.slice(0, 3);
 
   const toggleFavorite = (projectId: string, event: React.MouseEvent) => {
     const buttonRect = event.currentTarget.getBoundingClientRect();
@@ -64,7 +66,7 @@ export const ProjectsSection: React.FC = () => {
             viewport={{ once: true }}
             className="inline-block px-4 py-2 bg-point-yellow/20 text-point-yellow rounded-full text-sm font-semibold mb-4 border border-point-yellow/30"
           >
-            대표 프로젝트 3선
+            {favoriteProjects.length > 0 ? '즐겨찾기 프로젝트' : '대표 프로젝트 3선'}
           </motion.span>
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
             Projects
@@ -73,9 +75,10 @@ export const ProjectsSection: React.FC = () => {
             "데이터로 문제를 정의하고, 구조로 길을 만든다."
           </p>
           <p className="text-xl text-text-secondary max-w-3xl mx-auto">
-            사용자의 여정 속 문제를 발견하고,
-            <br />
-            체계적인 설계로 더 나은 경험을 만들어갑니다.
+            {favoriteProjects.length > 0 
+              ? '즐겨찾기한 프로젝트들을 확인해보세요.'
+              : '사용자의 여정 속 문제를 발견하고, 체계적인 설계로 더 나은 경험을 만들어갑니다. 프로젝트를 즐겨찾기하여 나만의 컬렉션을 만들어보세요.'
+            }
           </p>
         </motion.div>
 
@@ -176,6 +179,28 @@ export const ProjectsSection: React.FC = () => {
             </motion.div>
           ))}
         </div>
+
+        {/* Favorite Info */}
+        {favoriteProjects.length === 0 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            className="text-center mb-8"
+          >
+            <div className="bg-dark-bg/50 rounded-2xl p-6 border border-point-yellow/20">
+              <div className="flex items-center justify-center gap-2 mb-3">
+                <Star size={20} className="text-point-yellow" />
+                <span className="text-point-yellow font-semibold">즐겨찾기 기능</span>
+              </div>
+              <p className="text-text-secondary text-sm">
+                프로젝트 카드의 별 버튼을 클릭하여 최대 3개까지 즐겨찾기할 수 있습니다.
+                <br />
+                즐겨찾기한 프로젝트들이 이 섹션에 표시됩니다.
+              </p>
+            </div>
+          </motion.div>
+        )}
 
         {/* Show All Button */}
         {projects.length > 3 && (
