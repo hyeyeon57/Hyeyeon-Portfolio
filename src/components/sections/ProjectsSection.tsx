@@ -130,7 +130,7 @@ export const ProjectsSection: React.FC = () => {
             >
               <div className="bg-dark-surface rounded-2xl overflow-hidden border border-dark-border hover:border-point-yellow/50 transition-all duration-75 shadow-glow-yellow hover:shadow-glow-yellow-lg h-full">
                 {/* Project Image */}
-                <div className="relative h-48 bg-gradient-to-br from-point-yellow/20 to-point-yellow-dark/20 overflow-hidden">
+                <div className="relative h-52 bg-gradient-to-br from-point-yellow/20 to-point-yellow-dark/20 overflow-hidden">
                   <div className="absolute inset-0 bg-dark-bg/60 group-hover:bg-dark-bg/40 transition-all duration-75" />
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="text-point-yellow/60 text-6xl font-bold">
@@ -230,9 +230,9 @@ export const ProjectsSection: React.FC = () => {
               onClick={() => setShowProjectSelection(true)}
               className="group cursor-pointer"
             >
-              <div className="bg-dark-surface rounded-2xl overflow-hidden border border-dark-border hover:border-point-yellow/50 transition-all duration-75 shadow-glow-yellow hover:shadow-glow-yellow-lg h-full">
-                {/* Project Image */}
-                <div className="relative h-48 bg-gradient-to-br from-point-yellow/20 to-point-yellow-dark/20 overflow-hidden">
+            <div className="bg-dark-surface rounded-2xl overflow-hidden border border-dark-border hover:border-point-yellow/50 transition-all duration-75 shadow-glow-yellow hover:shadow-glow-yellow-lg h-full">
+              {/* Project Image */}
+              <div className="relative h-52 bg-gradient-to-br from-point-yellow/20 to-point-yellow-dark/20 overflow-hidden">
                   <div className="absolute inset-0 bg-dark-bg/60 group-hover:bg-dark-bg/40 transition-all duration-75" />
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="text-point-yellow/60 text-6xl font-bold">
@@ -473,7 +473,7 @@ export const ProjectsSection: React.FC = () => {
                               className="bg-dark-surface rounded-2xl overflow-hidden border border-dark-border hover:border-point-yellow/50 transition-all duration-75 h-full shadow-lg shadow-white/10"
                             >
                               {/* Project Image */}
-                              <div className="relative h-24 bg-gradient-to-br from-point-yellow/20 to-point-yellow-dark/20 overflow-hidden">
+                              <div className="relative h-28 bg-gradient-to-br from-point-yellow/20 to-point-yellow-dark/20 overflow-hidden">
                                 <div className="absolute inset-0 bg-dark-bg/60" />
                                 <div className="absolute inset-0 flex items-center justify-center">
                                   <div className="text-point-yellow/60 text-2xl font-bold">
