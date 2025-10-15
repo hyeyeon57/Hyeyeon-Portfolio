@@ -169,9 +169,16 @@ body {
   z-index: 9999;
 }
 
+/* 프로젝트 선택 모달 전체 컨테이너 */
+.project-selection-modal {
+  pointer-events: auto !important;
+  z-index: 50 !important;
+}
+
 /* 프로젝트 선택 모달 카드 - 커서 없음 */
 .project-selection-card {
   cursor: default !important;
+  pointer-events: auto !important;
 }
 
 .project-selection-card:hover {
@@ -181,4 +188,7 @@ body {
 /* 프로젝트 선택 모달의 즐겨찾기 버튼만 커서 표시 */
 .project-selection-card button {
   cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="none" stroke="%23FFD700" stroke-width="4"/></svg>'), auto !important;
+  z-index: 10 !important;
+  pointer-events: auto !important;
+  position: relative !important;
 }
