@@ -21,9 +21,7 @@ export const ProjectsSection: React.FC = () => {
   const [showLimitNotification, setShowLimitNotification] = useState(false);
   const [notificationPosition, setNotificationPosition] = useState<{ x: number; y: number } | null>(null);
 
-  const displayedProjects = favoriteProjects.length > 0 
-    ? projects.filter(project => favoriteProjects.includes(project.id))
-    : projects.slice(0, 3);
+  const displayedProjects = projects.filter(project => favoriteProjects.includes(project.id));
 
   const toggleFavorite = (projectId: string, event: React.MouseEvent) => {
     const buttonRect = event.currentTarget.getBoundingClientRect();
@@ -96,14 +94,14 @@ export const ProjectsSection: React.FC = () => {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <motion.span
-            initial={{ opacity: 0, scale: 0.8 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            className="inline-block px-4 py-2 bg-point-yellow/20 text-point-yellow rounded-full text-sm font-semibold mb-4 border border-point-yellow/30"
-          >
-            {favoriteProjects.length > 0 ? '즐겨찾기 프로젝트' : '대표 프로젝트 3선'}
-          </motion.span>
+                  <motion.span
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    viewport={{ once: true }}
+                    className="inline-block px-4 py-2 bg-point-yellow/20 text-point-yellow rounded-full text-sm font-semibold mb-4 border border-point-yellow/30"
+                  >
+                    {favoriteProjects.length > 0 ? '즐겨찾기 프로젝트' : '대표 프로젝트'}
+                  </motion.span>
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
             Projects
           </h2>
@@ -113,7 +111,7 @@ export const ProjectsSection: React.FC = () => {
           <p className="text-xl text-text-secondary max-w-3xl mx-auto">
             {favoriteProjects.length > 0 
               ? '즐겨찾기한 프로젝트들을 확인해보세요.'
-              : '사용자의 여정 속 문제를 발견하고, 체계적인 설계로 더 나은 경험을 만들어갑니다. 프로젝트를 즐겨찾기하여 나만의 컬렉션을 만들어보세요.'
+              : '사용자의 여정 속 문제를 발견하고, 체계적인 설계로 더 나은 경험을 만들어갑니다.'
             }
           </p>
         </motion.div>
@@ -217,7 +215,7 @@ export const ProjectsSection: React.FC = () => {
         </div>
 
         {/* Add Project Button */}
-        {favoriteProjects.length === 0 && (
+        {displayedProjects.length === 0 && (
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
