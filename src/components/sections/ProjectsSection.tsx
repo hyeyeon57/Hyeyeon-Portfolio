@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/Button';
 export const ProjectsSection: React.FC = () => {
   const [selectedProject, setSelectedProject] = useState<typeof projects[0] | null>(null);
 
-  const displayedProjects = projects.slice(0, 3);
+  const displayedProjects = projects.slice(0, 4);
 
   return (
     <section id="projects" className="py-20 bg-dark-surface border-t border-dark-border relative overflow-hidden">
@@ -36,7 +36,7 @@ export const ProjectsSection: React.FC = () => {
             viewport={{ once: true }}
             className="inline-block px-4 py-2 bg-point-yellow/20 text-point-yellow rounded-full text-sm font-semibold mb-4 border border-point-yellow/30"
           >
-            🚀 대표 프로젝트 5선
+            🚀 대표 프로젝트 4선
           </motion.span>
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
             Projects
@@ -123,7 +123,7 @@ export const ProjectsSection: React.FC = () => {
         </div>
 
         {/* Show All Button */}
-        {projects.length > 3 && (
+        {projects.length > 4 && (
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
