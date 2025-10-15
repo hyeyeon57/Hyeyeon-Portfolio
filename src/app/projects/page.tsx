@@ -336,16 +336,16 @@ export default function AllProjectsPage() {
             exit={{ opacity: 0, y: 50, scale: 0.9 }}
             className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50"
           >
-            <div className="bg-dark-surface border border-point-yellow/50 rounded-2xl px-6 py-4 shadow-glow-yellow-lg backdrop-blur-sm">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-point-yellow/20 flex items-center justify-center">
-                  <Star size={16} className="text-point-yellow" />
+            <div className="bg-dark-surface border border-point-yellow/50 rounded-2xl px-8 py-6 shadow-glow-yellow-lg backdrop-blur-sm">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-point-yellow/20 flex items-center justify-center">
+                  <Star size={24} className="text-point-yellow" />
                 </div>
                 <div>
-                  <p className="text-white font-semibold text-sm">
+                  <p className="text-white font-bold text-lg">
                     즐겨찾기는 3개까지 가능합니다
                   </p>
-                  <p className="text-text-secondary text-xs">
+                  <p className="text-text-secondary text-base">
                     새로 추가하려면 기존 경로를 해제하세요
                   </p>
                 </div>
