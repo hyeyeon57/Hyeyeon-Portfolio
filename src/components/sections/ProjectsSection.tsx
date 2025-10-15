@@ -471,7 +471,7 @@ export const ProjectsSection: React.FC = () => {
                           {projects.map((project) => (
                             <div
                               key={project.id}
-                              className="bg-dark-surface rounded-2xl overflow-hidden border border-dark-border hover:border-point-yellow/50 transition-all duration-75 h-full"
+                              className="bg-dark-surface rounded-2xl overflow-hidden border border-dark-border hover:border-point-yellow/50 transition-all duration-75 h-full shadow-lg shadow-white/10"
                             >
                               {/* Project Image */}
                               <div className="relative h-24 bg-gradient-to-br from-point-yellow/20 to-point-yellow-dark/20 overflow-hidden">
