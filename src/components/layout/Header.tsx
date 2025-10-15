@@ -160,8 +160,12 @@ export const Header: React.FC = () => {
                           )}
                           onClick={() => setIsMobileMenuOpen(false)}
                         >
-                          {item.icon}
-                          {item.label}
+                          <div className="flex items-center gap-3">
+                            <div className="scale-75">
+                              {item.icon}
+                            </div>
+                            <span className="text-sm">{item.label}</span>
+                          </div>
                         </Link>
                       ) : (
                         <Link
@@ -174,8 +178,12 @@ export const Header: React.FC = () => {
                           )}
                           onClick={() => setIsMobileMenuOpen(false)}
                         >
-                          {item.icon}
-                          {item.label}
+                          <div className="flex items-center gap-3">
+                            <div className="scale-75">
+                              {item.icon}
+                            </div>
+                            <span className="text-sm">{item.label}</span>
+                          </div>
                         </Link>
                       )}
                     </motion.li>
