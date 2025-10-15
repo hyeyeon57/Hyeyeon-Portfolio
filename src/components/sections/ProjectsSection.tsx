@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/Button';
 export const ProjectsSection: React.FC = () => {
   const [selectedProject, setSelectedProject] = useState<typeof projects[0] | null>(null);
 
-  const displayedProjects = projects.slice(0, 3);
+  const displayedProjects = projects.slice(0, 4);
 
   return (
     <section id="projects" className="py-20 bg-dark-surface border-t border-dark-border relative overflow-hidden">
@@ -36,7 +36,7 @@ export const ProjectsSection: React.FC = () => {
             viewport={{ once: true }}
             className="inline-block px-4 py-2 bg-point-yellow/20 text-point-yellow rounded-full text-sm font-semibold mb-4 border border-point-yellow/30"
           >
-            🚀 대표 프로젝트 5선
+            🚀 대표 프로젝트 4선
           </motion.span>
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
             Projects
@@ -52,7 +52,7 @@ export const ProjectsSection: React.FC = () => {
         </motion.div>
 
         {/* Projects Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+        <div className="flex justify-center gap-6 mb-12">
           {displayedProjects.map((project, index) => (
             <motion.div
               key={project.id}
@@ -64,7 +64,7 @@ export const ProjectsSection: React.FC = () => {
               onClick={() => setSelectedProject(project)}
               className="group cursor-pointer"
             >
-              <div className="bg-dark-bg rounded-2xl overflow-hidden border border-dark-border hover:border-point-yellow/50 transition-all duration-300 shadow-glow-yellow hover:shadow-glow-yellow-lg h-full">
+              <div className="bg-dark-bg rounded-2xl overflow-hidden border border-dark-border hover:border-point-yellow/50 transition-all duration-300 shadow-glow-yellow hover:shadow-glow-yellow-lg h-full w-64">
                 {/* Project Image */}
                 <div className="relative h-48 bg-gradient-to-br from-point-yellow/20 to-point-yellow-dark/20 overflow-hidden">
                   <div className="absolute inset-0 bg-dark-bg/60 group-hover:bg-dark-bg/40 transition-all duration-300" />
@@ -123,7 +123,7 @@ export const ProjectsSection: React.FC = () => {
         </div>
 
         {/* Show All Button */}
-        {projects.length > 3 && (
+        {projects.length > 4 && (
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
