@@ -64,7 +64,7 @@ export const ProjectsSection: React.FC = () => {
             viewport={{ once: true }}
             className="inline-block px-4 py-2 bg-point-yellow/20 text-point-yellow rounded-full text-sm font-semibold mb-4 border border-point-yellow/30"
           >
-            🚀 대표 프로젝트 3선
+            대표 프로젝트 3선
           </motion.span>
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
             Projects
