@@ -66,7 +66,7 @@ export const ProjectsSection: React.FC = () => {
             >
               <div className="bg-dark-bg rounded-2xl overflow-hidden border border-dark-border hover:border-point-yellow/50 transition-all duration-300 shadow-glow-yellow hover:shadow-glow-yellow-lg h-full">
                 {/* Project Image */}
-                <div className="relative h-48 bg-gradient-to-br from-point-yellow/20 to-point-yellow-dark/20 overflow-hidden">
+                <div className="relative h-32 bg-gradient-to-br from-point-yellow/20 to-point-yellow-dark/20 overflow-hidden">
                   <div className="absolute inset-0 bg-dark-bg/60 group-hover:bg-dark-bg/40 transition-all duration-300" />
                   <div className="absolute inset-0 flex items-center justify-center">
                     {/* 빈 이미지 공간 */}
@@ -79,7 +79,7 @@ export const ProjectsSection: React.FC = () => {
                 </div>
 
                 {/* Project Content */}
-                <div className="p-6">
+                <div className="p-4">
                   {/* Tags */}
                   <div className="flex flex-wrap gap-2 mb-3">
                     {project.tags.slice(0, 3).map((tag, i) => (
@@ -93,7 +93,7 @@ export const ProjectsSection: React.FC = () => {
                   </div>
 
                   {/* Title & Subtitle */}
-                  <h3 className="text-xl font-bold text-white mb-2 group-hover:text-point-yellow transition-colors duration-300">
+                  <h3 className="text-lg font-bold text-white mb-2 group-hover:text-point-yellow transition-colors duration-300">
                     {project.title}
                   </h3>
                   <p className="text-sm text-point-yellow/80 mb-3">
@@ -101,7 +101,7 @@ export const ProjectsSection: React.FC = () => {
                   </p>
 
                   {/* Description */}
-                  <p className="text-text-secondary text-sm mb-4 line-clamp-2">
+                  <p className="text-text-secondary text-sm mb-3 line-clamp-2">
                     {project.description}
                   </p>
 
