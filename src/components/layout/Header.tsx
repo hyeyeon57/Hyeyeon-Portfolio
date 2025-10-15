@@ -51,7 +51,7 @@ export const Header: React.FC = () => {
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       className={cn(
-        'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
+        'fixed top-0 left-0 right-0 z-50 transition-all duration-150',
         isScrolled
           ? 'bg-dark-bg/90 backdrop-blur-xl shadow-glow-yellow border-b border-dark-border py-4'
           : 'bg-transparent py-6'
@@ -86,7 +86,7 @@ export const Header: React.FC = () => {
                     <Link
                       href={item.href}
                       className={cn(
-                        'flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-all duration-200 cursor-pointer',
+                        'flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-all duration-75 cursor-pointer',
                         isActive
                           ? 'bg-gradient-to-r from-point-yellow to-point-yellow-dark text-dark-bg shadow-glow-yellow'
                           : 'text-text-secondary hover:bg-dark-bg hover:text-point-yellow'
@@ -99,7 +99,7 @@ export const Header: React.FC = () => {
                     <Link
                       href={item.href}
                       className={cn(
-                        'flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-all duration-200 cursor-pointer',
+                        'flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-all duration-75 cursor-pointer',
                         isActive
                           ? 'bg-gradient-to-r from-point-yellow to-point-yellow-dark text-dark-bg shadow-glow-yellow'
                           : 'text-text-secondary hover:bg-dark-bg hover:text-point-yellow'
@@ -118,7 +118,7 @@ export const Header: React.FC = () => {
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
-            className="md:hidden p-3 rounded-xl bg-dark-surface shadow-glow-yellow text-text-secondary hover:text-point-yellow transition-colors border border-dark-border"
+            className="md:hidden p-3 rounded-xl bg-dark-surface shadow-glow-yellow text-text-secondary hover:text-point-yellow transition-colors duration-100 border border-dark-border"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           >
             {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -132,6 +132,7 @@ export const Header: React.FC = () => {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.2 }}
               className="md:hidden mt-4 overflow-hidden"
             >
               <ul className="flex flex-col gap-2 bg-dark-surface rounded-2xl p-4 shadow-glow-yellow-lg border border-dark-border">
@@ -146,13 +147,13 @@ export const Header: React.FC = () => {
                       key={item.href}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.1 }}
+                      transition={{ delay: index * 0.05, duration: 0.15 }}
                     >
                       {item.href.startsWith('#') || item.href.startsWith('/#') ? (
                         <Link
                           href={item.href}
                           className={cn(
-                            'flex items-center gap-3 px-5 py-3 rounded-xl transition-all duration-200 font-medium cursor-pointer',
+                            'flex items-center gap-3 px-5 py-3 rounded-xl transition-all duration-75 font-medium cursor-pointer',
                             isActive
                               ? 'bg-gradient-to-r from-point-yellow to-point-yellow-dark text-dark-bg shadow-glow-yellow'
                               : 'text-text-secondary hover:bg-dark-bg hover:text-point-yellow'
@@ -166,7 +167,7 @@ export const Header: React.FC = () => {
                         <Link
                           href={item.href}
                           className={cn(
-                            'flex items-center gap-3 px-5 py-3 rounded-xl transition-all duration-200 font-medium cursor-pointer',
+                            'flex items-center gap-3 px-5 py-3 rounded-xl transition-all duration-75 font-medium cursor-pointer',
                             isActive
                               ? 'bg-gradient-to-r from-point-yellow to-point-yellow-dark text-dark-bg shadow-glow-yellow'
                               : 'text-text-secondary hover:bg-dark-bg hover:text-point-yellow'
