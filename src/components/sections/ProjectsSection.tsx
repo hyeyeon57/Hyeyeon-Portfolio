@@ -438,7 +438,7 @@ export const ProjectsSection: React.FC = () => {
                       animate={{ scale: 1, y: 0 }}
                       exit={{ scale: 0.9, y: 20 }}
                       onClick={(e) => e.stopPropagation()}
-                      className="bg-dark-surface rounded-3xl max-w-5xl w-full max-h-[85vh] overflow-hidden border border-dark-border"
+                      className="bg-dark-surface rounded-3xl max-w-5xl w-full max-h-[85vh] overflow-hidden border border-dark-border mx-4"
                     >
                       {/* Modal Header */}
                       <div className="sticky top-0 bg-dark-surface border-b border-dark-border px-6 py-4 flex items-center justify-between z-10">
