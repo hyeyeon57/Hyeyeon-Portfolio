@@ -5,7 +5,11 @@ import { motion } from 'framer-motion';
 import { Wrench } from 'lucide-react';
 import { skills } from '@/data/portfolio';
 
-export const SkillsSection: React.FC = () => {
+interface SkillsSectionProps {
+  theme?: 'light' | 'dark';
+}
+
+export const SkillsSection: React.FC<SkillsSectionProps> = ({ theme = 'light' }) => {
   // Main tools와 보조 툴 분리
   const mainTools = skills.filter(skill => 
     ['Figma', 'Excel', 'Google Spreadsheet', 'PowerPoint', 'AI Tools (Cursor·GPT·Gemini·UXpilot)', 'Notion', 'Eye-Tracking (Tobii Pro)'].includes(skill.name)
@@ -19,12 +23,11 @@ export const SkillsSection: React.FC = () => {
   const getLevelPercent = (level: number) => (level / 5) * 100;
 
   return (
-    <section id="skills" className="py-20 bg-dark-bg border-t border-dark-border relative overflow-hidden">
-      {/* Background Decoration */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-point-yellow rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-point-yellow rounded-full blur-3xl" />
-      </div>
+    <section id="skills" className="py-20 relative overflow-hidden">
+      {/* 상단 그라데이션 마스크 */}
+      <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-white/0 to-transparent pointer-events-none z-0" />
+      {/* 하단 그라데이션 마스크 */}
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white/0 to-transparent pointer-events-none z-0" />
 
       <div className="max-w-container mx-auto px-container-x relative z-10">
         {/* Section Header */}
@@ -39,14 +42,14 @@ export const SkillsSection: React.FC = () => {
             initial={{ opacity: 0, scale: 0.8 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
-            className="inline-block px-4 py-2 bg-point-yellow/20 text-point-yellow rounded-full text-sm font-semibold mb-4 border border-point-yellow/30"
+            className="inline-block px-4 py-2 bg-brand-main/10 text-brand-main rounded-full text-sm font-semibold mb-4 border border-brand-main/30"
           >
             🛠️ 기획자의 내비게이션 도구들
           </motion.span>
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+          <h2 className="text-4xl md:text-5xl font-light text-text-main mb-4">
             Tools & Capabilities
           </h2>
-          <p className="text-xl text-text-secondary max-w-2xl mx-auto">
+          <p className="text-xl text-text-sub max-w-2xl mx-auto">
             다양한 도구를 활용해 사용자 경험을 설계하고,
             <br />
             데이터 기반의 체계적인 기획을 수행합니다.
@@ -61,12 +64,12 @@ export const SkillsSection: React.FC = () => {
           transition={{ duration: 0.6 }}
           className="max-w-4xl mx-auto mb-12"
         >
-          <div className="bg-dark-surface rounded-3xl p-8 md:p-12 shadow-glow-yellow border border-dark-border">
+          <div className="bg-white rounded-3xl p-8 md:p-12 shadow minimal border border-line-medium">
             <div className="flex items-center gap-3 mb-10">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-point-yellow to-point-yellow-dark flex items-center justify-center shadow-glow-yellow">
-                <Wrench className="text-dark-bg" size={24} />
+              <div className="w-12 h-12 rounded-2xl bg-brand-main flex items-center justify-center shadow minimal">
+                <Wrench className="text-white" size={24} />
               </div>
-              <h3 className="text-2xl font-bold text-white">Main Tools</h3>
+              <h3 className="text-2xl font-bold text-text-main">Main Tools</h3>
             </div>
 
             <div className="space-y-8">
@@ -81,20 +84,20 @@ export const SkillsSection: React.FC = () => {
                   {/* Tool Name & Percentage */}
                   <div className="flex justify-between items-baseline mb-3">
                     <div>
-                      <span className="text-lg font-bold text-white">
+                      <span className="text-lg font-bold text-text-main">
                         {tool.name}
                       </span>
-                      <p className="text-sm text-text-tertiary mt-1">
+                      <p className="text-sm text-text-secondary mt-1">
                         {tool.description}
                       </p>
                     </div>
-                    <span className="text-2xl font-bold text-point-yellow ml-4">
+                    <span className="text-2xl font-bold text-brand-main ml-4">
                       {getLevelPercent(tool.level)}%
                     </span>
                   </div>
 
                   {/* Progress Bar - Gradient Line */}
-                  <div className="relative h-2 bg-dark-border rounded-full overflow-hidden">
+                  <div className="relative h-2 bg-line-medium rounded-full overflow-hidden">
                     <motion.div
                       initial={{ width: 0 }}
                       whileInView={{ width: `${getLevelPercent(tool.level)}%` }}
@@ -104,14 +107,8 @@ export const SkillsSection: React.FC = () => {
                         delay: index * 0.1,
                         ease: [0.16, 1, 0.3, 1]
                       }}
-                      className="absolute top-0 left-0 h-full rounded-full"
-                      style={{
-                        background: 'linear-gradient(90deg, #7E57C2 0%, #D81B60 100%)'
-                      }}
-                    >
-                      {/* Glow effect */}
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse" />
-                    </motion.div>
+                      className="absolute top-0 left-0 h-full rounded-full bg-brand-main"
+                    />
                   </div>
                 </motion.div>
               ))}

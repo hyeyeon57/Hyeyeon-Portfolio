@@ -15,72 +15,48 @@ const config: Config = {
         'container-x': '190px',
       },
       colors: {
-        // Navigation Theme - Dark Mode
-        dark: {
-          bg: "#242424",
-          surface: "#1E1E1E",
-          footer: "#0F0F0F",
-          border: "#2A2A2A",
-        },
-        // Point Color - Yellow (Navigation Theme)
-        point: {
-          yellow: "#FFD700",
-          'yellow-light': "#FFE55C",
-          'yellow-dark': "#FFC700",
-        },
-        // Brand Colors from Figma (유지)
-        brand: {
-          main: "#6100FF",
-          sub1: "#39C3B6",
-          sub2: "#F59917",
-        },
-        // Dark Mode Text Colors
-        text: {
-          primary: "#FFFFFF",
-          secondary: "#B0B0B0",
-          tertiary: "#808080",
-          disabled: "#505050",
-        },
-        line: {
-          light: "#2A2A2A",
-          medium: "#3A3A3A",
-          dark: "#4A4A4A",
-        },
-        bg: {
-          light: "#1E1E1E",
-          medium: "#2A2A2A",
-        },
-        status: {
-          danger: "#DC0000",
-          success: "#04B014",
-          warning: "#FFD700",
-        },
-        // System Color Palette from Figma
-        system: {
-          cyan: {
-            900: "#275f63",
-            800: "#38818d",
-            700: "#4295a5",
-            600: "#4caabe",
-            500: "#54bad1",
-            400: "#5fc4d7",
-            300: "#73cede",
-            200: "#96dce8",
-            100: "#beeaf1",
-            50: "#e4f6f9",
-          },
-        },
+        // 배경 컬러 (새 컬러 팔레트)
+        'bg-darkest': '#18181C',     // 아주 진한 블랙에 가까운 차콜 블랙
+        'bg-light-cool': '#F4F5F7',  // 아주 연한 쿨톤 라이트 그레이
+        'bg-light-soft': '#F5F6FA',  // 거의 흰색에 가까운 블루 기운의 라이트 그레이
+        'bg-white': '#FFFFFF',       // 순수 화이트
+        
+        // 배경 컬러 (기존)
+        'bg-light': '#F7F7FB',
+        'bg-dark': '#F1F1F5',
+        
+        // 텍스트 컬러 (접근성 4.5:1 이상)
+        'text-main': '#111111',      // Main Text Color
+        'text-sub': '#505050',       // Sub Text Color
+        'text-secondary': '#767676', // Sub Text Color
+        'text-disabled': '#999999',  // Disabled Color
+        
+        // 브랜드 컬러
+        'brand-main': '#7A68F6',     // 은은한 보랏빛의 라일락 퍼플 / 바이올렛
+        'brand-sub-1': '#39C3B6',    // Brand Sub Color 1
+        'brand-sub-2': '#F59917',    // Brand Sub Color 2
+        
+        // 라인 컬러
+        'line-light': '#F1F1F5',     // 연한 Line 컬러
+        'line-medium': '#E5E5EC',    // 중간 Line 컬러 (버튼, 인풋박스 등)
+        'line-dark': '#111111',      // 진한 Line 컬러
+        
+        // 상태 컬러
+        'status-danger': '#DC0000',  // 위험/실패
+        'status-success': '#04B014', // 성공/안전
+        'status-warning': '#FFAA00', // 주의/경고
       },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
         "gradient-conic":
           "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
-        "navigation-gradient": "linear-gradient(135deg, #FFD700 0%, #FFC700 100%)",
-        "dark-gradient": "linear-gradient(180deg, #121212 0%, #0F0F0F 100%)",
+        'gradient-purple-soft': 'linear-gradient(135deg, #7A68F6 0%, #9B88FF 100%)',
+        'gradient-purple-pastel': 'linear-gradient(135deg, #E8E4FF 0%, #F0EDFF 100%)',
+        'gradient-purple-blue': 'linear-gradient(135deg, #7A68F6 0%, #A8A0FF 100%)',
       },
       boxShadow: {
-        'glow-yellow': '0 0 20px rgba(255, 215, 0, 0.3)',
-        'glow-yellow-lg': '0 0 40px rgba(255, 215, 0, 0.5)',
+        'minimal': '0 1px 3px rgba(0, 0, 0, 0.05)',
+        'minimal-lg': '0 2px 8px rgba(0, 0, 0, 0.08)',
       },
     },
   },

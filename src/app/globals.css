@@ -3,11 +3,10 @@
 @tailwind utilities;
 
 :root {
-  --background: #242424;
-  --foreground: #ffffff;
-  --point-yellow: #FFD700;
-  --surface: #1E1E1E;
-  --border: #2A2A2A;
+  --background: #ffffff;
+  --foreground: #000000;
+  --surface: #ffffff;
+  --border: #000000;
 }
 
 * {
@@ -24,10 +23,11 @@ html {
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: 'Pretendard', var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  font-weight: 300;
 }
 
 /* Pretendard 폰트 Import */
@@ -52,64 +52,72 @@ body {
     overflow: hidden;
   }
 
-  /* 텍스트 가시성 보장 */
+  /* 접근성 텍스트 색상 */
   .text-white {
     color: #ffffff !important;
   }
   
-  .text-point-yellow {
-    color: #FFD700 !important;
+  .text-black {
+    color: #000000 !important;
   }
   
-  .text-text-secondary {
-    color: #B0B0B0 !important;
+  .text-gray {
+    color: #999999 !important;
   }
   
-  .bg-dark-bg {
-    background-color: #242424 !important;
+  .bg-white {
+    background-color: #ffffff !important;
   }
   
-  .bg-dark-surface {
-    background-color: #1E1E1E !important;
+  .bg-gray-light {
+    background-color: #f5f5f5 !important;
+  }
+
+  /* 배경 컬러 */
+  .bg-bg-light {
+    background-color: #F7F7FB !important;
+  }
+
+  .bg-bg-dark {
+    background-color: #F1F1F5 !important;
   }
 }
 
-/* Custom scrollbar - Dark Mode */
+/* Custom scrollbar - 미니멀 */
 ::-webkit-scrollbar {
-  width: 10px;
+  width: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #1E1E1E;
+  background: #ffffff;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #FFD700, #FFC700);
-  border-radius: 10px;
-  border: 2px solid #1E1E1E;
+  background: #000000;
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #FFE55C, #FFD700);
+  background: #333333;
 }
 
-/* Custom scrollbar for modal - Dark Mode */
+/* Custom scrollbar for modal - 미니멀 */
 .custom-scrollbar::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: #2A2A2A;
-  border-radius: 4px;
+  background: #ffffff;
+  border-radius: 3px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #FFD700, #FFC700);
-  border-radius: 4px;
+  background: #000000;
+  border-radius: 3px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #FFE55C, #FFD700);
+  background: #333333;
 }
 
 /* Smooth animations */
@@ -119,15 +127,15 @@ body {
   transition-duration: 150ms;
 }
 
-/* Selection color - Yellow Navigation Theme */
+/* Selection color - 화이트/블랙 */
 ::selection {
-  background-color: #FFD700;
-  color: #121212;
+  background-color: #000000;
+  color: #ffffff;
 }
 
 ::-moz-selection {
-  background-color: #FFD700;
-  color: #121212;
+  background-color: #000000;
+  color: #ffffff;
 }
 
 /* 커서 팔로워 스타일 - 기본 커서 숨김 */
@@ -199,4 +207,49 @@ body {
   -webkit-user-select: none !important;
   -moz-user-select: none !important;
   -ms-user-select: none !important;
+}
+
+/* 파스텔 그라데이션 카드 스타일 */
+.pastel-card {
+  position: relative;
+  border-radius: 24px;
+  padding: 0;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.06);
+  box-shadow: 0 10px 30px rgba(122,104,246,0.08);
+  overflow: hidden;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.pastel-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 18px 46px rgba(122,104,246,0.14);
+}
+
+/* 각 카드 배경 (단일 컬러) */
+.pastel-card--blue {
+  background: #E7EAFF;
+}
+
+.pastel-card--purple {
+  background: #F3E9FF;
+}
+
+.pastel-card--gray {
+  background: #F5F6FA;
+}
+
+/* 아이콘 감싸는 유리판 */
+.icon-wrap {
+  width: 84px;
+  height: 84px;
+  margin: 52px auto 18px;
+  display: grid;
+  place-items: center;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.86);
+  border: 1px solid rgba(255,255,255,0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 10px 22px rgba(122,104,246,0.10);
 }

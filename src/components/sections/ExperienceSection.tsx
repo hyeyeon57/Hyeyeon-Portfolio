@@ -5,16 +5,19 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Briefcase, GraduationCap, Award, TrendingUp } from 'lucide-react';
 import { experience, education } from '@/data/portfolio';
 
-export const ExperienceSection: React.FC = () => {
+interface ExperienceSectionProps {
+  theme?: 'light' | 'dark';
+}
+
+export const ExperienceSection: React.FC<ExperienceSectionProps> = ({ theme = 'light' }) => {
   const [activeTab, setActiveTab] = useState<'experience' | 'education'>('experience');
 
   return (
-    <section id="experience" className="py-20 bg-dark-surface border-t border-dark-border relative overflow-hidden">
-      {/* Background Decoration */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-0 left-0 w-96 h-96 bg-point-yellow rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-point-yellow rounded-full blur-3xl" />
-      </div>
+    <section id="experience" className="py-20 relative overflow-hidden">
+      {/* 상단 그라데이션 마스크 */}
+      <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-white/0 to-transparent pointer-events-none z-0" />
+      {/* 하단 그라데이션 마스크 */}
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white/0 to-transparent pointer-events-none z-0" />
 
       <div className="max-w-container mx-auto px-container-x relative z-10">
         {/* Section Header */}
@@ -29,14 +32,14 @@ export const ExperienceSection: React.FC = () => {
             initial={{ opacity: 0, scale: 0.8 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
-            className="inline-block px-4 py-2 bg-point-yellow/20 text-point-yellow rounded-full text-sm font-semibold mb-4 border border-point-yellow/30"
+            className="inline-block px-4 py-2 bg-brand-main/10 text-brand-main rounded-full text-sm font-semibold mb-4 border border-brand-main/30"
           >
             🧭 내가 지나온 경로
           </motion.span>
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+          <h2 className="text-4xl md:text-5xl font-light text-text-main mb-4">
             Experience
           </h2>
-          <p className="text-xl text-text-secondary max-w-2xl mx-auto">
+          <p className="text-xl text-text-sub max-w-2xl mx-auto">
             기획 동아리에서는 협업과 아이디어 구체화 능력을,
             <br />
             QA에서는 문제 정의와 UX 검증을,
@@ -52,13 +55,13 @@ export const ExperienceSection: React.FC = () => {
           viewport={{ once: true }}
           className="flex justify-center mb-12"
         >
-          <div className="inline-flex bg-dark-bg rounded-2xl p-2 shadow-glow-yellow border border-dark-border">
+          <div className="inline-flex bg-white rounded-2xl p-2 shadow minimal border border-line-medium">
             <button
               onClick={() => setActiveTab('experience')}
               className={`flex items-center gap-3 px-8 py-4 rounded-xl font-semibold transition-all duration-300 ${
                 activeTab === 'experience'
-                  ? 'bg-point-yellow text-dark-bg shadow-glow-yellow-lg'
-                  : 'text-text-secondary hover:text-white'
+                  ? 'bg-brand-main text-white shadow minimal'
+                  : 'text-text-secondary hover:text-brand-main'
               }`}
             >
               <Briefcase size={20} />
@@ -68,8 +71,8 @@ export const ExperienceSection: React.FC = () => {
               onClick={() => setActiveTab('education')}
               className={`flex items-center gap-3 px-8 py-4 rounded-xl font-semibold transition-all duration-300 ${
                 activeTab === 'education'
-                  ? 'bg-point-yellow text-dark-bg shadow-glow-yellow-lg'
-                  : 'text-text-secondary hover:text-white'
+                  ? 'bg-brand-main text-white shadow minimal'
+                  : 'text-text-secondary hover:text-brand-main'
               }`}
             >
               <GraduationCap size={20} />
@@ -102,7 +105,7 @@ export const ExperienceSection: React.FC = () => {
                   >
                     {/* Timeline Line */}
                     {index !== experience.length - 1 && (
-                      <div className="absolute left-[39px] top-20 bottom-0 w-0.5 bg-gradient-to-b from-point-yellow to-point-yellow-dark opacity-30" />
+                      <div className="absolute left-[39px] top-20 bottom-0 w-0.5 bg-brand-main opacity-30" />
                     )}
 
                     <div className="flex gap-6">
@@ -110,23 +113,23 @@ export const ExperienceSection: React.FC = () => {
                       <motion.div
                         whileHover={{ rotate: 360 }}
                         transition={{ duration: 0.5 }}
-                        className="flex-shrink-0 w-20 h-20 rounded-2xl bg-gradient-to-br from-point-yellow to-point-yellow-dark text-dark-bg flex items-center justify-center shadow-glow-yellow-lg"
+                        className="flex-shrink-0 w-20 h-20 rounded-2xl bg-brand-main text-white flex items-center justify-center shadow minimal"
                       >
                         <Briefcase size={32} />
                       </motion.div>
 
                       {/* Content Card */}
-                      <div className="flex-1 bg-dark-surface rounded-2xl p-8 shadow-glow-yellow hover:shadow-glow-yellow-lg transition-all duration-300 border border-dark-border">
+                      <div className="flex-1 bg-white rounded-2xl p-8 shadow minimal hover:shadow minimal-lg transition-all duration-300 border border-line-medium">
                         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4 gap-2">
                           <div>
-                            <h3 className="text-2xl font-bold text-white mb-2">
+                            <h3 className="text-2xl font-bold text-text-main mb-2">
                               {exp.position}
                             </h3>
-                            <p className="text-lg font-semibold text-point-yellow mb-1">
+                            <p className="text-lg font-semibold text-brand-main mb-1">
                               {exp.company}
                             </p>
                           </div>
-                          <span className="inline-flex items-center gap-2 px-4 py-2 bg-point-yellow/20 text-point-yellow rounded-xl text-sm font-semibold whitespace-nowrap border border-point-yellow/30">
+                          <span className="inline-flex items-center gap-2 px-4 py-2 bg-brand-main/10 text-brand-main rounded-xl text-sm font-semibold whitespace-nowrap border border-brand-main/30">
                             📅 {exp.period}
                           </span>
                         </div>

@@ -29,9 +29,8 @@ export default function RootLayout({
   return (
     <html lang="ko" className="scroll-smooth">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased cursor-follower-active`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <CursorFollower />
         <Header />
         {children}
         <Footer />

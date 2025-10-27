@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, Home, Briefcase, GraduationCap, Wrench, Mail, Star, RefreshCw, Plus, Award, MapPin, FolderOpen } from 'lucide-react';
+import { Menu, X, Home, Briefcase, Mail } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -17,20 +17,19 @@ export const Header: React.FC = () => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
 
-              // Update active section based on scroll position (only on home page)
-              if (pathname === '/') {
-                const sections = ['home', 'projects', 'experience', 'skills', 'contact'];
-                for (const section of sections) {
-                  const element = document.getElementById(section);
-                  if (element) {
-                    const rect = element.getBoundingClientRect();
-                    if (rect.top <= 100 && rect.bottom >= 100) {
-                      setActiveSection(section);
-                      break;
-                    }
-                  }
-                }
-              }
+      if (pathname === '/') {
+        const sections = ['home', 'projects', 'experience', 'skills', 'contact'];
+        for (const section of sections) {
+          const element = document.getElementById(section);
+          if (element) {
+            const rect = element.getBoundingClientRect();
+            if (rect.top <= 100 && rect.bottom >= 100) {
+              setActiveSection(section);
+              break;
+            }
+          }
+        }
+      }
     };
     
     window.addEventListener('scroll', handleScroll);
@@ -38,12 +37,12 @@ export const Header: React.FC = () => {
   }, [pathname]);
 
   const navItems = [
-    { label: '현위치', href: '/#home', icon: <RefreshCw size={18} /> },
-    { label: '즐겨찾기 설정', href: '/#projects', icon: <Star size={18} /> },
-    { label: '경유지 추가', href: '/#experience', icon: <Plus size={18} /> },
-    { label: '운전 점수', href: '/#skills', icon: <Award size={18} /> },
-    { label: '목적지 설정', href: '/#contact', icon: <MapPin size={18} /> },
-    { label: '전체 경로보기', href: '/projects', icon: <FolderOpen size={18} /> },
+    { label: 'Home', href: '/#home', icon: <Home size={16} /> },
+    { label: 'Projects', href: '/#projects', icon: <Briefcase size={16} /> },
+    { label: 'Experience', href: '/#experience', icon: <Briefcase size={16} /> },
+    { label: 'Skills', href: '/#skills', icon: <Briefcase size={16} /> },
+    { label: 'Contact', href: '/#contact', icon: <Mail size={16} /> },
+    { label: 'All Projects', href: '/projects', icon: <Briefcase size={16} /> },
   ];
 
   return (
@@ -51,29 +50,29 @@ export const Header: React.FC = () => {
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       className={cn(
-        'fixed top-0 left-0 right-0 z-50 transition-all duration-150',
+        'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
         isScrolled
-          ? 'bg-dark-bg/90 backdrop-blur-xl shadow-glow-yellow border-b border-dark-border py-4'
-          : 'bg-transparent py-6'
+          ? 'bg-bg-light/90 backdrop-blur-sm border-b border-line-medium py-3'
+          : 'bg-bg-light py-5'
       )}
     >
-      <nav className="max-w-container mx-auto px-container-x">
+      <nav className="max-w-container mx-auto px-6 md:px-container-x">
         <div className="flex items-center justify-between">
           {/* Logo */}
           <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
           >
             <Link 
               href="/" 
-              className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-point-yellow via-point-yellow-light to-point-yellow-dark text-transparent bg-clip-text hover:from-point-yellow-light hover:via-point-yellow hover:to-point-yellow-dark transition-all"
+              className="text-xl md:text-2xl font-light text-text-main hover:text-text-sub transition-colors tracking-tight"
             >
               Portfolio
             </Link>
           </motion.div>
 
           {/* Desktop Navigation */}
-          <ul className="hidden md:flex items-center gap-6 lg:gap-8">
+          <ul className="hidden md:flex items-center gap-8 lg:gap-10">
             {navItems.map((item) => {
               const isActive = item.href.startsWith('#') 
                 ? activeSection === item.href.replace('#', '')
@@ -82,33 +81,18 @@ export const Header: React.FC = () => {
                 : pathname === item.href;
               return (
                 <li key={item.href}>
-                  {item.href.startsWith('#') || item.href.startsWith('/#') ? (
-                    <Link
-                      href={item.href}
-                      className={cn(
-                        'flex items-center gap-2 font-medium transition-all duration-75 cursor-pointer',
-                        isActive
-                          ? 'text-point-yellow'
-                          : 'text-text-secondary hover:text-point-yellow'
-                      )}
-                    >
-                      {item.icon}
-                      <span>{item.label}</span>
-                    </Link>
-                  ) : (
-                    <Link
-                      href={item.href}
-                      className={cn(
-                        'flex items-center gap-2 font-medium transition-all duration-75 cursor-pointer',
-                        isActive
-                          ? 'text-point-yellow'
-                          : 'text-text-secondary hover:text-point-yellow'
-                      )}
-                    >
-                      {item.icon}
-                      <span>{item.label}</span>
-                    </Link>
-                  )}
+                  <Link
+                    href={item.href}
+                    className={cn(
+                      'flex items-center gap-2 text-sm font-light transition-colors duration-200 border-b-[1px] pb-1',
+                      isActive
+                        ? 'text-brand-main border-brand-main'
+                        : 'text-text-secondary border-transparent hover:text-brand-main hover:border-brand-main/30'
+                    )}
+                  >
+                    <span className="hidden">{item.icon}</span>
+                    <span>{item.label}</span>
+                  </Link>
                 </li>
               );
             })}
@@ -116,9 +100,9 @@ export const Header: React.FC = () => {
 
           {/* Mobile Menu Button */}
           <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            className="md:hidden p-3 rounded-xl bg-dark-surface shadow-glow-yellow text-text-secondary hover:text-point-yellow transition-colors duration-100 border border-dark-border"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="md:hidden p-2 text-text-main"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           >
             {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -133,7 +117,7 @@ export const Header: React.FC = () => {
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.2 }}
-              className="md:hidden mt-4 overflow-hidden"
+              className="md:hidden mt-4 overflow-hidden border-t border-line-medium pt-4"
             >
               <ul className="flex flex-col gap-4">
                 {navItems.map((item, index) => {
@@ -149,43 +133,18 @@ export const Header: React.FC = () => {
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.05, duration: 0.15 }}
                     >
-                      {item.href.startsWith('#') || item.href.startsWith('/#') ? (
-                        <Link
-                          href={item.href}
-                          className={cn(
-                            'flex items-center gap-3 font-medium cursor-pointer',
-                            isActive
-                              ? 'text-point-yellow'
-                              : 'text-text-secondary hover:text-point-yellow'
-                          )}
-                          onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="scale-75">
-                              {item.icon}
-                            </div>
-                            <span className="text-sm">{item.label}</span>
-                          </div>
-                        </Link>
-                      ) : (
-                        <Link
-                          href={item.href}
-                          className={cn(
-                            'flex items-center gap-3 font-medium cursor-pointer',
-                            isActive
-                              ? 'text-point-yellow'
-                              : 'text-text-secondary hover:text-point-yellow'
-                          )}
-                          onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="scale-75">
-                              {item.icon}
-                            </div>
-                            <span className="text-sm">{item.label}</span>
-                          </div>
-                        </Link>
-                      )}
+                      <Link
+                        href={item.href}
+                        className={cn(
+                          'flex items-center gap-3 text-sm font-light py-2 transition-colors',
+                          isActive
+                            ? 'text-brand-main'
+                            : 'text-text-secondary hover:text-brand-main'
+                        )}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <span>{item.label}</span>
+                      </Link>
                     </motion.li>
                   );
                 })}
