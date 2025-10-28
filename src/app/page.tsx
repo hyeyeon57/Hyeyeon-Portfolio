@@ -11,6 +11,7 @@ import { ContactSection } from '@/components/sections/ContactSection';
 export default function Home() {
   const [theme] = useState<'light' | 'dark'>('light');
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [isMounted, setIsMounted] = useState(false);
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, {
     stiffness: 100,
@@ -19,6 +20,22 @@ export default function Home() {
   });
 
   useEffect(() => {
+    setIsMounted(true);
+    
+    // 해시가 있으면 해당 섹션으로 스크롤, 없으면 최상단으로
+    const hash = window.location.hash;
+    if (hash) {
+      // 약간의 지연을 주어 DOM이 완전히 렌더링되도록 함
+      setTimeout(() => {
+        const element = document.querySelector(hash);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+    } else {
+      window.scrollTo(0, 0);
+    }
+
     const handleMouseMove = (e: MouseEvent) => {
       setMousePosition({ x: e.clientX, y: e.clientY });
     };

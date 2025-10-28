@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Mail, Phone, MapPin, Send, CheckCircle, Linkedin, Globe, Check } from 'lucide-react';
 import { personalInfo } from '@/data/portfolio';
@@ -17,6 +17,11 @@ export const ContactSection: React.FC<ContactSectionProps> = () => {
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const handleCopy = (text: string, field: string) => {
     navigator.clipboard.writeText(text).then(() => {
@@ -75,10 +80,10 @@ export const ContactSection: React.FC<ContactSectionProps> = () => {
             viewport={{ once: true }}
             className="inline-block px-4 py-2 bg-brand-main/10 text-brand-main rounded-full text-sm font-semibold mb-4 border border-brand-main/30"
           >
-            Contact
+            최종 목적지
           </motion.span>
           <h2 className="text-4xl md:text-5xl font-light text-text-main mb-4">
-            연락하기
+            Contact
           </h2>
           <p className="text-xl text-text-sub max-w-2xl mx-auto">
             프로젝트 문의나 협업 제안이 있으시다면 언제든 연락주세요!
@@ -224,7 +229,7 @@ export const ContactSection: React.FC<ContactSectionProps> = () => {
               >
                 <div className="flex flex-col items-center text-center space-y-3">
                   <div className="w-14 h-14 rounded-2xl bg-brand-main/10 flex items-center justify-center group-hover:bg-brand-main transition-all duration-300">
-                    {copiedField === 'phone' ? (
+                    {isMounted && copiedField === 'phone' ? (
                       <Check className="w-6 h-6 text-white" />
                     ) : (
                       <Phone className="w-6 h-6 text-brand-main group-hover:text-white transition-colors duration-300" />

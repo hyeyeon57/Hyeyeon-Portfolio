@@ -54,15 +54,13 @@ export const SkillsSection: React.FC<SkillsSectionProps> = () => {
             viewport={{ once: true }}
             className="inline-block px-4 py-2 bg-brand-main/10 text-brand-main rounded-full text-sm font-semibold mb-4 border border-brand-main/30"
           >
-            🛠️ 기획자의 내비게이션 도구들
+            기획자의 내비게이션 도구
           </motion.span>
           <h2 className="text-4xl md:text-5xl font-light text-text-main mb-4">
-            Tools & Capabilities
+            UX Skills & Capabilities Log
           </h2>
           <p className="text-xl text-text-sub max-w-2xl mx-auto">
-            다양한 도구를 활용해 사용자 경험을 설계하고,
-            <br />
-            데이터 기반의 체계적인 기획을 수행합니다.
+            이 기록들은 문제를 해결해온 제 기획 역량을 증명하는 주행 로그입니다.
           </p>
         </motion.div>
 
@@ -161,20 +159,20 @@ export const SkillsSection: React.FC<SkillsSectionProps> = () => {
           transition={{ duration: 0.6, delay: 0.4 }}
           className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-6"
         >
-          <div className="bg-dark-surface rounded-2xl p-6 border border-dark-border text-center hover:border-point-yellow/30 transition-all duration-300">
-            <div className="text-4xl font-bold text-point-yellow mb-2">
+          <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-line-light text-center hover:border-brand-main/30 transition-all duration-300">
+            <div className="text-4xl font-bold text-brand-main mb-2">
               {mainTools.length}+
             </div>
             <p className="text-text-secondary">전문 툴 활용</p>
           </div>
-          <div className="bg-dark-surface rounded-2xl p-6 border border-dark-border text-center hover:border-point-yellow/30 transition-all duration-300">
-            <div className="text-4xl font-bold text-point-yellow mb-2">
+          <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-line-light text-center hover:border-brand-main/30 transition-all duration-300">
+            <div className="text-4xl font-bold text-brand-main mb-2">
               {averagePercent}%
             </div>
             <p className="text-text-secondary">평균 숙련도</p>
           </div>
-          <div className="bg-dark-surface rounded-2xl p-6 border border-dark-border text-center hover:border-point-yellow/30 transition-all duration-300">
-            <div className="text-4xl font-bold text-point-yellow mb-2">
+          <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-line-light text-center hover:border-brand-main/30 transition-all duration-300">
+            <div className="text-4xl font-bold text-brand-main mb-2">
               1년 6개월
             </div>
             <p className="text-text-secondary">QA 경험</p>

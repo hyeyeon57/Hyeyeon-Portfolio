@@ -11,9 +11,16 @@ export const Header: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('home');
+  const [isMounted, setIsMounted] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isMounted) return;
+    
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
 
@@ -34,15 +41,51 @@ export const Header: React.FC = () => {
     
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [pathname]);
+  }, [pathname, isMounted]);
 
   const navItems = [
-    { label: 'Home', href: '/#home', icon: <Home size={16} /> },
-    { label: 'Projects', href: '/#projects', icon: <Briefcase size={16} /> },
-    { label: 'Experience', href: '/#experience', icon: <Briefcase size={16} /> },
-    { label: 'Skills', href: '/#skills', icon: <Briefcase size={16} /> },
-    { label: 'Contact', href: '/#contact', icon: <Mail size={16} /> },
-    { label: 'All Projects', href: '/projects', icon: <Briefcase size={16} /> },
+    { 
+      label: '출발지', 
+      labelEn: 'Start',
+      description: '기획자로서 나의 정체성 소개',
+      href: '/#home', 
+      icon: <Home size={16} /> 
+    },
+    { 
+      label: '즐겨찾기', 
+      labelEn: 'Main Projects',
+      description: '대표 프로젝트',
+      href: '/#projects', 
+      icon: <Briefcase size={16} /> 
+    },
+    { 
+      label: '경유지', 
+      labelEn: 'My Waypoint',
+      description: '학력·경력 여정',
+      href: '/#experience', 
+      icon: <Briefcase size={16} /> 
+    },
+    { 
+      label: '주행 기록', 
+      labelEn: 'UX Skills Log',
+      description: '기획 역량과 도구',
+      href: '/#skills', 
+      icon: <Briefcase size={16} /> 
+    },
+    { 
+      label: '최종 목적지', 
+      labelEn: 'Contact & Closing',
+      description: '회사와의 연결 의지',
+      href: '/#contact', 
+      icon: <Mail size={16} /> 
+    },
+    { 
+      label: '전체 경로보기', 
+      labelEn: 'All Projects',
+      description: '모든 프로젝트 모아보기',
+      href: '/projects', 
+      icon: <Briefcase size={16} /> 
+    },
   ];
 
   return (
@@ -72,7 +115,7 @@ export const Header: React.FC = () => {
           </motion.div>
 
           {/* Desktop Navigation */}
-          <ul className="hidden md:flex items-center gap-8 lg:gap-10">
+          <ul className="hidden md:flex items-center gap-4 lg:gap-6">
             {navItems.map((item) => {
               const isActive = item.href.startsWith('#') 
                 ? activeSection === item.href.replace('#', '')
@@ -80,19 +123,36 @@ export const Header: React.FC = () => {
                 ? pathname === '/' && activeSection === item.href.replace('/#', '')
                 : pathname === item.href;
               return (
-                <li key={item.href}>
+                <li key={item.href} className="relative group">
                   <Link
                     href={item.href}
                     className={cn(
-                      'flex items-center gap-2 text-sm font-light transition-colors duration-200 border-b-[1px] pb-1',
+                      'flex flex-col items-center gap-1 text-sm font-light transition-all duration-200 px-3 py-2 rounded-lg relative z-10',
                       isActive
-                        ? 'text-brand-main border-brand-main'
-                        : 'text-text-secondary border-transparent hover:text-brand-main hover:border-brand-main/30'
+                        ? 'text-brand-main bg-brand-main/5'
+                        : 'text-text-secondary hover:text-brand-main hover:bg-brand-main/5'
                     )}
                   >
-                    <span className="hidden">{item.icon}</span>
-                    <span>{item.label}</span>
+                    <span className="flex items-center gap-1 whitespace-nowrap">
+                      <span className="hidden">{item.icon}</span>
+                      <span>{item.label}</span>
+                    </span>
                   </Link>
+                  
+                  {/* 호버 설명 - 탭 중앙 정렬 */}
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 pointer-events-none z-50 whitespace-nowrap">
+                    <div className="bg-white border border-line-medium rounded-lg p-3 shadow-lg relative mx-auto">
+                      {/* 화살표 */}
+                      <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-3 h-3 border-l border-t border-line-medium bg-white transform rotate-45"></div>
+                      
+                      <div className="text-xs text-brand-main font-semibold mb-1 text-center">
+                        {item.labelEn}
+                      </div>
+                      <div className="text-xs text-text-secondary text-center">
+                        {item.description}
+                      </div>
+                    </div>
+                  </div>
                 </li>
               );
             })}
@@ -136,14 +196,18 @@ export const Header: React.FC = () => {
                       <Link
                         href={item.href}
                         className={cn(
-                          'flex items-center gap-3 text-sm font-light py-2 transition-colors',
+                          'flex flex-col gap-1 py-3 px-4 rounded-lg transition-all',
                           isActive
-                            ? 'text-brand-main'
-                            : 'text-text-secondary hover:text-brand-main'
+                            ? 'text-brand-main bg-brand-main/5'
+                            : 'text-text-secondary hover:text-brand-main hover:bg-brand-main/5'
                         )}
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
-                        <span>{item.label}</span>
+                        <span className="text-sm font-medium">{item.label}</span>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-brand-main">{item.labelEn}</span>
+                          <span className="text-xs text-text-tertiary">{item.description}</span>
+                        </div>
                       </Link>
                     </motion.li>
                   );

@@ -39,34 +39,25 @@ export const HeroSection: React.FC<HeroSectionProps> = () => {
             transition={{ duration: 0.8 }}
             className="text-left"
           >
-            {/* 이름 */}
-            <motion.h1
-              className="text-5xl md:text-6xl lg:text-7xl font-light mb-6 leading-tight tracking-tight text-text-main"
+            {/* 질문 */}
+            <motion.h2
+              className="text-lg md:text-xl font-light mb-8 leading-tight tracking-tight text-text-main"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
-              {personalInfo.name}
-            </motion.h1>
+              장혜연은 어떤 기획자인가?
+            </motion.h2>
 
-            {/* 타이틀 */}
-            <motion.div
-              className="text-lg md:text-xl font-light mb-12 leading-relaxed text-text-main"
+            {/* 자기소개 */}
+            <motion.p
+              className="text-xl md:text-2xl lg:text-3xl font-light leading-relaxed max-w-2xl mb-12 text-text-sub"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.4 }}
             >
-              <div className="font-normal text-text-main">{personalInfo.title}</div>
-            </motion.div>
-
-            {/* 자기소개 */}
-            <motion.p
-              className="text-base md:text-lg font-light leading-relaxed max-w-2xl mb-12 text-text-sub"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.6 }}
-            >
-              {personalInfo.bio}
+              막다른 길에서도 또 다른 경로를 찾아내는<br />
+              <span className="font-bold">내비게이션 같은 기획자</span>입니다.
             </motion.p>
 
             {/* CTA 버튼 */}
@@ -74,7 +65,7 @@ export const HeroSection: React.FC<HeroSectionProps> = () => {
               className="flex flex-col sm:flex-row gap-4"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.8 }}
+              transition={{ duration: 0.6, delay: 0.6 }}
             >
               <a
                 href={personalInfo.resumeUrl}

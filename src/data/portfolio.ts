@@ -4,7 +4,7 @@ export const personalInfo: PersonalInfo = {
   name: '장혜연',
   englishName: 'Hyeyeon Jang',
   title: '내비게이션 같은 기획자',
-  bio: '문제 속에서도 길을 찾아 해결하는, 내비게이션 같은 기획자 장혜연입니다.',
+  bio: '막다른 길에서도 또 다른 경로를 찾아내는\n내비게이션 같은 기획자입니다.',
   description: '사용자의 여정 속 문제를 정의하고, 더 나은 방향을 설계합니다.',
   email: 'janghaeyo0507@gmail.com',
   phone: '010-2807-5250',
@@ -27,7 +27,7 @@ export const projects: Project[] = [
     subtitle: '화장품 추천 및 리뷰 플랫폼 리뉴얼',
     description: '사용자 피드백 분석을 통한 화해 앱의 사용성 개선 및 새로운 기능 제안',
     fullDescription: '화해 앱의 기존 사용자 피드백을 분석하고, 사용성 문제점을 파악하여 리뉴얼 방향을 제시했습니다. 화장품 추천 알고리즘 개선과 리뷰 시스템 최적화에 중점을 두었습니다.',
-    image: '/projects/hwahae.jpg',
+    image: '/projects/Hwahae.png',
     tags: ['리뉴얼', '사용성 개선', '추천 시스템'],
     category: 'renewal',
     date: '2024',
@@ -48,7 +48,7 @@ export const projects: Project[] = [
     subtitle: '육아정책 통합 앱 신규 기획',
     description: '복잡한 육아정책 정보를 쉽게 찾을 수 있는 통합 플랫폼 설계',
     fullDescription: '산모와 영유아 부모를 위한 육아정책 통합 앱을 기획했습니다. 복잡한 정책 정보를 사용자 중심으로 재구성하여 접근성을 크게 향상시켰습니다.',
-    image: '/projects/momro.jpg',
+    image: '/projects/mom.jpg',
     tags: ['신규 기획', '정책 정보', '사용자 중심 설계'],
     category: 'app',
     date: '2024',
@@ -90,7 +90,7 @@ export const projects: Project[] = [
     subtitle: '사용자 중심 UX 리서치 및 개선 프로젝트',
     description: '사용자 인터뷰와 아이트래킹 분석을 통해 책장 관리 성공률을 60%에서 96%로 향상',
     fullDescription: '밀리의 서재 앱의 사용성 문제를 발견하고 개선했습니다. 사용자 인터뷰와 아이트래킹 분석을 통해 핵심 문제를 정의하고, UI 개선 제안으로 책장 관리 성공률을 크게 향상시켰습니다.',
-    image: '/projects/millie.png',
+    image: '/projects/millie.jpg',
     tags: ['사용자 인터뷰', '아이트래킹', 'UI 개선'],
     category: 'usability',
     date: '2024',
@@ -111,7 +111,7 @@ export const projects: Project[] = [
     subtitle: '대학 웹사이트 사용성 개선 프로젝트',
     description: '대학 웹사이트의 정보 구조 개선 및 사용자 경험 최적화',
     fullDescription: '계원예술대학교 웹사이트의 사용성 문제를 분석하고 리뉴얼 방향을 제시했습니다. 정보 구조 개선과 사용자 중심의 네비게이션 설계에 중점을 두었습니다.',
-    image: '/projects/kaywon.jpg',
+    image: '/projects/kaywon.png',
     tags: ['웹사이트 리뉴얼', '정보 구조', '사용성 개선'],
     category: 'new',
     date: '2024',
@@ -132,7 +132,7 @@ export const projects: Project[] = [
     subtitle: '신진 작가와 아트슈머를 잇는 온라인 전시 플랫폼',
     description: 'IA 설계, UX 구조 기획, 감정 기반 피드 디자인을 통해 전시 참여 프로세스를 획기적으로 개선',
     fullDescription: '신진 작가와 아트슈머를 연결하는 온라인 전시 플랫폼 ArtLang의 사용자 경험을 설계했습니다. 복잡했던 전시 참여 프로세스를 3단계에서 1단계로 단축하여 사용자 참여율을 크게 향상시켰습니다.',
-    image: '/projects/artlang.jpg',
+    image: '/projects/artrang.jpg',
     tags: ['IA 설계', 'UX 기획', '감정 기반 디자인'],
     category: 'app',
     date: '2024',
@@ -153,7 +153,7 @@ export const projects: Project[] = [
     subtitle: '이커머스 플랫폼 사용성 개선',
     description: '쿠팡 앱의 구매 프로세스 최적화 및 사용자 경험 개선 제안',
     fullDescription: '쿠팡 앱의 구매 프로세스를 분석하고 사용성 개선 방안을 제시했습니다. 복잡한 구매 단계를 단순화하고 사용자 만족도를 향상시키는 방향으로 기획했습니다.',
-    image: '/projects/coupang.jpg',
+    image: '/projects/cupang.png',
     tags: ['이커머스', '구매 프로세스', '사용성 개선'],
     category: 'renewal',
     date: '2024',
@@ -174,7 +174,7 @@ export const projects: Project[] = [
     subtitle: 'Data Storytelling & 대시보드 UX',
     description: '복잡한 데이터를 사용자가 직관적으로 이해할 수 있는 대시보드 및 인터랙티브 시각화 설계',
     fullDescription: '복잡한 데이터를 사용자가 직관적으로 이해할 수 있는 대시보드와 인터랙티브 시각화를 기획했습니다. 데이터의 흐름과 관계를 쉽게 파악할 수 있도록 시각적 인사이트를 제공하는 시스템을 설계했습니다.',
-    image: '/projects/dataviz.jpg',
+    image: '/projects/data.jpg',
     tags: ['Data Storytelling', '대시보드 UX', '시각적 인사이트'],
     category: 'proposal',
     date: '2024',
@@ -195,7 +195,7 @@ export const projects: Project[] = [
     subtitle: 'Cursor AI × Figma MCP 연동 제작',
     description: '기획자의 시선으로 디자인부터 코드까지 직접 설계하며, AI를 활용한 사고 확장과 문서화 중심의 제작 프로세스 구축',
     fullDescription: '기획자로서 AI를 활용해 포트폴리오 웹사이트를 직접 기획하고 제작했습니다. Cursor AI와 Figma MCP를 연동하여 디자인 시스템부터 코드까지 일관성 있게 구현했습니다.',
-    image: '/projects/portfolio.jpg',
+    image: '/projects/port.jpg',
     tags: ['AI 활용', 'Cursor', 'Figma MCP', '웹 기획'],
     category: 'web',
     date: '2025',
@@ -216,17 +216,17 @@ export const education: Education[] = [
   {
     id: '1',
     school: '계원예술대학교',
-    degree: '디지털미디어디자인과 (기획 전공)',
+    degree: '디지털 미디어 디자인과 (기획 전공)',
     period: '2024.03 - 2026.03',
     description: 'UX/UI 기획 및 디지털 미디어 디자인 전공'
   },
   {
     id: '2',
     school: '신갈고등학교',
-    degree: '졸업',
+    degree: '인문계 고등학교 졸업',
     field: '',
     period: '2019.03 - 2022.03',
-    description: '기초 학업 과정 이수 및 진로 탐색'
+    description: '고등학교 기초 학업 과정 이수'
   }
 ];
 
@@ -244,21 +244,9 @@ export const experience: Experience[] = [
     ]
   },
   {
-    id: '2',
-    company: 'CU 편의점',
-    position: '마감 파트타이머',
-    period: '2024.09 - 2025.09',
-    description: 'POS 운영, 재고·마감 프로세스 관리, 고객 응대 및 서비스 개선',
-    achievements: [
-      '사용자 중심 사고 및 대응력 향상',
-      '프로세스 관리 및 최적화',
-      '고객 서비스 개선'
-    ]
-  },
-  {
     id: '3',
-    company: 'KOC 기획 동아리',
-    position: '콘텐츠 기획',
+    company: 'kaywon KOC',
+    position: '기획 동아리',
     period: '2025.09 - 2026.03',
     description: '콘텐츠 기획 및 아이디어 시각화, 멘토링 카드뉴스 제작',
     achievements: [
@@ -268,10 +256,22 @@ export const experience: Experience[] = [
     ]
   },
   {
+    id: '2',
+    company: 'CU 편의점',
+    position: '매장 파트타이머',
+    period: '2024.09 - 2025.09',
+    description: 'POS 운영, 재고·마감 프로세스 관리, 고객 응대 및 서비스 개선',
+    achievements: [
+      '사용자 중심 사고 및 대응력 향상',
+      '프로세스 관리 및 최적화',
+      '고객 서비스 개선'
+    ]
+  },
+  {
     id: '4',
     company: '라라코스트 레스토랑',
     position: '서비스 매니저',
-    period: '2022.01 - 2022.10',
+    period: '2021.11 - 2022.12',
     description: '매장 내 고객 응대 및 서비스 관리, 문제 상황 대응 및 협업 경험',
     achievements: [
       '고객 대응 및 문제 해결',
@@ -286,14 +286,14 @@ export const skills: Skill[] = [
     id: '1',
     name: 'Figma',
     category: '기획 도구',
-    level: 4,
+    level: 3.5,
     description: '서비스 구조 설계, 프로토타이핑'
   },
   {
     id: '2',
     name: 'Excel',
     category: '분석 도구',
-    level: 4.5,
+    level: 4,
     description: '리서치 데이터 분석 및 인사이트 정리'
   },
   {
@@ -321,7 +321,7 @@ export const skills: Skill[] = [
     id: '6',
     name: 'Notion',
     category: '협업 도구',
-    level: 4,
+    level: 3.5,
     description: '협업, 일정, 프로젝트 관리'
   },
   {

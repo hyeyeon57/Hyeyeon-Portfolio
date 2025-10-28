@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Briefcase, GraduationCap, Award } from 'lucide-react';
+import { Award } from 'lucide-react';
 import { experience, education } from '@/data/portfolio';
 
 interface ExperienceSectionProps {
@@ -32,19 +32,19 @@ export const ExperienceSection: React.FC<ExperienceSectionProps> = () => {
             initial={{ opacity: 0, scale: 0.8 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
-            className="inline-block px-4 py-2 bg-brand-main/10 text-brand-main rounded-full text-sm font-semibold mb-4 border border-brand-main/30"
+            className="inline-block px-4 py-2 rounded-full text-sm font-medium mb-4 border bg-brand-main/10 text-brand-main border-brand-main/30"
           >
-            🧭 내가 지나온 경로
+            나의 경유지
           </motion.span>
-          <h2 className="text-4xl md:text-5xl font-light text-text-main mb-4">
-            Experience
+          <h2 className="text-4xl md:text-5xl font-light mb-6 text-text-main">
+            My Waypoint
           </h2>
-          <p className="text-xl text-text-sub max-w-2xl mx-auto">
-            기획 동아리에서는 협업과 아이디어 구체화 능력을,
+          <p className="text-xl text-text-sub max-w-3xl mx-auto">
+            QA 직무 경험에서는 문제를 정확히 포착하는 <span className="font-bold text-text-main">분석력</span>을,
             <br />
-            QA에서는 문제 정의와 UX 검증을,
+            기획 동아리에서는 아이디어를 구조화하는 <span className="font-bold text-text-main">기획력</span>을,
             <br />
-            매장 근무에서는 사용자 중심 사고와 대응력을 길렀습니다.
+            매장 근무에서는 <span className="font-bold text-text-main">사용자 중심 사고와 대응력</span>을 길렀습니다.
           </p>
         </motion.div>
 
@@ -60,22 +60,38 @@ export const ExperienceSection: React.FC<ExperienceSectionProps> = () => {
               onClick={() => setActiveTab('experience')}
               className={`flex items-center gap-3 px-8 py-4 rounded-xl font-semibold transition-all duration-300 ${
                 activeTab === 'experience'
-                  ? 'bg-brand-main text-white shadow minimal'
-                  : 'text-text-secondary hover:text-brand-main'
+                  ? 'bg-violet-100 text-brand-main shadow minimal'
+                  : 'text-text-secondary hover:text-brand-main hover:bg-violet-50'
               }`}
             >
-              <Briefcase size={20} />
+              <img 
+                src="/icons/flag1.svg" 
+                alt="경력" 
+                className={`w-10 h-10 transition-all duration-300 ${
+                  activeTab === 'experience' 
+                    ? 'opacity-100 scale-110' 
+                    : 'opacity-50 grayscale'
+                }`}
+              />
               경력
             </button>
             <button
               onClick={() => setActiveTab('education')}
               className={`flex items-center gap-3 px-8 py-4 rounded-xl font-semibold transition-all duration-300 ${
                 activeTab === 'education'
-                  ? 'bg-brand-main text-white shadow minimal'
-                  : 'text-text-secondary hover:text-brand-main'
+                  ? 'bg-violet-100 text-brand-main shadow minimal'
+                  : 'text-text-secondary hover:text-brand-main hover:bg-violet-50'
               }`}
             >
-              <GraduationCap size={20} />
+              <img 
+                src="/icons/flag2.svg" 
+                alt="학력" 
+                className={`w-10 h-10 transition-all duration-300 ${
+                  activeTab === 'education' 
+                    ? 'opacity-100 scale-110' 
+                    : 'opacity-50 grayscale'
+                }`}
+              />
               학력
             </button>
           </div>
