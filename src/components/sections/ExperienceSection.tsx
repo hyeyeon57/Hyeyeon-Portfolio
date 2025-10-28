@@ -2,14 +2,14 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Briefcase, GraduationCap, Award, TrendingUp } from 'lucide-react';
+import { Briefcase, GraduationCap, Award } from 'lucide-react';
 import { experience, education } from '@/data/portfolio';
 
 interface ExperienceSectionProps {
   theme?: 'light' | 'dark';
 }
 
-export const ExperienceSection: React.FC<ExperienceSectionProps> = ({ theme = 'light' }) => {
+export const ExperienceSection: React.FC<ExperienceSectionProps> = () => {
   const [activeTab, setActiveTab] = useState<'experience' | 'education'>('experience');
 
   return (
@@ -100,70 +100,49 @@ export const ExperienceSection: React.FC<ExperienceSectionProps> = ({ theme = 'l
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.6, delay: index * 0.1 }}
-                    whileHover={{ scale: 1.02 }}
                     className="relative"
                   >
-                    {/* Timeline Line */}
-                    {index !== experience.length - 1 && (
-                      <div className="absolute left-[39px] top-20 bottom-0 w-0.5 bg-brand-main opacity-30" />
-                    )}
-
-                    <div className="flex gap-6">
-                      {/* Icon */}
-                      <motion.div
-                        whileHover={{ rotate: 360 }}
-                        transition={{ duration: 0.5 }}
-                        className="flex-shrink-0 w-20 h-20 rounded-2xl bg-brand-main text-white flex items-center justify-center shadow minimal"
-                      >
-                        <Briefcase size={32} />
-                      </motion.div>
-
-                      {/* Content Card */}
-                      <div className="flex-1 bg-white rounded-2xl p-8 shadow minimal hover:shadow minimal-lg transition-all duration-300 border border-line-medium">
-                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4 gap-2">
-                          <div>
-                            <h3 className="text-2xl font-bold text-text-main mb-2">
-                              {exp.position}
-                            </h3>
-                            <p className="text-lg font-semibold text-brand-main mb-1">
-                              {exp.company}
-                            </p>
-                          </div>
-                          <span className="inline-flex items-center gap-2 px-4 py-2 bg-brand-main/10 text-brand-main rounded-xl text-sm font-semibold whitespace-nowrap border border-brand-main/30">
-                            📅 {exp.period}
-                          </span>
+                    {/* Content Card */}
+                    <div className="bg-white rounded-2xl p-6 md:p-8 shadow-sm hover:shadow-md transition-all duration-300 border border-line-light">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 gap-3">
+                        <div className="flex-1">
+                          <h3 className="text-xl md:text-2xl font-bold text-text-main mb-1">
+                            {exp.position}
+                          </h3>
+                          <p className="text-base md:text-lg text-brand-main font-medium">
+                            {exp.company}
+                          </p>
                         </div>
-
-                        {/* Description */}
-                        <p className="text-text-secondary leading-relaxed mb-6">
-                          {exp.description}
-                        </p>
-
-                        {/* Achievements */}
-                        {exp.achievements && exp.achievements.length > 0 && (
-                          <div className="pt-6 border-t border-dark-border">
-                            <div className="flex items-center gap-2 mb-4">
-                              <Award className="text-point-yellow" size={20} />
-                              <p className="font-bold text-white">주요 성과</p>
-                            </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                              {exp.achievements.map((achievement, idx) => (
-                                <motion.div
-                                  key={idx}
-                                  initial={{ opacity: 0, scale: 0.8 }}
-                                  whileInView={{ opacity: 1, scale: 1 }}
-                                  viewport={{ once: true }}
-                                  transition={{ delay: idx * 0.1 }}
-                                  className="flex items-start gap-2 p-3 bg-point-yellow/10 border border-point-yellow/30 rounded-xl"
-                                >
-                                  <TrendingUp className="text-point-yellow flex-shrink-0 mt-0.5" size={16} />
-                                  <span className="text-sm text-text-secondary">{achievement}</span>
-                                </motion.div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-brand-main/5 text-brand-main rounded-lg text-sm font-medium whitespace-nowrap border border-brand-main/20">
+                          {exp.period}
+                        </span>
                       </div>
+
+                      {/* Description */}
+                      <p className="text-text-sub leading-relaxed mb-4">
+                        {exp.description}
+                      </p>
+
+                      {/* Achievements */}
+                      {exp.achievements && exp.achievements.length > 0 && (
+                        <div className="pt-4 border-t border-line-light">
+                          <div className="flex items-center gap-2 mb-3">
+                            <Award className="text-brand-main" size={18} />
+                            <p className="font-semibold text-text-main text-sm">주요 성과</p>
+                          </div>
+                          <ul className="space-y-2">
+                            {exp.achievements.map((achievement, idx) => (
+                              <li
+                                key={idx}
+                                className="flex items-start gap-2 text-sm text-text-secondary"
+                              >
+                                <span className="text-brand-main mt-1">•</span>
+                                <span>{achievement}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                     </div>
                   </motion.div>
                 ))}
@@ -186,46 +165,29 @@ export const ExperienceSection: React.FC<ExperienceSectionProps> = ({ theme = 'l
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.6, delay: index * 0.1 }}
-                    whileHover={{ scale: 1.02 }}
                     className="relative"
                   >
-                    {/* Timeline Line */}
-                    {index !== education.length - 1 && (
-                      <div className="absolute left-[39px] top-20 bottom-0 w-0.5 bg-gradient-to-b from-point-yellow to-point-yellow-dark opacity-30" />
-                    )}
-
-                    <div className="flex gap-6">
-                      {/* Icon */}
-                      <motion.div
-                        whileHover={{ rotate: 360 }}
-                        transition={{ duration: 0.5 }}
-                        className="flex-shrink-0 w-20 h-20 rounded-2xl bg-gradient-to-br from-point-yellow to-point-yellow-dark text-dark-bg flex items-center justify-center shadow-glow-yellow-lg"
-                      >
-                        <GraduationCap size={32} />
-                      </motion.div>
-
-                      {/* Content Card */}
-                      <div className="flex-1 bg-dark-surface rounded-2xl p-8 shadow-glow-yellow hover:shadow-glow-yellow-lg transition-all duration-300 border border-dark-border">
-                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4 gap-2">
-                          <div>
-                            <h3 className="text-2xl font-bold text-white mb-2">
-                              {edu.school}
-                            </h3>
-                            <p className="text-lg font-semibold text-point-yellow">
-                              {edu.degree} - {edu.field}
-                            </p>
-                          </div>
-                          <span className="inline-flex items-center gap-2 px-4 py-2 bg-point-yellow/20 text-point-yellow rounded-xl text-sm font-semibold whitespace-nowrap border border-point-yellow/30">
-                            📅 {edu.period}
-                          </span>
-                        </div>
-
-                        {edu.description && (
-                          <p className="text-text-secondary leading-relaxed">
-                            {edu.description}
+                    {/* Content Card */}
+                    <div className="bg-white rounded-2xl p-6 md:p-8 shadow-sm hover:shadow-md transition-all duration-300 border border-line-light">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 gap-3">
+                        <div className="flex-1">
+                          <h3 className="text-xl md:text-2xl font-bold text-text-main mb-1">
+                            {edu.school}
+                          </h3>
+                          <p className="text-base md:text-lg text-brand-main font-medium">
+                            {edu.degree}{edu.field ? ` - ${edu.field}` : ''}
                           </p>
-                        )}
+                        </div>
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-brand-main/5 text-brand-main rounded-lg text-sm font-medium whitespace-nowrap border border-brand-main/20">
+                          {edu.period}
+                        </span>
                       </div>
+
+                      {edu.description && (
+                        <p className="text-text-sub leading-relaxed">
+                          {edu.description}
+                        </p>
+                      )}
                     </div>
                   </motion.div>
                 ))}

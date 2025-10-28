@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Wrench } from 'lucide-react';
 import { skills } from '@/data/portfolio';
@@ -9,7 +9,13 @@ interface SkillsSectionProps {
   theme?: 'light' | 'dark';
 }
 
-export const SkillsSection: React.FC<SkillsSectionProps> = ({ theme = 'light' }) => {
+export const SkillsSection: React.FC<SkillsSectionProps> = () => {
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   // Main tools와 보조 툴 분리
   const mainTools = skills.filter(skill => 
     ['Figma', 'Excel', 'Google Spreadsheet', 'PowerPoint', 'AI Tools (Cursor·GPT·Gemini·UXpilot)', 'Notion', 'Eye-Tracking (Tobii Pro)'].includes(skill.name)
@@ -21,6 +27,10 @@ export const SkillsSection: React.FC<SkillsSectionProps> = ({ theme = 'light' })
 
   // Level을 퍼센트로 변환 (5단계 -> 100%)
   const getLevelPercent = (level: number) => (level / 5) * 100;
+
+  const averagePercent = isMounted 
+    ? Math.round(mainTools.reduce((acc, tool) => acc + getLevelPercent(tool.level), 0) / mainTools.length)
+    : 0;
 
   return (
     <section id="skills" className="py-20 relative overflow-hidden">
@@ -159,15 +169,15 @@ export const SkillsSection: React.FC<SkillsSectionProps> = ({ theme = 'light' })
           </div>
           <div className="bg-dark-surface rounded-2xl p-6 border border-dark-border text-center hover:border-point-yellow/30 transition-all duration-300">
             <div className="text-4xl font-bold text-point-yellow mb-2">
-              {Math.round(mainTools.reduce((acc, tool) => acc + getLevelPercent(tool.level), 0) / mainTools.length)}%
+              {averagePercent}%
             </div>
             <p className="text-text-secondary">평균 숙련도</p>
           </div>
           <div className="bg-dark-surface rounded-2xl p-6 border border-dark-border text-center hover:border-point-yellow/30 transition-all duration-300">
             <div className="text-4xl font-bold text-point-yellow mb-2">
-              5+
+              1년 6개월
             </div>
-            <p className="text-text-secondary">년 경력</p>
+            <p className="text-text-secondary">QA 경험</p>
           </div>
         </motion.div>
       </div>

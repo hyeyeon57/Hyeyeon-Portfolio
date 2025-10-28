@@ -8,11 +8,11 @@ export const personalInfo: PersonalInfo = {
   description: '사용자의 여정 속 문제를 정의하고, 더 나은 방향을 설계합니다.',
   email: 'janghaeyo0507@gmail.com',
   phone: '010-2807-5250',
-  location: '경기도 용인시 구갈동 377',
+  location: '경기도 군포시 공단로 124번길 23',
   social: {
     github: '#',
-    linkedin: '#',
-    instagram: '#',
+    linkedin: 'https://www.linkedin.com/feed/',
+    brunch: 'https://brunch.co.kr/ready',
     notion: '#'
   },
   availableDate: '채용 확정 후 즉시 가능',
@@ -90,7 +90,7 @@ export const projects: Project[] = [
     subtitle: '사용자 중심 UX 리서치 및 개선 프로젝트',
     description: '사용자 인터뷰와 아이트래킹 분석을 통해 책장 관리 성공률을 60%에서 96%로 향상',
     fullDescription: '밀리의 서재 앱의 사용성 문제를 발견하고 개선했습니다. 사용자 인터뷰와 아이트래킹 분석을 통해 핵심 문제를 정의하고, UI 개선 제안으로 책장 관리 성공률을 크게 향상시켰습니다.',
-    image: '/projects/millie.jpg',
+    image: '/projects/millie.png',
     tags: ['사용자 인터뷰', '아이트래킹', 'UI 개선'],
     category: 'usability',
     date: '2024',
@@ -217,28 +217,36 @@ export const education: Education[] = [
     id: '1',
     school: '계원예술대학교',
     degree: '디지털미디어디자인과 (기획 전공)',
-    period: '2020.03 - 2025.02',
+    period: '2024.03 - 2026.03',
     description: 'UX/UI 기획 및 디지털 미디어 디자인 전공'
+  },
+  {
+    id: '2',
+    school: '신갈고등학교',
+    degree: '졸업',
+    field: '',
+    period: '2019.03 - 2022.03',
+    description: '기초 학업 과정 이수 및 진로 탐색'
   }
 ];
 
 export const experience: Experience[] = [
   {
     id: '1',
-    company: 'KOC 기획 동아리',
-    position: '콘텐츠 기획',
-    period: '2025.09 - 2026.03',
-    description: '콘텐츠 기획 및 아이디어 시각화, 멘토링 카드뉴스 제작',
+    company: 'MASCO',
+    position: '내비게이션 QA',
+    period: '2023.04 - 2024.09',
+    description: '화면설계서 기반 오류 검증, Mcols 이슈 등록 및 품질 표준화',
     achievements: [
-      '협업 및 아이디어 구체화 능력 향상',
-      '멘토링 콘텐츠 기획 및 제작',
-      '팀 프로젝트 리딩'
+      '문제 정의 및 UX 검증 능력 습득',
+      '화면설계서 기반 품질 관리',
+      '이슈 트래킹 및 커뮤니케이션'
     ]
   },
   {
     id: '2',
     company: 'CU 편의점',
-    position: '매장 관리 (파트타이머)',
+    position: '마감 파트타이머',
     period: '2024.09 - 2025.09',
     description: 'POS 운영, 재고·마감 프로세스 관리, 고객 응대 및 서비스 개선',
     achievements: [
@@ -249,14 +257,14 @@ export const experience: Experience[] = [
   },
   {
     id: '3',
-    company: 'MASCO',
-    position: '내비게이션 QA',
-    period: '2023.04 - 2024.09',
-    description: '화면설계서 기반 오류 검증, Mcols 이슈 등록 및 품질 표준화',
+    company: 'KOC 기획 동아리',
+    position: '콘텐츠 기획',
+    period: '2025.09 - 2026.03',
+    description: '콘텐츠 기획 및 아이디어 시각화, 멘토링 카드뉴스 제작',
     achievements: [
-      '문제 정의 및 UX 검증 능력 습득',
-      '화면설계서 기반 품질 관리',
-      '이슈 트래킹 및 커뮤니케이션'
+      '협업 및 아이디어 구체화 능력 향상',
+      '멘토링 콘텐츠 기획 및 제작',
+      '팀 프로젝트 리딩'
     ]
   },
   {
@@ -278,7 +286,7 @@ export const skills: Skill[] = [
     id: '1',
     name: 'Figma',
     category: '기획 도구',
-    level: 5,
+    level: 4,
     description: '서비스 구조 설계, 프로토타이핑'
   },
   {

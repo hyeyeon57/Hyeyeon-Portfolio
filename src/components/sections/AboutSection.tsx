@@ -35,7 +35,7 @@ export const AboutSection: React.FC = () => {
           <div className="flex items-center justify-center gap-3 mb-4">
             <Compass className="w-8 h-8 text-point-yellow" />
             <h2 className="text-4xl md:text-5xl font-bold text-white">
-              "기획은 길을 만드는 일이다."
+              &ldquo;기획은 길을 만드는 일이다.&rdquo;
             </h2>
           </div>
         </motion.div>
@@ -58,7 +58,7 @@ export const AboutSection: React.FC = () => {
               <p className="text-lg md:text-xl text-text-secondary leading-relaxed">
                 단순히 화면을 만드는 것이 아니라,
                 <br />
-                사용자가 목적지까지 <span className="text-point-yellow font-semibold">'길을 잃지 않도록'</span> 안내하는
+                사용자가 목적지까지 <span className="text-point-yellow font-semibold">&lsquo;길을 잃지 않도록&rsquo;</span> 안내하는
                 <br />
                 내비게이션 같은 기획을 추구합니다.
               </p>

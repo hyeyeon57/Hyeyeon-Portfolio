@@ -198,7 +198,6 @@ body {
   cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="none" stroke="%23FFD700" stroke-width="4"/></svg>'), auto !important;
   z-index: 10 !important;
   pointer-events: auto !important;
-  position: relative !important;
 }
 
 /* 프로젝트 카드 이미지 영역 텍스트 선택 비활성화 */
@@ -212,7 +211,7 @@ body {
 /* 파스텔 그라데이션 카드 스타일 */
 .pastel-card {
   position: relative;
-  border-radius: 24px;
+  border-radius: 16px;
   padding: 0;
   background: #fff;
   border: 1px solid rgba(0,0,0,0.06);
@@ -226,17 +225,17 @@ body {
   box-shadow: 0 18px 46px rgba(122,104,246,0.14);
 }
 
-/* 각 카드 배경 (단일 컬러) */
+/* 각 카드 배경 (단일 컬러 - 더 연하게) */
 .pastel-card--blue {
-  background: #E7EAFF;
+  background: #F0F2FF;
 }
 
 .pastel-card--purple {
-  background: #F3E9FF;
+  background: #F8F5FF;
 }
 
 .pastel-card--gray {
-  background: #F5F6FA;
+  background: #F9FAFB;
 }
 
 /* 아이콘 감싸는 유리판 */

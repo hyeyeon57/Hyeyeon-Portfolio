@@ -20,6 +20,7 @@ export interface Education {
   id: string;
   school: string;
   degree: string;
+  field?: string;
   period: string;
   description: string;
 }
@@ -53,7 +54,7 @@ export interface PersonalInfo {
   social: {
     github: string;
     linkedin: string;
-    instagram: string;
+    brunch: string;
     notion: string;
   };
   availableDate: string;

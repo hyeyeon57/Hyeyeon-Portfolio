@@ -1,134 +1,133 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Mail, Phone, MapPin, Linkedin, Instagram, Globe, ChevronUp } from 'lucide-react';
+import { ChevronUp, ChevronDown } from 'lucide-react';
 import { personalInfo } from '@/data/portfolio';
 
 export const Footer: React.FC = () => {
+  const [isAtTop, setIsAtTop] = useState(true);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsAtTop(window.scrollY < 100);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    handleScroll(); // 초기 상태 설정
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const socialLinks = [
-    { name: 'LinkedIn', icon: <Linkedin className="w-4 h-4" />, url: personalInfo.social?.linkedin || '#' },
-    { name: 'Notion', icon: <Globe className="w-4 h-4" />, url: personalInfo.social?.notion || '#' },
-    { name: 'Instagram', icon: <Instagram className="w-4 h-4" />, url: personalInfo.social?.instagram || '#' },
-  ];
+  const scrollToBottom = () => {
+    window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
+  };
 
   return (
-    <footer className="relative bg-white border-t border-gray-200 pt-24 pb-12">
-      <div className="max-w-container mx-auto px-6 md:px-container-x">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 mb-16">
-          {/* 왼쪽: 자기소개 */}
+    <footer className="relative bg-white border-t border-line-light">
+      {/* 마무리 메시지 섹션 */}
+      <div className="max-w-container mx-auto px-6 md:px-container-x" style={{ paddingTop: '12rem', paddingBottom: '24rem' }}>
+        <div className="text-center max-w-3xl mx-auto">
+          {/* Thank You 배지 */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="space-y-8"
+            viewport={{ once: true, amount: 0.8 }}
+            transition={{ duration: 0.8 }}
+            className="mb-8"
           >
-            <div>
-              <h3 className="text-2xl font-light text-black mb-4">{personalInfo.name}</h3>
-              <p className="text-sm font-light text-gray-600 leading-relaxed max-w-md">
-                {personalInfo.bio}
+            <div className="inline-block px-6 py-3 bg-brand-main/5 rounded-full border border-brand-main/20 mb-6">
+              <p className="text-sm font-medium text-brand-main">Thank You</p>
+            </div>
+          </motion.div>
+
+          {/* 첫 번째 텍스트 - 한 줄씩 */}
+          <motion.h2
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.8 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="text-3xl md:text-4xl font-light text-text-main mb-6 leading-relaxed"
+          >
+            끝까지 제 포트폴리오를 봐주셔서 감사합니다.
+          </motion.h2>
+
+          {/* 두 번째 텍스트 */}
+          <motion.p
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.8 }}
+            transition={{ duration: 0.8, delay: 0.5 }}
+            className="text-lg md:text-xl text-text-sub font-light leading-relaxed mb-8"
+          >
+            이 길의 끝에서, 저의 새로운 출발을 함께할 수 있길 바랍니다.
+          </motion.p>
+          
+          {/* 장식 라인 */}
+          <motion.div
+            initial={{ scaleX: 0 }}
+            whileInView={{ scaleX: 1 }}
+            viewport={{ once: true, amount: 0.8 }}
+            transition={{ duration: 0.8, delay: 0.8 }}
+            className="w-24 h-px bg-gradient-to-r from-transparent via-brand-main to-transparent mx-auto"
+          />
+        </div>
+      </div>
+
+      {/* Footer 영역 */}
+      <div className="border-t border-line-medium bg-bg-light">
+        <div className="max-w-container mx-auto px-6 md:px-container-x py-12">
+          {/* Footer 상단 */}
+          <div className="mb-8">
+            <div className="max-w-2xl">
+              <h3 className="text-2xl md:text-3xl font-light text-text-main mb-3">
+                {personalInfo.name}
+              </h3>
+              <p className="text-base text-text-sub leading-relaxed">
+                문제 속에서도 길을 찾아 해결하는<br />
+                내비게이션 같은 기획자 {personalInfo.name}입니다.
               </p>
             </div>
+          </div>
 
-            {/* Social Links */}
-            <div className="flex items-center gap-4">
-              {socialLinks.map((social, index) => (
-                <motion.a
-                  key={index}
-                  href={social.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center w-10 h-10 border border-gray-300 rounded-full text-gray-600 hover:text-black hover:border-black transition-all duration-300"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  {social.icon}
-                </motion.a>
-              ))}
-            </div>
-          </motion.div>
+          {/* 구분선 */}
+          <div className="h-px bg-line-medium mb-8" />
 
-          {/* 오른쪽: Contact Info */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.2 }}
-            className="space-y-8"
-          >
-            <h4 className="text-sm font-light text-black mb-6 uppercase tracking-widest">Contact</h4>
+          {/* Footer 하단 */}
+          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+            <p className="text-sm text-text-secondary">
+              © 2025 {personalInfo.name}. All rights reserved.
+            </p>
             
-            <div className="space-y-6">
-              <div className="flex items-start gap-4">
-                <Mail className="w-4 h-4 text-gray-500 mt-1" />
-                <div>
-                  <a 
-                    href={`mailto:${personalInfo.email}`}
-                    className="text-sm font-light text-black hover:text-gray-500 transition-colors"
-                  >
-                    {personalInfo.email}
-                  </a>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4">
-                <Phone className="w-4 h-4 text-gray-500 mt-1" />
-                <div>
-                  <a 
-                    href={`tel:${personalInfo.phone}`}
-                    className="text-sm font-light text-black hover:text-gray-500 transition-colors"
-                  >
-                    {personalInfo.phone}
-                  </a>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4">
-                <MapPin className="w-4 h-4 text-gray-500 mt-1" />
-                <div>
-                  <p className="text-sm font-light text-white">{personalInfo.location}</p>
-                </div>
-              </div>
+            <div className="flex items-center gap-6 text-sm">
+              <a href="#" className="text-text-secondary hover:text-brand-main transition-colors">
+                Privacy Policy
+              </a>
+              <a href="#" className="text-text-secondary hover:text-brand-main transition-colors">
+                Terms of Service
+              </a>
+              <a href="#" className="text-text-secondary hover:text-brand-main transition-colors">
+                Cookie Policy
+              </a>
             </div>
-          </motion.div>
-        </div>
-
-        {/* 구분선 */}
-        <div className="h-px bg-gray-200 mb-8" />
-
-        {/* Bottom Bar */}
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-light text-gray-400">
-          <p>
-            © 2025 {personalInfo.name}. All rights reserved.
-          </p>
-          
-          <div className="flex items-center gap-4">
-            <a href="#" className="hover:text-black transition-colors">
-              Privacy
-            </a>
-            <span>·</span>
-            <a href="#" className="hover:text-black transition-colors">
-              Terms
-            </a>
           </div>
         </div>
       </div>
 
-      {/* Scroll to Top Button */}
+      {/* Scroll Button (Top/Bottom) */}
       <motion.button
-                onClick={scrollToTop}
-        className="fixed bottom-8 right-8 w-12 h-12 bg-black text-white rounded-full flex items-center justify-center hover:bg-gray-800 transition-all duration-300 z-50"
+        onClick={isAtTop ? scrollToBottom : scrollToTop}
+        className="fixed bottom-8 right-8 w-12 h-12 bg-brand-main text-white rounded-full flex items-center justify-center hover:opacity-90 transition-all duration-300 z-50 shadow-lg"
         initial={{ opacity: 0, scale: 0 }}
-        whileInView={{ opacity: 1, scale: 1 }}
-        viewport={{ once: false }}
-        whileHover={{ y: -5 }}
+        animate={{ opacity: 1, scale: 1 }}
+        whileHover={{ y: isAtTop ? 5 : -5 }}
         whileTap={{ scale: 0.9 }}
+        title={isAtTop ? '하단으로 이동' : '상단으로 이동'}
       >
-        <ChevronUp className="w-5 h-5" />
+        {isAtTop ? <ChevronDown className="w-5 h-5" /> : <ChevronUp className="w-5 h-5" />}
       </motion.button>
     </footer>
   );

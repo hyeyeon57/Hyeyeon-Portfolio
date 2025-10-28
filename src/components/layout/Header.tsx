@@ -52,8 +52,8 @@ export const Header: React.FC = () => {
       className={cn(
         'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
         isScrolled
-          ? 'bg-bg-light/90 backdrop-blur-sm border-b border-line-medium py-3'
-          : 'bg-bg-light py-5'
+          ? 'bg-white/90 backdrop-blur-sm border-b border-line-medium py-3'
+          : 'bg-white py-5'
       )}
     >
       <nav className="max-w-container mx-auto px-6 md:px-container-x">
