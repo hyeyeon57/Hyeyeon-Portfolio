@@ -108,7 +108,9 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
         {/* Projects Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
           {displayedProjects.map((project, index) => {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const cardStyles = ['pastel-card--blue', 'pastel-card--purple', 'pastel-card--gray'];
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const cardStyle = cardStyles[index % 3];
             
             return (

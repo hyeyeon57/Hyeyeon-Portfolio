@@ -71,55 +71,57 @@ export const Footer: React.FC = () => {
       });
     };
 
-    // 로켓이 위로 올라가다가 터지는 폭죽 생성 (원형만)
+    // 로켓이 위로 올라가다가 터지는 폭죽 생성 (원형만, 양 줄임)
     const createExplosion = (x: number, y: number) => {
-      for (let i = 0; i < 50; i++) {
-        const angle = (Math.PI * 2 * i) / 50;
-        const speed = Math.random() * 6 + 3;
+      for (let i = 0; i < 30; i++) {
+        const angle = (Math.PI * 2 * i) / 30;
+        const speed = Math.random() * 5 + 2;
         
         particles.push({
           x: x,
           y: y,
-          size: Math.random() * 8 + 4,
+          size: Math.random() * 6 + 3,
           speedX: Math.cos(angle) * speed,
           speedY: Math.sin(angle) * speed,
           color: colors[Math.floor(Math.random() * colors.length)],
           alpha: 1,
-          life: 120,
+          life: 100,
           rotation: Math.random() * Math.PI * 2,
           shape: 'circle' // 원형만 사용
         });
       }
     };
 
-    // 폭죽 발사 함수 (불규칙하게 터짐)
+    // 폭죽 발사 함수 (3개, 좌측 2개 + 우측 1개)
     const launchFireworks = () => {
-      // 로켓 여러 개를 불규칙한 타이밍에 발사
-      const positions = [0, 1, 2]; // 왼쪽 2개, 오른쪽 1개
+      // 좌측 상단 폭죽 (첫 번째, 빠르게)
+      setTimeout(() => {
+        const randomHeight = canvas.height * 0.25; // 높게
+        const randomSpeed = -5;
+        createRocket(0, randomHeight, randomSpeed); // 좌측 첫번째
+      }, 0);
       
-      positions.forEach((pos, index) => {
-        // 랜덤한 시간차를 두고 발사
-        setTimeout(() => {
-          // 하나는 낮게, 나머지는 다양한 높이
-          let randomHeight;
-          if (index === 0) {
-            // 첫 번째는 낮게 (40-60%)
-            randomHeight = canvas.height * (0.4 + Math.random() * 0.2);
-          } else {
-            // 나머지는 다양한 높이 (15-45%)
-            randomHeight = canvas.height * (0.15 + Math.random() * 0.3);
-          }
-          const randomSpeed = -(Math.random() * 3 + 3); // -3 ~ -6 사이
-          createRocket(pos, randomHeight, randomSpeed);
-        }, index * 500 + Math.random() * 1000); // 0ms, 500ms, 1000ms + 랜덤
-      });
+      // 좌측 중간 폭죽 (두 번째, 중간 타이밍)
+      setTimeout(() => {
+        const randomHeight = canvas.height * 0.35; // 중간 높이
+        const randomSpeed = -4.5;
+        createRocket(1, randomHeight, randomSpeed); // 좌측 두번째
+      }, 500);
+      
+      // 우측 폭죽 (세 번째, 늦게)
+      setTimeout(() => {
+        const randomHeight = canvas.height * 0.3; // 중간~높게
+        const randomSpeed = -4.8;
+        createRocket(2, randomHeight, randomSpeed); // 우측
+      }, 900);
     };
 
-    // Thank You 배지 주변에서 색종이 터지는 효과
+    // Thank You 배지 주변에서 색종이 터지는 효과 (양 줄임) - 현재 미사용
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const createConfetti = (centerX: number, centerY: number) => {
-      // 첫 번째 파도 - 강하게 터짐
-      for (let i = 0; i < 100; i++) {
-        const angle = (Math.PI * 2 * i) / 100;
+      // 첫 번째 파도 - 적당히 터짐
+      for (let i = 0; i < 50; i++) {
+        const angle = (Math.PI * 2 * i) / 50;
         const speed = Math.random() * 10 + 8;
         
         particles.push({
@@ -136,53 +138,43 @@ export const Footer: React.FC = () => {
         });
       }
       
-      // 두 번째 파도 - 약간 늦게, 조금 더 천천히
+      // 두 번째 파도 - 약간 늦게, 조금 더 천천히 (양 줄임)
       setTimeout(() => {
-        for (let i = 0; i < 60; i++) {
-          const angle = (Math.PI * 2 * i) / 60;
-          const speed = Math.random() * 6 + 4;
+        for (let i = 0; i < 30; i++) {
+          const angle = (Math.PI * 2 * i) / 30;
+          const speed = Math.random() * 5 + 3;
           
           particles.push({
             x: centerX,
             y: centerY,
-            size: Math.random() * 10 + 5,
+            size: Math.random() * 8 + 4,
             speedX: Math.cos(angle) * speed,
             speedY: Math.sin(angle) * speed - 2,
             color: colors[Math.floor(Math.random() * colors.length)],
             alpha: 1,
-            life: 100,
+            life: 80,
             rotation: Math.random() * Math.PI * 2,
             shape: 'circle'
           });
         }
-      }, 200);
+      }, 150);
     };
 
     // Thank You 섹션에 스크롤될 때 색종이와 폭죽 발사 (IntersectionObserver 사용)
-    let hasLaunched = sessionStorage.getItem('fireworksLaunched') === 'true';
+    let hasLaunched = false;
     
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting && !hasLaunched) {
           // 첫 진입 시에만 발사
           hasLaunched = true;
-          sessionStorage.setItem('fireworksLaunched', 'true');
           
           // 파티클과 로켓 초기화
           particles.length = 0;
           rockets.length = 0;
           
-          // 0.5초 후 Thank You 배지 중앙에서 색종이 터트림 (페이드인과 동시)
-          setTimeout(() => {
-            const centerX = canvas.width / 2;
-            const centerY = canvas.height * 0.25; // 상단 25% 지점
-            createConfetti(centerX, centerY);
-          }, 500);
-          
-          // 0.6초 후 폭죽 발사
-          setTimeout(() => {
-            launchFireworks();
-          }, 600);
+          // 즉시 폭죽 발사 (로켓이 올라가는 시간 필요)
+          launchFireworks();
         }
       });
     }, { threshold: 0.3 });
@@ -321,7 +313,7 @@ export const Footer: React.FC = () => {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.5 }}
-            transition={{ duration: 0.8, delay: 1.5, ease: "easeOut" }}
+            transition={{ duration: 0.6, delay: 0.3, ease: "easeOut" }}
             className="text-3xl md:text-4xl font-light text-text-main mb-6 leading-relaxed"
           >
             끝까지 제 포트폴리오를 봐주셔서 감사합니다.
@@ -332,7 +324,7 @@ export const Footer: React.FC = () => {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.5 }}
-            transition={{ duration: 0.8, delay: 2, ease: "easeOut" }}
+            transition={{ duration: 0.6, delay: 0.7, ease: "easeOut" }}
             className="text-lg md:text-xl text-text-sub font-light leading-relaxed mb-8"
           >
             이 길의 끝에서, 저의 새로운 출발을 함께할 수 있길 바랍니다.
@@ -343,7 +335,7 @@ export const Footer: React.FC = () => {
             initial={{ scaleX: 0 }}
             whileInView={{ scaleX: 1 }}
             viewport={{ once: true, amount: 0.8 }}
-            transition={{ duration: 0.8, delay: 2.3 }}
+            transition={{ duration: 0.8, delay: 1.1 }}
             className="w-24 h-px bg-gradient-to-r from-transparent via-brand-main to-transparent mx-auto"
           />
         </div>

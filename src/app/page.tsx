@@ -11,6 +11,7 @@ import { ContactSection } from '@/components/sections/ContactSection';
 export default function Home() {
   const [theme] = useState<'light' | 'dark'>('light');
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isMounted, setIsMounted] = useState(false);
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, {

@@ -16,8 +16,8 @@ export const personalInfo: PersonalInfo = {
     notion: '#'
   },
   availableDate: '채용 확정 후 즉시 가능',
-  resumeUrl: '/resume.pdf',
-  coverLetterUrl: '/cover-letter.pdf'
+  resumeUrl: '/documents/장혜연_이력서.pdf',
+  coverLetterUrl: '/documents/장혜연_자기소개서.pdf'
 };
 
 export const projects: Project[] = [

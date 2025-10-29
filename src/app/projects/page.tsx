@@ -166,6 +166,16 @@ export default function AllProjectsPage() {
     URL.revokeObjectURL(url);
   };
 
+  if (!isMounted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{
+        background: 'linear-gradient(135deg, #ECE9FF 0%, #F7F7FF 50%, #FFFFFF 100%)'
+      }}>
+        <div className="text-text-sub">Loading...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen" style={{
       background: 'linear-gradient(135deg, #ECE9FF 0%, #F7F7FF 50%, #FFFFFF 100%)'
@@ -863,7 +873,6 @@ export default function AllProjectsPage() {
           </motion.div>
         )}
       </AnimatePresence>
-
     </div>
   );
 }
