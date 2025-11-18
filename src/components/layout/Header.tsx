@@ -45,46 +45,46 @@ export const Header: React.FC = () => {
 
   const navItems = [
     { 
-      label: '출발지', 
-      labelEn: 'Start',
+      label: '홈', 
+      labelEn: 'Home',
       description: '기획자로서 나의 정체성 소개',
       href: '/#home', 
       icon: <Home size={16} /> 
     },
     { 
-      label: '즐겨찾기', 
+      label: '대표 프로젝트', 
       labelEn: 'Main Projects',
       description: '대표 프로젝트',
       href: '/#projects', 
       icon: <Briefcase size={16} /> 
     },
     { 
-      label: '경유지', 
-      labelEn: 'My Waypoint',
+      label: '전체 프로젝트', 
+      labelEn: 'All Projects',
+      description: '모든 프로젝트 모아보기',
+      href: '/projects', 
+      icon: <Briefcase size={16} /> 
+    },
+    { 
+      label: '나의 이력', 
+      labelEn: 'My Experience',
       description: '학력·경력 여정',
       href: '/#experience', 
       icon: <Briefcase size={16} /> 
     },
     { 
-      label: '주행 기록', 
-      labelEn: 'UX Skills Log',
+      label: '나의 역량', 
+      labelEn: 'My Skills',
       description: '기획 역량과 도구',
       href: '/#skills', 
       icon: <Briefcase size={16} /> 
     },
     { 
-      label: '최종 목적지', 
-      labelEn: 'Contact & Closing',
+      label: '연락하기', 
+      labelEn: 'Contact',
       description: '회사와의 연결 의지',
       href: '/#contact', 
       icon: <Mail size={16} /> 
-    },
-    { 
-      label: '전체 경로보기', 
-      labelEn: 'All Projects',
-      description: '모든 프로젝트 모아보기',
-      href: '/projects', 
-      icon: <Briefcase size={16} /> 
     },
   ];
 
