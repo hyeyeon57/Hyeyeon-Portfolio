@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>관리자 대시보드</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+    body { font-family: 'Pretendard', sans-serif; }
+  </style>
+</head>
+<body class="bg-gray-50">
+  <div id="app">
+    <!-- 헤더 -->
+    <header class="bg-white shadow-sm border-b sticky top-0 z-40">
+      <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center">
+          <div>
+            <h1 class="text-3xl font-bold text-gray-900">관리자 대시보드</h1>
+            <p class="text-gray-500 mt-1">프로젝트를 관리하세요</p>
+          </div>
+          <div class="flex gap-3">
+            <a href="http://localhost:3000" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition flex items-center gap-2">
+              <i data-lucide="arrow-left" class="w-4 h-4"></i>
+              홈으로
+            </a>
+            <a href="/admin/create" id="createBtn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2" style="display: none;">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+              새 프로젝트
+            </a>
+            <button onclick="logout()" id="logoutBtn" class="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition flex items-center gap-2" style="display: none;">
+              <i data-lucide="log-out" class="w-4 h-4"></i>
+              로그아웃
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+      <!-- 탭 네비게이션 -->
+      <div class="max-w-7xl mx-auto px-4 pt-6 sm:px-6 lg:px-8">
+        <div class="border-b border-gray-200">
+          <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+            <button
+              onclick="switchTab('projects')"
+              id="tab-projects"
+              class="tab-button border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm active"
+            >
+              프로젝트 관리
+            </button>
+            <button
+              onclick="switchTab('contacts')"
+              id="tab-contacts"
+              class="tab-button border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
+            >
+              연락 관리
+            </button>
+            <button
+              onclick="switchTab('visitors')"
+              id="tab-visitors"
+              class="tab-button border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
+            >
+              방문자 관리
+            </button>
+          </nav>
+        </div>
+      </div>
+
+      <!-- 프로젝트 관리 탭 -->
+      <div class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 tab-content" id="content-projects">
+        <!-- 프로젝트 통계 카드 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8" id="project-stats">
+        <!-- 프로젝트 통계는 JavaScript로 동적 생성 -->
+      </div>
+
+      <!-- 프로젝트 목록 -->
+      <div class="bg-white rounded-xl shadow-sm border">
+        <div class="px-6 py-4 border-b">
+          <h2 class="text-xl font-semibold text-gray-900">프로젝트 목록</h2>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-gray-50 border-b">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">제목</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">카테고리</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">태그</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">대표</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">날짜</th>
+                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">작업</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200" id="projectsTable">
+              <!-- 프로젝트 목록은 JavaScript로 동적 생성 -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      </div>
+
+      <!-- 연락 관리 탭 -->
+      <div class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 tab-content hidden" id="content-contacts">
+        <div class="bg-white rounded-xl shadow-sm border">
+          <div class="px-6 py-4 border-b">
+            <h2 class="text-xl font-semibold text-gray-900">연락 관리</h2>
+            <p class="text-sm text-gray-500 mt-1">포트폴리오 사이트를 통해 받은 연락 내역</p>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">날짜</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">이름</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">이메일</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">메시지</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">상태</th>
+                </tr>
+              </thead>
+              <tbody id="contactsTable" class="bg-white divide-y divide-gray-200">
+                <!-- 연락 목록은 JavaScript로 동적 생성 -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- 방문자 관리 탭 -->
+      <div class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 tab-content hidden" id="content-visitors">
+        <!-- 통계 카드 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8" id="visitor-stats">
+          <!-- 방문자 통계는 JavaScript로 동적 생성 -->
+        </div>
+
+        <!-- 방문자 목록 -->
+        <div class="bg-white rounded-xl shadow-sm border">
+          <div class="px-6 py-4 border-b">
+            <h2 class="text-xl font-semibold text-gray-900">방문자 기록</h2>
+            <p class="text-sm text-gray-500 mt-1">최근 방문한 사용자 목록 (최신순)</p>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">방문 시간</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">경로</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">IP 주소</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User Agent</th>
+                </tr>
+              </thead>
+              <tbody id="visitorsTable" class="bg-white divide-y divide-gray-200">
+                <!-- 방문자 목록은 JavaScript로 동적 생성 -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = 'http://localhost:3005/api';
+    const categoryLabels = {
+      'new': '신규',
+      'renewal': '리뉴얼',
+      'app': '앱',
+      'web': '웹',
+      'proposal': '기획안',
+      'usability': '사용성평가',
+    };
+
+    let projects = [];
+    let contacts = [];
+    let isAuthenticated = false; // 로그인 상태
+    let currentTab = 'projects'; // 현재 활성 탭
+
+    // 로그인 상태 확인
+    async function checkAuth() {
+      try {
+        const response = await fetch(`${API_URL}/auth/check`, {
+          credentials: 'include'
+        });
+        const result = await response.json();
+        isAuthenticated = result.authenticated || false;
+        
+        // 로그인 상태에 따라 UI 업데이트
+        updateUIForAuth();
+      } catch (error) {
+        console.error('인증 확인 오류:', error);
+        isAuthenticated = false;
+        updateUIForAuth();
+      }
+    }
+
+    // 인증 상태에 따라 UI 업데이트
+    function updateUIForAuth() {
+      // 새 프로젝트 버튼
+      const createBtn = document.getElementById('createBtn');
+      if (createBtn) {
+        createBtn.style.display = isAuthenticated ? 'flex' : 'none';
+      }
+
+      // 로그아웃 버튼
+      const logoutBtn = document.getElementById('logoutBtn');
+      if (logoutBtn) {
+        logoutBtn.style.display = isAuthenticated ? 'flex' : 'none';
+      }
+
+      // 프로젝트 테이블의 수정/삭제 버튼들 (클래스로 선택)
+      const editButtons = document.querySelectorAll('.edit-btn');
+      const deleteButtons = document.querySelectorAll('.delete-btn');
+      const toggleButtons = document.querySelectorAll('.toggle-btn');
+      
+      editButtons.forEach(btn => {
+        btn.style.display = isAuthenticated ? 'inline-flex' : 'none';
+      });
+      deleteButtons.forEach(btn => {
+        btn.style.display = isAuthenticated ? 'inline-flex' : 'none';
+      });
+      toggleButtons.forEach(btn => {
+        btn.style.display = isAuthenticated ? 'inline-block' : 'none';
+      });
+    }
+
+    // 탭 전환 함수
+    async function switchTab(tabName) {
+      console.log('탭 전환:', tabName);
+      currentTab = tabName;
+      
+      // 모든 탭 버튼 비활성화
+      document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.remove('border-blue-500', 'text-blue-600');
+        btn.classList.add('border-transparent', 'text-gray-500');
+      });
+      
+      // 모든 탭 콘텐츠 숨기기
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.add('hidden');
+      });
+      
+      // 선택한 탭 활성화
+      const activeTab = document.getElementById(`tab-${tabName}`);
+      const activeContent = document.getElementById(`content-${tabName}`);
+      
+      console.log('활성 탭 버튼:', activeTab);
+      console.log('활성 콘텐츠:', activeContent);
+      
+      if (activeTab) {
+        activeTab.classList.remove('border-transparent', 'text-gray-500');
+        activeTab.classList.add('border-blue-500', 'text-blue-600');
+      }
+      
+      if (activeContent) {
+        activeContent.classList.remove('hidden');
+        console.log('콘텐츠 표시됨:', tabName);
+      } else {
+        console.error('콘텐츠를 찾을 수 없음:', `content-${tabName}`);
+      }
+      
+      // 탭별 데이터 로드
+      try {
+        if (tabName === 'projects') {
+          await loadProjects();
+        } else if (tabName === 'contacts') {
+          await loadContacts();
+        } else if (tabName === 'visitors') {
+          await loadVisitors();
+          await loadVisitorStatsForTab();
+        }
+      } catch (error) {
+        console.error('탭 데이터 로드 오류:', error);
+      }
+    }
+    
+    // 전역 함수로 등록 (HTML에서 호출 가능하도록)
+    window.switchTab = switchTab;
+
+    // 페이지 로드 시 실행
+    window.addEventListener('DOMContentLoaded', async () => {
+      await checkAuth();
+      
+      // 초기 탭 설정 (데이터 로드는 switchTab에서 처리)
+      await switchTab('projects');
+      
+      // 30초마다 현재 탭 데이터 자동 갱신
+      setInterval(async () => {
+        if (currentTab === 'projects') {
+          await loadProjects();
+        } else if (currentTab === 'contacts') {
+          await loadContacts();
+        } else if (currentTab === 'visitors') {
+          await loadVisitors();
+          await loadVisitorStatsForTab();
+        }
+      }, 30000);
+    });
+
+    // 연락 목록 로드
+    async function loadContacts() {
+      try {
+        const response = await fetch(`${API_URL}/contacts`);
+        const result = await response.json();
+        if (result.success && Array.isArray(result.data)) {
+          contacts = result.data;
+          renderContacts(result.data);
+        } else {
+          renderContacts([]);
+        }
+      } catch (error) {
+        console.error('연락 목록 로드 오류:', error);
+        renderContacts([]);
+      }
+    }
+
+    // 연락 목록 렌더링
+    function renderContacts(contactsList) {
+      const tbody = document.getElementById('contactsTable');
+      
+      if (!contactsList || contactsList.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="5" class="px-6 py-12 text-center">
+              <div class="text-gray-400">
+                <p class="text-4xl mb-4">📧</p>
+                <p class="text-lg">연락 내역이 없습니다</p>
+              </div>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+      
+      tbody.innerHTML = contactsList.map(contact => {
+        const contactDate = new Date(contact.createdAt || contact.date || Date.now());
+        const formattedDate = contactDate.toLocaleString('ko-KR', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false
+        });
+        
+        const message = contact.message || '';
+        const shortMessage = message.length > 50 
+          ? message.substring(0, 50) + '...' 
+          : message;
+        
+        const status = contact.read ? '읽음' : '읽지 않음';
+        const statusColor = contact.read ? 'text-green-600' : 'text-blue-600';
+        
+        return `
+          <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm font-medium text-gray-900">${formattedDate}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-900">${contact.name || '-'}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-500">${contact.email || '-'}</div>
+            </td>
+            <td class="px-6 py-4">
+              <div class="text-sm text-gray-500" title="${message}">${shortMessage}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span class="px-2 py-1 text-xs font-medium rounded-full ${statusColor}">${status}</span>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // 방문자 목록 로드
+    async function loadVisitors() {
+      try {
+        const response = await fetch(`${API_URL}/visitors?limit=50`);
+        const result = await response.json();
+        if (result.success && Array.isArray(result.data)) {
+          renderVisitors(result.data);
+        }
+      } catch (error) {
+        console.error('방문자 목록 로드 오류:', error);
+      }
+    }
+
+    // 방문자 통계 로드 (방문자 관리 탭용)
+    async function loadVisitorStatsForTab() {
+      try {
+        const response = await fetch(`${API_URL}/visitors/stats`);
+        const result = await response.json();
+        if (result.success) {
+          renderVisitorStats(result);
+        }
+      } catch (error) {
+        console.error('방문자 통계 로드 오류:', error);
+      }
+    }
+
+    // 방문자 통계 렌더링 (방문자 관리 탭용)
+    function renderVisitorStats(stats) {
+      const statsHtml = `
+        <div class="bg-white p-6 rounded-xl shadow-sm border">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-500 text-sm">오늘 방문자</p>
+              <p class="text-3xl font-bold text-gray-900 mt-1">${stats.today || 0}</p>
+            </div>
+            <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+              <span class="text-2xl">👥</span>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white p-6 rounded-xl shadow-sm border">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-500 text-sm">전체 방문자</p>
+              <p class="text-3xl font-bold text-gray-900 mt-1">${stats.total || 0}</p>
+            </div>
+            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+              <span class="text-2xl">📊</span>
+            </div>
+          </div>
+        </div>
+      `;
+      const statsContainer = document.getElementById('visitor-stats');
+      if (statsContainer) {
+        statsContainer.innerHTML = statsHtml;
+      }
+    }
+
+    // 방문자 목록 렌더링
+    function renderVisitors(visitors) {
+      const tbody = document.getElementById('visitorsTable');
+      
+      if (visitors.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="4" class="px-6 py-12 text-center">
+              <div class="text-gray-400">
+                <p class="text-4xl mb-4">👤</p>
+                <p class="text-lg">방문 기록이 없습니다</p>
+              </div>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+      
+      tbody.innerHTML = visitors.map(visitor => {
+        const visitDate = new Date(visitor.date || visitor.createdAt);
+        const formattedDate = visitDate.toLocaleString('ko-KR', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false
+        });
+        
+        const userAgent = visitor.userAgent || '';
+        const shortUserAgent = userAgent.length > 50 
+          ? userAgent.substring(0, 50) + '...' 
+          : userAgent;
+        
+        return `
+          <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm font-medium text-gray-900">${formattedDate}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-900">${visitor.path || '/'}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-500">${visitor.ip || '-'}</div>
+            </td>
+            <td class="px-6 py-4">
+              <div class="text-sm text-gray-500" title="${userAgent}">${shortUserAgent}</div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // 프로젝트 로드
+    async function loadProjects() {
+      try {
+        const response = await fetch(`${API_URL}/projects`);
+        const result = await response.json();
+        if (result.success) {
+          projects = result.data || [];
+          renderProjects();
+          renderProjectStats(); // 프로젝트 통계만 렌더링
+        } else {
+          console.error('프로젝트 로드 실패:', result);
+          renderProjects(); // 빈 배열로라도 렌더링
+          renderProjectStats();
+        }
+      } catch (error) {
+        console.error('프로젝트 로드 오류:', error);
+        projects = [];
+        renderProjects(); // 오류 발생 시에도 빈 목록 표시
+        renderProjectStats();
+      }
+    }
+
+    // 방문자 통계
+    let visitorStats = { today: 0, total: 0 };
+
+    // 방문자 통계 로드
+    async function loadVisitorStats() {
+      try {
+        const response = await fetch(`${API_URL}/visitors/stats`);
+        const result = await response.json();
+        console.log('방문자 통계 응답:', result);
+        if (result.success) {
+          visitorStats = {
+            today: result.today || 0,
+            total: result.total || 0
+          };
+          console.log('방문자 통계 업데이트:', visitorStats);
+        } else {
+          console.error('방문자 통계 조회 실패:', result);
+        }
+      } catch (error) {
+        console.error('방문자 통계 로드 오류:', error);
+      }
+    }
+
+    // 프로젝트 통계 렌더링 (프로젝트 관리 탭용)
+    function renderProjectStats() {
+      const statsHtml = `
+        <div class="bg-white p-6 rounded-xl shadow-sm border">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-500 text-sm">총 프로젝트</p>
+              <p class="text-3xl font-bold text-gray-900 mt-1">${projects.length}</p>
+            </div>
+            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+              <span class="text-2xl">📁</span>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white p-6 rounded-xl shadow-sm border">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-500 text-sm">대표 프로젝트</p>
+              <p class="text-3xl font-bold text-gray-900 mt-1">${projects.filter(p => p.featured).length}</p>
+            </div>
+            <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+              <i data-lucide="pin" class="w-6 h-6 text-yellow-600" fill="currentColor"></i>
+            </div>
+          </div>
+        </div>
+      `;
+      const statsContainer = document.getElementById('project-stats');
+      if (statsContainer) {
+        statsContainer.innerHTML = statsHtml;
+        lucide.createIcons();
+      }
+    }
+
+    // 프로젝트 목록 렌더링
+    function renderProjects() {
+      const tbody = document.getElementById('projectsTable');
+      
+      if (projects.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="px-6 py-12 text-center">
+              <div class="text-gray-400">
+                <p class="text-4xl mb-4">📦</p>
+                <p class="text-lg">프로젝트가 없습니다</p>
+                <a href="/admin/create" class="text-blue-600 hover:text-blue-700 mt-2 inline-block">
+                  첫 프로젝트를 만들어보세요 →
+                </a>
+              </div>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = projects.map(project => {
+        const projectId = project._id || project.id;
+        return `
+        <tr class="hover:bg-gray-50">
+          <td class="px-6 py-4">
+            <div>
+              <div class="text-sm font-medium text-gray-900">${project.title}</div>
+              <div class="text-sm text-gray-500 truncate max-w-xs">${project.subtitle || ''}</div>
+            </div>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
+              ${categoryLabels[project.category] || project.category}
+            </span>
+          </td>
+          <td class="px-6 py-4">
+            <div class="flex flex-wrap gap-1">
+              ${(project.tags || []).slice(0, 2).map(tag => `
+                <span class="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-600">${tag}</span>
+              `).join('')}
+              ${(project.tags || []).length > 2 ? `
+                <span class="px-2 py-1 text-xs text-gray-400">+${(project.tags || []).length - 2}</span>
+              ` : ''}
+            </div>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <button onclick="toggleFeatured('${projectId}')" class="hover:scale-110 transition-transform toggle-btn" title="${project.featured ? '대표 프로젝트 해제' : '대표 프로젝트로 설정'}" style="display: none;">
+              <i data-lucide="${project.featured ? 'pin' : 'pin-off'}" class="w-6 h-6 ${project.featured ? 'text-yellow-600' : 'text-gray-400'}" fill="${project.featured ? 'currentColor' : 'none'}"></i>
+            </button>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${project.date || ''}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+            <div class="flex justify-end gap-2">
+              <button onclick="viewDetail('${projectId}')" class="p-2 text-blue-600 hover:bg-blue-50 rounded transition" title="상세 보기">
+                <i data-lucide="eye" class="w-4 h-4"></i>
+              </button>
+              <button onclick="editProject('${projectId}')" class="p-2 text-blue-600 hover:bg-blue-50 rounded transition edit-btn" title="수정" style="display: none;">
+                <i data-lucide="edit-3" class="w-4 h-4"></i>
+              </button>
+              <button onclick="deleteProject('${projectId}')" class="p-2 text-red-600 hover:bg-red-50 rounded transition delete-btn" title="삭제" style="display: none;">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      `;
+      }).join('');
+      lucide.createIcons();
+      
+      // UI 업데이트 (버튼 표시/숨김)
+      updateUIForAuth();
+    }
+
+    // 대표 프로젝트 토글
+    async function toggleFeatured(id) {
+      if (!isAuthenticated) {
+        alert('로그인이 필요합니다.');
+        return;
+      }
+      const project = projects.find(p => p.id === id || p._id === id);
+      if (!project) return;
+
+      try {
+        // MongoDB _id 또는 id 사용
+        const projectId = project._id || project.id;
+        const response = await fetch(`${API_URL}/projects/${projectId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...project, featured: !project.featured })
+        });
+        const result = await response.json();
+        if (result.success) {
+            await loadProjects();
+        }
+      } catch (error) {
+        console.error('토글 오류:', error);
+        alert('오류가 발생했습니다.');
+      }
+    }
+
+    // 프로젝트 삭제
+    async function deleteProject(id) {
+      if (!isAuthenticated) {
+        alert('로그인이 필요합니다.');
+        return;
+      }
+      if (!confirm('정말 삭제하시겠습니까?')) return;
+
+      try {
+        const project = projects.find(p => p.id === id || p._id === id);
+        if (!project) {
+          alert('프로젝트를 찾을 수 없습니다.');
+          return;
+        }
+        
+        // MongoDB _id 또는 id 사용
+        const projectId = project._id || project.id;
+        const response = await fetch(`${API_URL}/projects/${projectId}`, {
+          method: 'DELETE'
+        });
+        const result = await response.json();
+        if (result.success) {
+          alert('프로젝트가 삭제되었습니다!');
+          await loadProjects();
+        }
+      } catch (error) {
+        console.error('삭제 오류:', error);
+        alert('삭제에 실패했습니다.');
+      }
+    }
+
+    // 프로젝트 상세 보기
+    async function viewDetail(id) {
+      const project = projects.find(p => p.id === id || p._id === id);
+      if (!project) return;
+
+      const projectId = project._id || project.id;
+      
+      // 파일 목록 로드
+      let files = [];
+      try {
+        const filesResponse = await fetch(`${API_URL}/projects/${projectId}/files`);
+        const filesResult = await filesResponse.json();
+        if (filesResult.success && Array.isArray(filesResult.data)) {
+          files = filesResult.data;
+        }
+      } catch (error) {
+        console.error('파일 목록 로드 오류:', error);
+      }
+
+      const detailHtml = `
+        <div class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="this.remove()">
+          <div class="bg-white rounded-2xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+            <div class="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
+              <h2 class="text-2xl font-bold text-gray-900">${project.title}</h2>
+              <button onclick="this.closest('.fixed').remove()" class="p-2 hover:bg-gray-100 rounded-full transition">
+                <i data-lucide="x" class="w-6 h-6"></i>
+              </button>
+            </div>
+            <div class="p-6 space-y-6">
+              <div>
+                <h3 class="text-sm font-medium text-gray-500 mb-1">부제목</h3>
+                <p class="text-lg text-gray-900">${project.subtitle || ''}</p>
+              </div>
+              <div>
+                <h3 class="text-sm font-medium text-gray-500 mb-1">설명</h3>
+                <p class="text-gray-700">${project.description || ''}</p>
+              </div>
+              ${project.fullDescription ? `
+                <div>
+                  <h3 class="text-sm font-medium text-gray-500 mb-1">상세 설명</h3>
+                  <p class="text-gray-700 whitespace-pre-line">${project.fullDescription}</p>
+                </div>
+              ` : ''}
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <h3 class="text-sm font-medium text-gray-500 mb-1">카테고리</h3>
+                  <span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">${categoryLabels[project.category] || project.category}</span>
+                </div>
+                <div>
+                  <h3 class="text-sm font-medium text-gray-500 mb-1">날짜</h3>
+                  <p class="text-gray-700">${project.date || ''}</p>
+                </div>
+                <div>
+                  <h3 class="text-sm font-medium text-gray-500 mb-1">역할</h3>
+                  <p class="text-gray-700">${project.role || ''}</p>
+                </div>
+                <div>
+                  <h3 class="text-sm font-medium text-gray-500 mb-1">기간</h3>
+                  <p class="text-gray-700">${project.duration || ''}</p>
+                </div>
+              </div>
+              ${(project.tags || []).length > 0 ? `
+                <div>
+                  <h3 class="text-sm font-medium text-gray-500 mb-2">태그</h3>
+                  <div class="flex flex-wrap gap-2">
+                    ${(project.tags || []).map(tag => `
+                      <span class="px-3 py-1 text-sm rounded-full bg-gray-100 text-gray-700">${tag}</span>
+                    `).join('')}
+                  </div>
+                </div>
+              ` : ''}
+              ${(project.achievements || []).length > 0 ? `
+                <div>
+                  <h3 class="text-sm font-medium text-gray-500 mb-2">주요 성과</h3>
+                  <ul class="list-disc list-inside space-y-1 text-gray-700">
+                    ${(project.achievements || []).map(achievement => `
+                      <li>${achievement}</li>
+                    `).join('')}
+                  </ul>
+                </div>
+              ` : ''}
+              <!-- 파일 관리 섹션 -->
+              <div class="border-t pt-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">프로젝트 파일</h3>
+                ${files.length > 0 ? `
+                  <div class="space-y-2">
+                    ${files.map((file, index) => `
+                      <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                        <div class="flex items-center gap-3">
+                          <i data-lucide="file-image" class="w-5 h-5 text-blue-600"></i>
+                          <span class="text-sm text-gray-700">${file.name}</span>
+                        </div>
+                        <div class="flex gap-2">
+                          <a href="${file.url}" target="_blank" class="p-2 text-blue-600 hover:bg-blue-50 rounded transition" title="미리보기">
+                            <i data-lucide="eye" class="w-4 h-4"></i>
+                          </a>
+                          <button onclick="downloadFile('${projectId}', '${file.name}')" class="p-2 text-green-600 hover:bg-green-50 rounded transition" title="다운로드">
+                            <i data-lucide="download" class="w-4 h-4"></i>
+                          </button>
+                        </div>
+                      </div>
+                    `).join('')}
+                  </div>
+                ` : `
+                  <div class="text-center py-8 text-gray-400">
+                    <i data-lucide="file-x" class="w-12 h-12 mx-auto mb-2"></i>
+                    <p>등록된 파일이 없습니다</p>
+                  </div>
+                `}
+              </div>
+            </div>
+            <div class="sticky bottom-0 bg-white border-t px-6 py-4 flex justify-end gap-3">
+              ${isAuthenticated ? `
+              <button onclick="editProject('${project.id}'); this.closest('.fixed').remove();" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                수정하기
+              </button>
+              ` : ''}
+              <button onclick="this.closest('.fixed').remove()" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
+                닫기
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      document.body.insertAdjacentHTML('beforeend', detailHtml);
+      lucide.createIcons();
+    }
+    
+    // 파일 다운로드 함수
+    function downloadFile(projectId, filename) {
+      const downloadUrl = `${API_URL}/projects/${projectId}/files/${encodeURIComponent(filename)}`;
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+    
+    // 전역 함수로 등록
+    window.viewDetail = viewDetail;
+    window.downloadFile = downloadFile;
+
+    // 프로젝트 수정
+    function editProject(id) {
+      if (!isAuthenticated) {
+        alert('로그인이 필요합니다.');
+        return;
+      }
+      const project = projects.find(p => p.id === id || p._id === id);
+      if (!project) return;
+
+      // 수정 폼 모달
+      const editHtml = `
+        <div class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="this.remove()">
+          <div class="bg-white rounded-2xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+            <div class="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
+              <h2 class="text-2xl font-bold text-gray-900">프로젝트 수정</h2>
+              <button onclick="this.closest('.fixed').remove()" class="p-2 hover:bg-gray-100 rounded-full transition">
+                <i data-lucide="x" class="w-6 h-6"></i>
+              </button>
+            </div>
+            <form id="editForm" class="p-6 space-y-6">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">제목 *</label>
+                <input type="text" name="title" value="${project.title || ''}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">부제목</label>
+                <input type="text" name="subtitle" value="${project.subtitle || ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">설명 *</label>
+                <textarea name="description" required rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg">${project.description || ''}</textarea>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">상세 설명</label>
+                <textarea name="fullDescription" rows="5" class="w-full px-4 py-2 border border-gray-300 rounded-lg">${project.fullDescription || ''}</textarea>
+              </div>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">카테고리 *</label>
+                  <select name="category" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                    <option value="new" ${project.category === 'new' ? 'selected' : ''}>신규</option>
+                    <option value="renewal" ${project.category === 'renewal' ? 'selected' : ''}>리뉴얼</option>
+                    <option value="app" ${project.category === 'app' ? 'selected' : ''}>앱</option>
+                    <option value="web" ${project.category === 'web' ? 'selected' : ''}>웹</option>
+                    <option value="proposal" ${project.category === 'proposal' ? 'selected' : ''}>기획안</option>
+                    <option value="usability" ${project.category === 'usability' ? 'selected' : ''}>사용성평가</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">태그 (쉼표로 구분)</label>
+                  <input type="text" name="tags" value="${(project.tags || []).join(', ')}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+                </div>
+              </div>
+              <div class="grid grid-cols-3 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">날짜</label>
+                  <input type="text" name="date" value="${project.date || ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">팀 구성</label>
+                  <input type="text" name="team" value="${project.team || ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">기간</label>
+                  <input type="text" name="duration" value="${project.duration || ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">역할</label>
+                  <input type="text" name="role" value="${project.role || ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">링크</label>
+                  <input type="text" name="link" value="${project.link || ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+                </div>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">주요 성과 (줄바꿈으로 구분)</label>
+                <textarea name="achievements" rows="5" class="w-full px-4 py-2 border border-gray-300 rounded-lg">${(project.achievements || []).join('\\n')}</textarea>
+              </div>
+              <div>
+                <label class="flex items-center">
+                  <input type="checkbox" name="featured" ${project.featured ? 'checked' : ''} class="w-4 h-4 text-blue-600 border-gray-300 rounded" />
+                  <i data-lucide="pin" class="w-4 h-4 text-yellow-600 ml-2" fill="currentColor"></i>
+                  <span class="ml-2 text-sm text-gray-700">대표 프로젝트로 고정</span>
+                </label>
+              </div>
+              <div class="flex gap-4 pt-4">
+                <button type="submit" class="flex-1 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition font-medium">
+                  수정 완료
+                </button>
+                <button type="button" onclick="this.closest('.fixed').remove()" class="px-8 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
+                  취소
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      `;
+      document.body.insertAdjacentHTML('beforeend', editHtml);
+      
+      // 수정 폼 제출 처리
+      document.getElementById('editForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const projectId = project._id || project.id;
+        const updateData = {
+          title: formData.get('title'),
+          subtitle: formData.get('subtitle') || '',
+          description: formData.get('description'),
+          fullDescription: formData.get('fullDescription') || formData.get('description') || '',
+          category: formData.get('category'),
+          tags: formData.get('tags') ? formData.get('tags').split(',').map(tag => tag.trim()).filter(Boolean) : [],
+          date: formData.get('date') || '',
+          team: formData.get('team') || '',
+          role: formData.get('role') || '',
+          duration: formData.get('duration') || '',
+          link: formData.get('link') || '',
+          achievements: formData.get('achievements') ? formData.get('achievements').split('\\n').map(a => a.trim()).filter(Boolean) : [],
+          featured: formData.get('featured') === 'on',
+        };
+
+        try {
+          const response = await fetch(`${API_URL}/projects/${projectId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updateData)
+          });
+          const result = await response.json();
+          if (result.success) {
+            alert('프로젝트가 수정되었습니다!');
+            e.target.closest('.fixed').remove();
+            await loadProjects();
+          } else {
+            alert('수정에 실패했습니다.');
+          }
+        } catch (error) {
+          console.error('수정 오류:', error);
+          alert('오류가 발생했습니다.');
+        }
+      });
+      
+      lucide.createIcons();
+    }
+
+    // 로그아웃
+    async function logout() {
+      if (!confirm('로그아웃 하시겠습니까?')) return;
+      
+      try {
+        const response = await fetch('/api/auth/logout', {
+          method: 'POST',
+          credentials: 'include'
+        });
+        const result = await response.json();
+        if (result.success) {
+          window.location.href = '/admin/login';
+        }
+      } catch (error) {
+        console.error('로그아웃 오류:', error);
+        alert('로그아웃 중 오류가 발생했습니다.');
+      }
+    }
+
+    // 중복 제거됨 (위에 이미 정의됨)
+    lucide.createIcons();
+  </script>
+
+  <!-- Footer -->
+  <footer class="bg-gray-50 border-t border-gray-200 mt-16">
+    <div class="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
+      <!-- Footer 상단 -->
+      <div class="mb-8">
+        <div class="max-w-2xl">
+          <h3 class="text-2xl md:text-3xl font-light text-gray-900 mb-3">
+            장혜연
+          </h3>
+          <p class="text-base text-gray-600 leading-relaxed">
+            막다른 길에서도 또 다른 경로를 찾아내는<br />
+            <span class="font-bold">내비게이션 같은 기획자</span>입니다.
+          </p>
+        </div>
+      </div>
+
+      <!-- 구분선 -->
+      <div class="h-px bg-gray-200 mb-8" />
+
+      <!-- Footer 하단 -->
+      <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+        <p class="text-sm text-gray-500">
+          © 2025 Jang Haeyeon Portfolio All rights reserved.
+        </p>
+        
+        <div class="flex items-center gap-6 text-sm">
+          <a href="http://localhost:3000" class="text-gray-500 hover:text-blue-600 transition-colors flex items-center gap-2">
+            <i data-lucide="eye" class="w-4 h-4"></i>
+            Viewer Access
+          </a>
+          <a href="http://localhost:3000" class="text-gray-500 hover:text-blue-600 transition-colors flex items-center gap-2">
+            <i data-lucide="home" class="w-4 h-4"></i>
+            포트폴리오 홈
+          </a>
+        </div>
+      </div>
+    </div>
+  </footer>
+  
+  <script>
+    // Footer 아이콘 초기화
+    lucide.createIcons();
+  </script>
+</body>
+</html>
+

@@ -1,0 +1,48 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Start Dev Server",
+      "type": "shell",
+      "command": "npm run dev",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "runOptions": {
+        "runOn": "default"
+      }
+    },
+    {
+      "label": "Start Backend Server",
+      "type": "shell",
+      "command": "npm run dev:server",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "Start All Servers",
+      "type": "shell",
+      "command": "npm run dev:all",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "Open Chrome",
+      "type": "shell",
+      "command": "${workspaceFolder}/open-chrome.bat",
+      "windows": {
+        "command": "${workspaceFolder}\\open-chrome.bat"
+      },
+      "problemMatcher": []
+    }
+  ]
+}
+

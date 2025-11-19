@@ -54,13 +54,13 @@ export const SkillsSection: React.FC<SkillsSectionProps> = () => {
             viewport={{ once: true }}
             className="inline-block px-4 py-2 bg-brand-main/10 text-brand-main rounded-full text-sm font-semibold mb-4 border border-brand-main/30"
           >
-            기획자의 내비게이션 도구
+            Tool Skill
           </motion.span>
-          <h2 className="text-4xl md:text-5xl font-light text-text-main mb-4">
-            UX Skills & Capabilities Log
+          <h2 className="text-4xl md:text-5xl font-light text-text-main mb-6">
+            Tool Skill
           </h2>
           <p className="text-xl text-text-sub max-w-2xl mx-auto">
-            이 기록들은 문제를 해결해온 제 기획 역량을 증명하는 주행 로그입니다.
+            문제를 해결해온 제 기획 역량을 수치화했습니다.
           </p>
         </motion.div>
 

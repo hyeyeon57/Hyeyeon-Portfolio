@@ -80,13 +80,15 @@ export const ContactSection: React.FC<ContactSectionProps> = () => {
             viewport={{ once: true }}
             className="inline-block px-4 py-2 bg-brand-main/10 text-brand-main rounded-full text-sm font-semibold mb-4 border border-brand-main/30"
           >
-            최종 목적지
+            연락하기
           </motion.span>
-          <h2 className="text-4xl md:text-5xl font-light text-text-main mb-4">
+          <h2 className="text-4xl md:text-5xl font-light text-text-main mb-6">
             Contact
           </h2>
           <p className="text-xl text-text-sub max-w-2xl mx-auto">
-            프로젝트 문의나 협업 제안이 있으시다면 언제든 연락주세요!
+            프로젝트 제안, 협업 문의, 채용 관련 연락 모두 환영합니다.
+            <br />
+            궁금한 점이나 간단한 내용 남겨주시면 최대한 빠르게 답변 드리겠습니다.
           </p>
         </motion.div>
 
@@ -136,7 +138,7 @@ export const ContactSection: React.FC<ContactSectionProps> = () => {
                       name="name"
                       value={formData.name}
                       onChange={handleChange}
-                      placeholder="홍길동"
+                      placeholder="이름"
                       required
                       className="w-full px-5 py-4 border-2 border-line-medium rounded-xl text-text-main placeholder-text-secondary focus:outline-none focus:ring-2 focus:ring-brand-main focus:border-transparent transition-all duration-200 hover:border-brand-main/50 bg-bg-dark"
                     />
@@ -151,7 +153,7 @@ export const ContactSection: React.FC<ContactSectionProps> = () => {
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
-                      placeholder="hello@example.com"
+                      placeholder="janghyeyeon57@gmail.com"
                       required
                       className="w-full px-5 py-4 border-2 border-line-medium rounded-xl text-text-main placeholder-text-secondary focus:outline-none focus:ring-2 focus:ring-brand-main focus:border-transparent transition-all duration-200 hover:border-brand-main/50 bg-bg-dark"
                     />
@@ -166,7 +168,7 @@ export const ContactSection: React.FC<ContactSectionProps> = () => {
                       value={formData.message}
                       onChange={handleChange}
                       rows={6}
-                      placeholder="무엇을 도와드릴까요? 프로젝트나 협업에 대해 자세히 설명해주세요."
+                      placeholder="어떤 연락이든 편하게 남겨주세요. 프로젝트 제안, 협업 문의, 채용 관련 문의 모두 환영합니다."
                       required
                       className="w-full px-5 py-4 border-2 border-line-medium rounded-xl text-text-main placeholder-text-secondary focus:outline-none focus:ring-2 focus:ring-brand-main focus:border-transparent transition-all duration-200 resize-none hover:border-brand-main/50 bg-bg-dark"
                     />

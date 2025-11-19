@@ -10,7 +10,6 @@ import { ContactSection } from '@/components/sections/ContactSection';
 
 export default function Home() {
   const [theme] = useState<'light' | 'dark'>('light');
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isMounted, setIsMounted] = useState(false);
   const { scrollYProgress } = useScroll();
@@ -22,6 +21,39 @@ export default function Home() {
 
   useEffect(() => {
     setIsMounted(true);
+    
+    // 방문자 로그 저장 (중복 방지)
+    const logVisit = async () => {
+      // 세션 스토리지를 사용하여 중복 방지
+      const visitKey = `visit_${window.location.pathname}_${Date.now()}`;
+      const lastVisitTime = sessionStorage.getItem('lastVisitTime');
+      const now = Date.now();
+      
+      // 1초 이내 중복 요청 방지
+      if (lastVisitTime && (now - parseInt(lastVisitTime)) < 1000) {
+        return;
+      }
+      
+      sessionStorage.setItem('lastVisitTime', now.toString());
+      
+      try {
+        await fetch('http://localhost:3005/api/visitors', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            path: window.location.pathname,
+            userAgent: navigator.userAgent,
+          }),
+        });
+      } catch (error) {
+        // 방문자 로그 저장 실패는 무시 (FO 화면에 영향 없음)
+        console.error('방문자 로그 저장 실패:', error);
+      }
+    };
+    
+    logVisit();
     
     // 해시가 있으면 해당 섹션으로 스크롤, 없으면 최상단으로
     const hash = window.location.hash;
@@ -36,16 +68,6 @@ export default function Home() {
     } else {
       window.scrollTo(0, 0);
     }
-
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-    };
   }, []);
 
   return (
@@ -54,20 +76,6 @@ export default function Home() {
       <motion.div
         className="fixed top-0 left-0 right-0 h-1 bg-brand-main z-50 origin-left"
         style={{ scaleX }}
-      />
-
-      {/* Mouse Follower */}
-      <motion.div
-        className="fixed w-6 h-6 border-2 border-line-medium rounded-full pointer-events-none z-50 mix-blend-difference"
-        animate={{
-          x: mousePosition.x - 12,
-          y: mousePosition.y - 12,
-        }}
-        transition={{
-          type: "spring",
-          stiffness: 500,
-          damping: 28,
-        }}
       />
 
       <motion.main 

@@ -301,7 +301,7 @@ export const Footer: React.FC = () => {
             transition={{ duration: 0.5 }}
             className="mb-8"
           >
-            <div className="inline-block px-8 py-4 bg-gradient-to-r from-brand-main/20 via-brand-main/30 to-brand-main/20 rounded-full border-2 border-brand-main/40 mb-6 backdrop-blur-sm shadow-lg">
+            <div className="inline-block px-8 py-4 bg-brand-main/10 rounded-full border border-brand-main/30 mb-6">
               <p className="text-base font-bold text-brand-main">
                 Thank You
               </p>
@@ -363,18 +363,15 @@ export const Footer: React.FC = () => {
           {/* Footer 하단 */}
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <p className="text-sm text-text-secondary">
-              © 2025 {personalInfo.name}. All rights reserved.
+              © 2025 Jang Haeyeon Portfolio All rights reserved.
             </p>
             
             <div className="flex items-center gap-6 text-sm">
-              <a href="#" className="text-text-secondary hover:text-brand-main transition-colors">
-                Privacy Policy
+              <a href="http://localhost:3005/admin/viewer" target="_blank" rel="noopener noreferrer" className="text-text-secondary hover:text-brand-main transition-colors">
+                Viewer Access
               </a>
-              <a href="#" className="text-text-secondary hover:text-brand-main transition-colors">
-                Terms of Service
-              </a>
-              <a href="#" className="text-text-secondary hover:text-brand-main transition-colors">
-                Cookie Policy
+              <a href="http://localhost:3005/admin/login" target="_blank" rel="noopener noreferrer" className="text-text-secondary hover:text-brand-main transition-colors">
+                Admin Login
               </a>
             </div>
           </div>

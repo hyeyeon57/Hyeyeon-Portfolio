@@ -1,0 +1,17 @@
+# Cursor에서 무시할 파일/폴더
+node_modules/
+.next/
+out/
+dist/
+build/
+.git/
+.DS_Store
+*.log
+.env.local
+.env*.local
+
+# 빈 디렉토리 (에디터 오류 방지)
+src/data/portfolio/
+src/app/api/contact/
+.cursor/rules/
+

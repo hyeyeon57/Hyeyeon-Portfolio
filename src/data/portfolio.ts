@@ -6,9 +6,9 @@ export const personalInfo: PersonalInfo = {
   title: '내비게이션 같은 기획자',
   bio: '막다른 길에서도 또 다른 경로를 찾아내는\n내비게이션 같은 기획자입니다.',
   description: '사용자의 여정 속 문제를 정의하고, 더 나은 방향을 설계합니다.',
-  email: 'janghaeyo0507@gmail.com',
+  email: 'janghyeyeon57@gmail.com',
   phone: '010-2807-5250',
-  location: '경기도 군포시 공단로 124번길 23',
+  location: '경기 군포 거주/ 수도권 근무 가능',
   social: {
     github: '#',
     linkedin: 'https://www.linkedin.com/feed/',
@@ -40,7 +40,7 @@ export const projects: Project[] = [
       '리뷰 시스템 UX 개선'
     ],
     link: '#',
-    featured: true
+    featured: false
   },
   {
     id: '2',
@@ -61,7 +61,7 @@ export const projects: Project[] = [
       '맞춤형 추천 시스템 설계'
     ],
     link: '#',
-    featured: true
+    featured: false
   },
   {
     id: '3',
@@ -234,12 +234,12 @@ export const experience: Experience[] = [
   {
     id: '1',
     company: 'MASCO',
-    position: '내비게이션 QA',
+    position: '현대/기아 내비게이션 QA',
     period: '2023.04 - 2024.09',
     description: '화면설계서 기반 오류 검증, Mcols 이슈 등록 및 품질 표준화',
     achievements: [
-      '문제 정의 및 UX 검증 능력 습득',
       '화면설계서 기반 품질 관리',
+      'TC 작성 경험 보유',
       '이슈 트래킹 및 커뮤니케이션'
     ]
   },

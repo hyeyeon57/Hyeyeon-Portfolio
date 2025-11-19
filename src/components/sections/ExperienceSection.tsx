@@ -34,10 +34,10 @@ export const ExperienceSection: React.FC<ExperienceSectionProps> = () => {
             viewport={{ once: true }}
             className="inline-block px-4 py-2 rounded-full text-sm font-medium mb-4 border bg-brand-main/10 text-brand-main border-brand-main/30"
           >
-            나의 경유지
+            나의 이력
           </motion.span>
           <h2 className="text-4xl md:text-5xl font-light mb-6 text-text-main">
-            My Waypoint
+            Experience
           </h2>
           <p className="text-xl text-text-sub max-w-3xl mx-auto">
             QA 직무 경험에서는 문제를 정확히 포착하는 <span className="font-bold text-text-main">분석력</span>을,

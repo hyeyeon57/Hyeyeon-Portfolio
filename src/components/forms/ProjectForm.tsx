@@ -2,28 +2,10 @@
 
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
-
-type Project = {
-  id: string;
-  title: string;
-  subtitle: string;
-  description: string;
-  category: 'new' | 'renewal' | 'app' | 'web' | 'proposal' | 'usability';
-  tags: string[];
-  date: string;
-  team: string;
-  role: string;
-  duration: string;
-  link?: string;
-  image?: string;
-  detailedDescription?: string;
-  keyFeatures?: string[];
-  technologies?: string[];
-  outcomes?: string[];
-};
+import { Project } from '@/types/portfolio';
 
 interface ProjectFormProps {
-  project?: Project;
+  project?: Project | Partial<Project>;
   onSave: (project: Project | Omit<Project, 'id'>) => void;
   onCancel: () => void;
 }
@@ -33,15 +15,21 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSave, onCan
     title: project?.title || '',
     subtitle: project?.subtitle || '',
     description: project?.description || '',
+    fullDescription: (project as any)?.fullDescription || '',
     category: project?.category || 'new',
-    tags: project?.tags.join(', ') || '',
+    tags: (project?.tags && Array.isArray(project.tags)) ? project.tags.join(', ') : '',
     date: project?.date || '',
     team: project?.team || '',
     role: project?.role || '',
     duration: project?.duration || '',
     link: project?.link || '',
     image: project?.image || '',
-    gallery: (project as any)?.gallery ? (project as any).gallery.join('\n') : '',
+    achievements: (project as any)?.achievements && Array.isArray((project as any).achievements) 
+      ? (project as any).achievements.join('\n') 
+      : '',
+    gallery: (project as any)?.gallery && Array.isArray((project as any).gallery) 
+      ? (project as any).gallery.join('\n') 
+      : '',
     retrospective: (project as any)?.retrospective || '',
   });
 
@@ -67,19 +55,21 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSave, onCan
       title: formData.title,
       subtitle: formData.subtitle || '제목 없음',
       description: formData.description || '설명 없음',
-      category: formData.category as Project['category'],
+      fullDescription: formData.fullDescription || formData.description || '설명 없음',
+      category: formData.category as 'new' | 'renewal' | 'app' | 'web' | 'proposal' | 'usability',
       tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()).filter(Boolean) : ['미분류'],
       date: formData.date || '날짜 미정',
       team: formData.team || '미정',
       role: formData.role || '미정',
       duration: formData.duration || '미정',
+      achievements: formData.achievements ? formData.achievements.split('\n').map(a => a.trim()).filter(Boolean) : [],
       ...(formData.link && { link: formData.link }),
       ...(formData.image && { image: formData.image }),
       ...(formData.gallery && { gallery: formData.gallery.split('\n').map(url => url.trim()).filter(Boolean) }),
       ...(formData.retrospective && { retrospective: formData.retrospective }),
     };
 
-    if (project) {
+    if (project && 'id' in project && project.id) {
       onSave({ ...projectData, id: project.id } as Project);
     } else {
       onSave(projectData as Omit<Project, 'id'>);
@@ -114,13 +104,25 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSave, onCan
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-text-secondary mb-2">설명</label>
+        <label className="block text-sm font-medium text-text-secondary mb-2">설명 (짧은 설명)</label>
         <textarea
           name="description"
           value={formData.description}
           onChange={handleChange}
-          placeholder="프로젝트 설명을 입력하세요"
+          placeholder="프로젝트 짧은 설명을 입력하세요"
           rows={3}
+          className="w-full px-4 py-2 border border-line-medium rounded-lg focus:outline-none focus:border-brand-main"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-text-secondary mb-2">상세 설명</label>
+        <textarea
+          name="fullDescription"
+          value={formData.fullDescription}
+          onChange={handleChange}
+          placeholder="프로젝트 상세 설명을 입력하세요"
+          rows={5}
           className="w-full px-4 py-2 border border-line-medium rounded-lg focus:outline-none focus:border-brand-main"
         />
       </div>
@@ -305,6 +307,19 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSave, onCan
             </div>
           </div>
         )}
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-text-secondary mb-2">주요 성과 (줄바꿈으로 구분)</label>
+        <textarea
+          name="achievements"
+          value={formData.achievements}
+          onChange={handleChange}
+          placeholder="주요 성과를 한 줄씩 입력하세요&#10;예: 사용자 만족도 20% 향상&#10;예: 예매 단계 7→4단계 축소"
+          rows={5}
+          className="w-full px-4 py-2 border border-line-medium rounded-lg focus:outline-none focus:border-brand-main resize-y"
+        />
+        <p className="text-xs text-text-secondary mt-1">각 성과를 줄바꿈으로 구분하여 입력하세요</p>
       </div>
 
       <div>

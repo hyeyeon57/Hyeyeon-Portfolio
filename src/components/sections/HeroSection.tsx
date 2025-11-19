@@ -30,7 +30,7 @@ export const HeroSection: React.FC<HeroSectionProps> = () => {
       }}
     >
 
-      <div className="max-w-container mx-auto px-6 md:px-container-x relative z-10 w-full">
+      <div className="max-w-container mx-auto px-container-x relative z-10 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-20 items-center">
           {/* 텍스트 콘텐츠 */}
           <motion.div
