@@ -188,15 +188,25 @@ export default function AllProjectsPage() {
       >
         <div className="max-w-container mx-auto px-6 md:px-container-x py-6">
           <div className="flex items-center justify-between">
-            <Link href={fromFavorites ? "/#projects" : "/"}>
-              <motion.button
-                whileHover={{ x: -5 }}
-                className="flex items-center gap-2 text-text-secondary hover:text-brand-main transition-colors duration-300"
-              >
-                <ArrowLeft size={20} />
-                <span className="text-sm font-medium">{fromFavorites ? "즐겨찾기로" : "홈으로"}</span>
-              </motion.button>
-            </Link>
+            <div className="flex items-center gap-4">
+              <Link href="/">
+                <motion.button
+                  whileHover={{ x: -5 }}
+                  className="flex items-center gap-2 text-text-secondary hover:text-brand-main transition-colors duration-300"
+                >
+                  <ArrowLeft size={20} />
+                  <span className="text-sm font-medium">홈으로</span>
+                </motion.button>
+              </Link>
+              <Link href="/projects">
+                <motion.button
+                  whileHover={{ x: -5 }}
+                  className="flex items-center gap-2 text-text-secondary hover:text-brand-main transition-colors duration-300"
+                >
+                  <span className="text-sm font-medium">전체 프로젝트 보기</span>
+                </motion.button>
+              </Link>
+            </div>
             <h1 className="text-xl md:text-2xl font-bold text-brand-main">
               전체 경로보기
             </h1>
