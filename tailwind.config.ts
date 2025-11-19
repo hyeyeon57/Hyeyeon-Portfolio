@@ -9,10 +9,10 @@ const config: Config = {
   theme: {
     extend: {
       maxWidth: {
-        'container': '1560px', // 전체 1920px 기준, 컨테이너 1560px
+        'container': '1540px',
       },
       spacing: {
-        'container-x': '20px', // 컨테이너 내 좌우 마진 각 20px (실제 컨텐츠 영역: 1520px)
+        'container-x': '190px',
       },
       colors: {
         // 배경 컬러 (새 컬러 팔레트)
