@@ -30,6 +30,7 @@
     "framer-motion": "^12.23.24",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.545.0",
+    "memorystore": "^1.6.7",
     "mongoose": "^8.19.3",
     "multer": "^2.0.2",
     "next": "14.2.33",
