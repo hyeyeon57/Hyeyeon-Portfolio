@@ -138,21 +138,6 @@ export const Header: React.FC = () => {
                       <span>{item.label}</span>
                     </span>
                   </Link>
-                  
-                  {/* 호버 설명 - 탭 중앙 정렬 */}
-                  <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 pointer-events-none z-50 whitespace-nowrap">
-                    <div className="bg-white border border-line-medium rounded-lg p-3 shadow-lg relative mx-auto">
-                      {/* 화살표 */}
-                      <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-3 h-3 border-l border-t border-line-medium bg-white transform rotate-45"></div>
-                      
-                      <div className="text-xs text-brand-main font-semibold mb-1 text-center">
-                        {item.labelEn}
-                      </div>
-                      <div className="text-xs text-text-secondary text-center">
-                        {item.description}
-                      </div>
-                    </div>
-                  </div>
                 </li>
               );
             })}

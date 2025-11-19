@@ -198,17 +198,9 @@ export default function AllProjectsPage() {
                   <span className="text-sm font-medium">홈으로</span>
                 </motion.button>
               </Link>
-              <Link href="/projects">
-                <motion.button
-                  whileHover={{ x: -5 }}
-                  className="flex items-center gap-2 text-text-secondary hover:text-brand-main transition-colors duration-300"
-                >
-                  <span className="text-sm font-medium">전체 프로젝트 보기</span>
-                </motion.button>
-              </Link>
             </div>
             <h1 className="text-xl md:text-2xl font-bold text-brand-main">
-              전체 경로보기
+              전체 프로젝트
             </h1>
             <div className="w-20" /> {/* Spacer for centering */}
           </div>
