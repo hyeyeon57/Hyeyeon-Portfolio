@@ -2,10 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ExternalLink, Calendar, Users, Award, X, Star, ArrowLeft, Plus, Edit3, Trash2, Settings, Download, Eye } from 'lucide-react';
+import { ExternalLink, Calendar, Users, Award, X, ArrowLeft, Download, Eye } from 'lucide-react';
 import { projects as initialProjects } from '@/data/portfolio';
 import Link from 'next/link';
-import { ProjectForm } from '@/components/forms/ProjectForm';
 
 type Project = typeof initialProjects[0];
 
@@ -14,47 +13,68 @@ export default function AllProjectsPage() {
   const [projects, setProjects] = useState<Project[]>(initialProjects);
   const [selectedCategories, setSelectedCategories] = useState<string[]>(['all']);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [favoriteProjects, setFavoriteProjects] = useState<string[]>([]);
-  const [showLimitNotification, setShowLimitNotification] = useState(false);
-  const [notificationPosition, setNotificationPosition] = useState<{ x: number; y: number } | null>(null);
-  const [showManageModal, setShowManageModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [editingProject, setEditingProject] = useState<Project | null>(null);
-  const [showAddModal, setShowAddModal] = useState(false);
   const [showGalleryModal, setShowGalleryModal] = useState(false);
   const [galleryProject, setGalleryProject] = useState<Project | null>(null);
-  const [fromFavorites, setFromFavorites] = useState(false);
 
-  // 클라이언트 마운트 시 localStorage에서 데이터 로드
+  // 클라이언트 마운트 시 BO 서버에서 데이터 로드
   useEffect(() => {
     setIsMounted(true);
     
-    // 프로젝트 로드
-    const savedProjects = localStorage.getItem('customProjects');
-    if (savedProjects) {
-      setProjects(JSON.parse(savedProjects));
-    }
+    const fetchProjects = async () => {
+      try {
+        const response = await fetch('/api/projects?t=' + Date.now()); // 캐시 방지
+        const result = await response.json();
+        
+        if (result.success && Array.isArray(result.data)) {
+          // BO 데이터를 우선으로 사용
+          const boProjects: Project[] = result.data.map((p: any) => ({
+            id: p.id || p._id?.toString() || '',
+            title: p.title || '',
+            subtitle: p.subtitle || '',
+            description: p.description || '',
+            fullDescription: p.fullDescription || '',
+            image: p.image || p.images?.[0] || '',
+            tags: p.tags || [],
+            category: p.category || 'new',
+            date: p.date || '',
+            role: p.role || '',
+            duration: p.duration || '',
+            team: p.team || '',
+            achievements: p.achievements || [],
+            link: p.link || '#',
+            featured: p.featured || false,
+          }));
+          
+          // BO에 프로젝트가 있으면 BO 데이터 사용, 없으면 정적 데이터 사용
+          if (boProjects.length > 0) {
+            setProjects(boProjects);
+          } else {
+            // BO에 데이터가 없으면 정적 데이터 사용
+            setProjects(initialProjects);
+          }
+        } else {
+          // 오류 시 정적 데이터 사용
+          setProjects(initialProjects);
+        }
+      } catch (error) {
+        console.error('프로젝트 로드 오류:', error);
+        // 오류 시 정적 데이터 사용
+        setProjects(initialProjects);
+      }
+    };
+
+    fetchProjects();
     
-    // 즐겨찾기 로드
-    const savedFavorites = localStorage.getItem('favoriteProjects');
-    if (savedFavorites) {
-      setFavoriteProjects(JSON.parse(savedFavorites));
-    }
-    
-    // URL 쿼리 파라미터 확인
-    const params = new URLSearchParams(window.location.search);
-    setFromFavorites(params.get('from') === 'favorites');
+    // 주기적으로 새로고침 (30초마다)
+    const interval = setInterval(fetchProjects, 30000);
+    return () => clearInterval(interval);
   }, []);
 
-  // 프로젝트 변경 시 localStorage에 저장 (마운트 후에만)
-  useEffect(() => {
-    if (isMounted) {
-      localStorage.setItem('customProjects', JSON.stringify(projects));
-    }
-  }, [projects, isMounted]);
+  // 프로젝트 데이터는 BO 서버에서 관리하므로 localStorage 저장 제거
 
   const categories = [
     { id: 'all', label: '전체', count: projects.length },
+    { id: 'featured', label: '대표', count: projects.filter(p => p.featured).length },
     { id: 'new', label: '신규', count: projects.filter(p => p.category === 'new').length },
     { id: 'renewal', label: '리뉴얼', count: projects.filter(p => p.category === 'renewal').length },
     { id: 'app', label: '앱', count: projects.filter(p => p.category === 'app').length },
@@ -63,19 +83,12 @@ export default function AllProjectsPage() {
     { id: 'usability', label: '사용성평가', count: projects.filter(p => p.category === 'usability').length },
   ];
 
-  // 필터링된 프로젝트 (즐겨찾기를 상단에 정렬)
-  const filteredProjects = (selectedCategories.includes('all') 
-    ? projects 
-    : projects.filter(project => selectedCategories.includes(project.category))
-  ).sort((a, b) => {
-    const aIsFavorite = favoriteProjects.includes(a.id);
-    const bIsFavorite = favoriteProjects.includes(b.id);
-    
-    // 즐겨찾기가 먼저 오도록 정렬
-    if (aIsFavorite && !bIsFavorite) return -1;
-    if (!aIsFavorite && bIsFavorite) return 1;
-    return 0;
-  });
+  // 필터링된 프로젝트
+  const filteredProjects = selectedCategories.includes('all')
+    ? projects
+    : selectedCategories.includes('featured')
+    ? projects.filter(project => project.featured)
+    : projects.filter(project => selectedCategories.includes(project.category));
 
   const toggleCategory = (categoryId: string) => {
     setSelectedCategories(prev => {
@@ -83,74 +96,19 @@ export default function AllProjectsPage() {
         return ['all'];
       }
       
+      if (categoryId === 'featured') {
+        // 대표 필터는 단독으로만 선택 가능
+        return prev.includes('featured') ? ['all'] : ['featured'];
+      }
+      
       const newCategories = prev.includes(categoryId)
         ? prev.filter(id => id !== categoryId)
-        : [...prev.filter(id => id !== 'all'), categoryId];
+        : [...prev.filter(id => id !== 'all' && id !== 'featured'), categoryId];
       
       return newCategories.length === 0 ? ['all'] : newCategories;
     });
   };
 
-  const toggleFavorite = (projectId: string, event: React.MouseEvent) => {
-    const buttonRect = event.currentTarget.getBoundingClientRect();
-    const position = {
-      x: buttonRect.right + 10,
-      y: buttonRect.top - 10
-    };
-    
-    setFavoriteProjects(prev => {
-      let newFavorites;
-      if (prev.includes(projectId)) {
-        newFavorites = prev.filter(id => id !== projectId);
-      } else if (prev.length < 3) {
-        newFavorites = [...prev, projectId];
-      } else {
-        setNotificationPosition(position);
-        setShowLimitNotification(true);
-        setTimeout(() => {
-          setShowLimitNotification(false);
-          setNotificationPosition(null);
-        }, 3000);
-        return prev;
-      }
-      
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('favoriteProjects', JSON.stringify(newFavorites));
-      }
-      
-      return newFavorites;
-    });
-  };
-
-  // 프로젝트 삭제
-  const handleDeleteProject = (projectId: string) => {
-    if (confirm('정말 이 프로젝트를 삭제하시겠습니까?')) {
-      setProjects(prev => prev.filter(p => p.id !== projectId));
-      setFavoriteProjects(prev => prev.filter(id => id !== projectId));
-    }
-  };
-
-  // 프로젝트 편집 열기
-  const handleEditProject = (project: Project) => {
-    setEditingProject(project);
-    setShowEditModal(true);
-    setShowManageModal(false);
-  };
-
-  // 프로젝트 편집 저장
-  const handleSaveEdit = (updatedProject: Project) => {
-    setProjects(prev => prev.map(p => p.id === updatedProject.id ? updatedProject : p));
-    setShowEditModal(false);
-    setEditingProject(null);
-  };
-
-  // 프로젝트 추가
-  const handleAddProject = (newProject: Omit<Project, 'id'>) => {
-    const newId = String(projects.length + 1);
-    const projectWithId = { ...newProject, id: newId };
-    setProjects(prev => [...prev, projectWithId]);
-    setShowAddModal(false);
-  };
 
   // 프로젝트 전체 다운로드
   const handleDownloadAll = () => {
@@ -233,15 +191,6 @@ export default function AllProjectsPage() {
               >
                 <Download size={20} />
               </motion.button>
-              <motion.button
-                onClick={() => setShowManageModal(true)}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="p-2.5 bg-brand-main/10 hover:bg-brand-main/20 text-brand-main rounded-xl transition-all duration-300 border border-brand-main/30 hover:border-brand-main/50"
-                title="프로젝트 관리"
-              >
-                <Settings size={20} />
-              </motion.button>
             </div>
           </div>
           <h2 className="text-3xl md:text-4xl font-light text-text-main mb-4">
@@ -323,24 +272,6 @@ export default function AllProjectsPage() {
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     
-                          {/* Favorite Button */}
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleFavorite(project.id, e);
-                            }}
-                      className={`absolute top-4 right-4 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 backdrop-blur-sm ${
-                              favoriteProjects.includes(project.id)
-                          ? 'bg-brand-main text-white shadow-lg scale-110'
-                          : 'bg-white/90 text-text-secondary hover:bg-brand-main hover:text-white border border-line-medium'
-                            }`}
-                          >
-                            <Star 
-                        size={18} 
-                              fill={favoriteProjects.includes(project.id) ? 'currentColor' : 'none'}
-                            />
-                          </button>
-                    
                     {/* Gallery Preview Button */}
                     {(project as any).gallery && Array.isArray((project as any).gallery) && (project as any).gallery.length > 0 && (
                       <button
@@ -420,26 +351,6 @@ export default function AllProjectsPage() {
         )}
       </div>
 
-      {/* Favorite Limit Notification */}
-      <AnimatePresence>
-        {showLimitNotification && notificationPosition && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8, x: notificationPosition.x, y: notificationPosition.y }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            style={{
-              position: 'fixed',
-              left: notificationPosition.x,
-              top: notificationPosition.y,
-              zIndex: 9999,
-            }}
-            className="bg-brand-main text-white px-4 py-3 rounded-xl shadow-2xl border border-white/20"
-          >
-            <p className="text-sm font-medium whitespace-nowrap">⭐ 즐겨찾기는 최대 3개까지 가능합니다</p>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       {/* Project Modal */}
       <AnimatePresence>
         {selectedProject && (
@@ -464,22 +375,6 @@ export default function AllProjectsPage() {
                     <h2 className="text-2xl md:text-3xl font-bold text-text-main">
                 {selectedProject.title}
                     </h2>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleFavorite(selectedProject.id, e);
-                      }}
-                      className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
-                        favoriteProjects.includes(selectedProject.id)
-                          ? 'bg-brand-main text-white shadow-lg'
-                          : 'bg-bg-light text-text-secondary hover:bg-brand-main/10 hover:text-brand-main border border-line-medium'
-                      }`}
-                    >
-                      <Star 
-                        size={18} 
-                        fill={favoriteProjects.includes(selectedProject.id) ? 'currentColor' : 'none'}
-                      />
-                    </button>
                   </div>
                   <p className="text-brand-main font-medium">{selectedProject.subtitle}</p>
                 </div>
@@ -611,199 +506,7 @@ export default function AllProjectsPage() {
         )}
       </AnimatePresence>
 
-      {/* Project Management Modal */}
-      <AnimatePresence>
-        {showManageModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-bg-dark/80 backdrop-blur-sm"
-            onMouseDown={(e) => {
-              if (e.target === e.currentTarget) {
-                setShowManageModal(false);
-              }
-            }}
-          >
-            <motion.div
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
-              className="bg-white rounded-3xl max-w-4xl w-full max-h-[85vh] overflow-hidden border border-line-medium shadow-xl"
-            >
-              {/* Modal Header */}
-              <div className="sticky top-0 bg-white border-b border-line-medium px-6 py-4 flex items-center justify-between z-10">
-                <h3 className="text-2xl font-bold text-text-main">
-                  프로젝트 관리
-                </h3>
-                <button
-                  onClick={() => setShowManageModal(false)}
-                  className="w-10 h-10 rounded-full bg-bg-light hover:bg-brand-main/10 border border-line-medium hover:border-brand-main transition-all duration-300 flex items-center justify-center text-text-secondary hover:text-brand-main"
-                >
-                  <X size={20} />
-                </button>
-              </div>
 
-              {/* Modal Content */}
-              <div className="p-6 overflow-y-auto custom-scrollbar max-h-[calc(85vh-80px)]">
-                <div className="space-y-4">
-                  {projects.map((project) => (
-                    <div
-                      key={project.id}
-                      className="bg-white rounded-2xl border border-line-medium hover:border-brand-main/50 transition-all duration-300 p-4 flex items-center justify-between"
-                    >
-                      <div className="flex items-center gap-4 flex-1">
-                        <div className="w-16 h-16 rounded-xl overflow-hidden bg-gradient-to-br from-brand-main/10 to-brand-sub-1/10 flex items-center justify-center">
-                          {project.image ? (
-                            <img 
-                              src={project.image} 
-                              alt={project.title}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <span className="text-2xl font-bold text-brand-main">
-                              {project.title.charAt(0)}
-                            </span>
-                          )}
-                </div>
-                        <div className="flex-1">
-                          <h4 className="text-lg font-bold text-text-main mb-1">
-                            {project.title}
-                          </h4>
-                          <p className="text-sm text-text-secondary line-clamp-1">
-                            {project.subtitle}
-                  </p>
-                </div>
-              </div>
-
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => handleEditProject(project)}
-                          className="p-2 rounded-lg bg-brand-main/10 hover:bg-brand-main/20 text-brand-main transition-all duration-300"
-                          title="편집"
-                        >
-                          <Edit3 size={18} />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteProject(project.id)}
-                          className="p-2 rounded-lg bg-red-50 hover:bg-red-100 text-red-500 transition-all duration-300"
-                          title="삭제"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                  
-                  {/* Add New Project Button */}
-                  <button
-                    onClick={() => {
-                      setShowManageModal(false);
-                      setShowAddModal(true);
-                    }}
-                    className="w-full p-6 bg-brand-main/5 hover:bg-brand-main/10 border-2 border-dashed border-brand-main/30 hover:border-brand-main/50 rounded-2xl transition-all duration-300 flex items-center justify-center gap-3 text-brand-main font-medium"
-                  >
-                    <Plus size={20} />
-                    <span>새 프로젝트 추가</span>
-                  </button>
-              </div>
-            </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Edit Project Modal */}
-      <AnimatePresence>
-        {showEditModal && editingProject && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-bg-dark/80 backdrop-blur-sm"
-            onMouseDown={(e) => {
-              if (e.target === e.currentTarget) {
-                setShowEditModal(false);
-                setEditingProject(null);
-              }
-            }}
-          >
-            <motion.div
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
-              className="bg-white rounded-3xl max-w-3xl w-full max-h-[85vh] overflow-hidden border border-line-medium shadow-xl"
-            >
-              <div className="sticky top-0 bg-white border-b border-line-medium px-6 py-4 flex items-center justify-between z-10">
-                <h3 className="text-2xl font-bold text-text-main">
-                  프로젝트 편집
-                </h3>
-                <button
-                  onClick={() => {
-                    setShowEditModal(false);
-                    setEditingProject(null);
-                  }}
-                  className="w-10 h-10 rounded-full bg-bg-light hover:bg-brand-main/10 border border-line-medium hover:border-brand-main transition-all duration-300 flex items-center justify-center text-text-secondary hover:text-brand-main"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-              <div className="p-6 overflow-y-auto custom-scrollbar max-h-[calc(85vh-80px)]">
-                <ProjectForm
-                  project={editingProject}
-                  onSave={handleSaveEdit}
-                  onCancel={() => {
-                    setShowEditModal(false);
-                    setEditingProject(null);
-                  }}
-                />
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Add Project Modal */}
-      <AnimatePresence>
-        {showAddModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-bg-dark/80 backdrop-blur-sm"
-            onMouseDown={(e) => {
-              if (e.target === e.currentTarget) {
-                setShowAddModal(false);
-              }
-            }}
-          >
-            <motion.div
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
-              className="bg-white rounded-3xl max-w-3xl w-full max-h-[85vh] overflow-hidden border border-line-medium shadow-xl"
-            >
-              <div className="sticky top-0 bg-white border-b border-line-medium px-6 py-4 flex items-center justify-between z-10">
-                <h3 className="text-2xl font-bold text-text-main">
-                  새 프로젝트 추가
-                </h3>
-                <button
-                  onClick={() => setShowAddModal(false)}
-                  className="w-10 h-10 rounded-full bg-bg-light hover:bg-brand-main/10 border border-line-medium hover:border-brand-main transition-all duration-300 flex items-center justify-center text-text-secondary hover:text-brand-main"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-              <div className="p-6 overflow-y-auto custom-scrollbar max-h-[calc(85vh-80px)]">
-                <ProjectForm
-                  onSave={handleAddProject}
-                  onCancel={() => setShowAddModal(false)}
-                />
-            </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* Image Gallery Modal */}
       <AnimatePresence>
