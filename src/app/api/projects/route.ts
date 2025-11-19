@@ -1,11 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const BACKOFFICE_API_URL = process.env.BACKOFFICE_API_URL || 'http://localhost:3005';
+// 개발 환경에서는 별도 백오피스 서버 사용
+// 프로덕션에서는 같은 Vercel 프로젝트의 /api 경로 사용 (vercel.json rewrites로 라우팅)
+const BACKOFFICE_API_URL = process.env.BACKOFFICE_API_URL || 
+  (process.env.NODE_ENV === 'production' ? undefined : 'http://localhost:3005');
 
 export async function GET(request: NextRequest) {
   try {
-    // BO 서버에서 프로젝트 목록 가져오기
-    const response = await fetch(`${BACKOFFICE_API_URL}/api/projects`, {
+    // 프로덕션에서는 /api/bo 경로를 통해 백오피스 API 호출 (무한 루프 방지)
+    // 개발 환경에서는 별도 백오피스 서버 호출
+    let fetchUrl: string;
+    
+    if (BACKOFFICE_API_URL) {
+      // 개발 환경: 별도 백오피스 서버
+      fetchUrl = `${BACKOFFICE_API_URL}/api/projects`;
+    } else {
+      // 프로덕션: 같은 프로젝트 내부 백오피스 API 호출
+      // /api/bo/projects는 vercel.json rewrites로 api/index.js로 라우팅됨
+      fetchUrl = `${request.nextUrl.origin}/api/bo/projects`;
+    }
+    
+    const response = await fetch(fetchUrl, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

@@ -267,8 +267,8 @@ app.get('/api/visitors', async (req, res) => {
   }
 });
 
-// 프로젝트 목록 조회
-app.get('/api/projects', async (req, res) => {
+// 프로젝트 목록 조회 (백오피스 API)
+const handleGetProjects = async (req, res) => {
   try {
     await initDB();
     if (mongoose.connection.readyState !== 1) {
@@ -283,7 +283,11 @@ app.get('/api/projects', async (req, res) => {
     console.error('프로젝트 조회 오류:', error);
     res.status(500).json({ success: false, error: '프로젝트를 불러오는데 실패했습니다.' });
   }
-});
+};
+
+// /api/projects와 /api/bo/projects 모두 처리 (무한 루프 방지)
+app.get('/api/projects', handleGetProjects);
+app.get('/api/bo/projects', handleGetProjects);
 
 // 프로젝트 상세 조회
 app.get('/api/projects/:id', async (req, res) => {
