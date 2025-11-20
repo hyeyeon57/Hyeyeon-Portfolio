@@ -34,13 +34,8 @@ export const ContactSection: React.FC<ContactSectionProps> = () => {
     e.preventDefault();
     
     try {
-      // 백오피스 서버 URL 설정
-      const apiUrl = window.location.hostname === 'localhost'
-        ? 'http://localhost:3005'
-        : 'https://hyeyeon-portfolio-admin.vercel.app';
-      
-      // BO API로 연락 정보 저장
-      await fetch(`${apiUrl}/api/bo/contacts`, {
+      // Next.js API 라우트를 통해 연락 정보 저장 및 이메일 전송
+      const response = await fetch('/api/send-email', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -52,30 +47,21 @@ export const ContactSection: React.FC<ContactSectionProps> = () => {
         }),
       });
       
-      // 이메일 전송 (기존 기능 유지)
-      const subject = encodeURIComponent(`[포트폴리오 문의] ${formData.name}님의 메시지`);
-      const body = encodeURIComponent(
-        `이름: ${formData.name}\n이메일: ${formData.email}\n\n메시지:\n${formData.message}`
-      );
-      const mailtoLink = `mailto:${personalInfo.email}?subject=${subject}&body=${body}`;
+      const result = await response.json();
       
-      // 이메일 클라이언트 열기
-      window.location.href = mailtoLink;
-      
-      // 폼 초기화
-      setFormData({ name: '', email: '', message: '' });
-      setIsSubmitted(true);
-      setTimeout(() => {
-        setIsSubmitted(false);
-      }, 3000);
+      if (response.ok) {
+        // 폼 초기화
+        setFormData({ name: '', email: '', message: '' });
+        setIsSubmitted(true);
+        setTimeout(() => {
+          setIsSubmitted(false);
+        }, 3000);
+      } else {
+        alert(result.error || '메시지 전송에 실패했습니다. 다시 시도해주세요.');
+      }
     } catch (error) {
       console.error('연락 정보 저장 오류:', error);
-      // 오류가 발생해도 사용자에게는 정상적으로 보이도록 처리
-      setFormData({ name: '', email: '', message: '' });
-      setIsSubmitted(true);
-      setTimeout(() => {
-        setIsSubmitted(false);
-      }, 3000);
+      alert('메시지 전송 중 오류가 발생했습니다. 다시 시도해주세요.');
     }
   };
 

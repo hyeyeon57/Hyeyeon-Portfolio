@@ -24,6 +24,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // 백오피스 서버에 연락 정보 저장
+    try {
+      const backofficeUrl = process.env.NEXT_PUBLIC_BACKOFFICE_URL || 
+        process.env.BACKOFFICE_API_URL ||
+        (process.env.NODE_ENV === 'production' 
+          ? 'https://hyeyeon-portfolio-admin.vercel.app' 
+          : 'http://localhost:3005');
+      
+      await fetch(`${backofficeUrl}/api/bo/contacts`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name, email, message }),
+      });
+    } catch (error) {
+      // 백오피스 저장 실패는 로그만 남기고 계속 진행
+      console.error('백오피스 연락 정보 저장 실패:', error);
+    }
+
     // Resend를 사용한 실제 이메일 전송
     const { data, error } = await resend.emails.send({
       from: 'Portfolio Contact <onboarding@resend.dev>',
