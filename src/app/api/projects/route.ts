@@ -1,24 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// 개발 환경에서는 별도 백오피스 서버 사용
-// 프로덕션에서는 같은 Vercel 프로젝트의 /api 경로 사용 (vercel.json rewrites로 라우팅)
-const BACKOFFICE_API_URL = process.env.BACKOFFICE_API_URL || 
-  (process.env.NODE_ENV === 'production' ? undefined : 'http://localhost:3005');
+// 백오피스 서버 URL 설정
+// 프로덕션: 별도 Vercel 프로젝트의 BO 서버
+// 개발: 로컬 BO 서버
+const BACKOFFICE_API_URL = process.env.NEXT_PUBLIC_BACKOFFICE_URL || 
+  process.env.BACKOFFICE_API_URL || 
+  (process.env.NODE_ENV === 'production' 
+    ? 'https://hyeyeon-portfolio-admin.vercel.app' 
+    : 'http://localhost:3005');
 
 export async function GET(request: NextRequest) {
   try {
-    // 프로덕션에서는 /api/bo 경로를 통해 백오피스 API 호출 (무한 루프 방지)
-    // 개발 환경에서는 별도 백오피스 서버 호출
-    let fetchUrl: string;
-    
-    if (BACKOFFICE_API_URL) {
-      // 개발 환경: 별도 백오피스 서버
-      fetchUrl = `${BACKOFFICE_API_URL}/api/projects`;
-    } else {
-      // 프로덕션: 같은 프로젝트 내부 백오피스 API 호출
-      // /api/bo/projects는 vercel.json rewrites로 api/index.js로 라우팅됨
-      fetchUrl = `${request.nextUrl.origin}/api/bo/projects`;
-    }
+    // 백오피스 서버 API 호출
+    const fetchUrl = `${BACKOFFICE_API_URL}/api/bo/projects`;
     
     const response = await fetch(fetchUrl, {
       method: 'GET',

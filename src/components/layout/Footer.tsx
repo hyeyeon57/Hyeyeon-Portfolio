@@ -367,10 +367,24 @@ export const Footer: React.FC = () => {
             </p>
             
             <div className="flex items-center gap-6 text-sm">
-              <a href="/admin/viewer" target="_blank" rel="noopener noreferrer" className="text-text-secondary hover:text-brand-main transition-colors">
+              <a 
+                href={typeof window !== 'undefined' && window.location.hostname === 'localhost'
+                  ? 'http://localhost:3005/admin/viewer'
+                  : 'https://hyeyeon-portfolio-admin.vercel.app/admin/viewer'} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="text-text-secondary hover:text-brand-main transition-colors"
+              >
                 Viewer Access
               </a>
-              <a href="/admin/login" target="_blank" rel="noopener noreferrer" className="text-text-secondary hover:text-brand-main transition-colors">
+              <a 
+                href={typeof window !== 'undefined' && window.location.hostname === 'localhost'
+                  ? 'http://localhost:3005/admin/login'
+                  : 'https://hyeyeon-portfolio-admin.vercel.app/admin/login'} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="text-text-secondary hover:text-brand-main transition-colors"
+              >
                 Admin Login
               </a>
             </div>

@@ -32,5 +32,13 @@
     "**/build": true
   },
   "explorer.confirmDelete": false,
-  "explorer.confirmDragAndDrop": false
+  "explorer.confirmDragAndDrop": false,
+  "workbench.editor.enablePreview": true,
+  "workbench.editor.revealIfOpen": true,
+  "explorer.openEditors.visible": 10,
+  "explorer.compactFolders": false,
+  "explorer.decorations.badges": true,
+  "explorer.decorations.colors": true,
+  "workbench.list.openMode": "singleClick",
+  "workbench.editor.doubleClickTab": "openToSide"
 }

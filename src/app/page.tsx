@@ -37,14 +37,13 @@ export default function Home() {
       sessionStorage.setItem('lastVisitTime', now.toString());
       
       try {
-        // 프로덕션에서는 같은 도메인의 /api/bo 경로 사용
-        // 개발 환경에서는 별도 백오피스 서버 사용
-        const isDev = process.env.NODE_ENV === 'development';
-        const apiUrl = isDev 
-          ? (process.env.NEXT_PUBLIC_BACKOFFICE_URL || 'http://localhost:3005/api')
-          : '/api/bo';
+        // 백오피스 서버 URL 설정
+        const apiUrl = process.env.NEXT_PUBLIC_BACKOFFICE_URL || 
+          (process.env.NODE_ENV === 'production' 
+            ? 'https://hyeyeon-portfolio-admin.vercel.app' 
+            : 'http://localhost:3005');
         
-        await fetch(`${apiUrl}/visitors`, {
+        await fetch(`${apiUrl}/api/bo/visitors`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
