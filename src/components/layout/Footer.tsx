@@ -10,11 +10,29 @@ export const Footer: React.FC = () => {
   const [isMounted, setIsMounted] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   
-  // 관리자 사이트 URL 설정 (배포된 사이트로 항상 연결)
-  // 프로덕션에서는 항상 배포된 관리자 사이트로, 로컬에서는 환경 변수 또는 로컬 주소 사용
-  const backofficeUrl = typeof window !== 'undefined' && window.location.hostname === 'localhost'
-    ? (process.env.NEXT_PUBLIC_BACKOFFICE_URL || 'http://localhost:3005')
-    : 'https://hyeyeon-portfolio-admin.vercel.app';
+  // 관리자 사이트 URL 설정
+  // 환경 변수가 있으면 우선 사용, 없으면 프로덕션은 배포된 사이트, 로컬은 로컬 주소
+  const getBackofficeUrl = () => {
+    // 환경 변수가 명시적으로 설정되어 있으면 사용
+    if (process.env.NEXT_PUBLIC_BACKOFFICE_URL) {
+      return process.env.NEXT_PUBLIC_BACKOFFICE_URL;
+    }
+    
+    // 프로덕션 환경이면 항상 배포된 관리자 사이트
+    if (process.env.NODE_ENV === 'production') {
+      return 'https://hyeyeon-portfolio-admin.vercel.app';
+    }
+    
+    // 로컬 개발 환경
+    if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+      return 'http://localhost:3005';
+    }
+    
+    // 기본값: 배포된 관리자 사이트
+    return 'https://hyeyeon-portfolio-admin.vercel.app';
+  };
+  
+  const backofficeUrl = getBackofficeUrl();
 
   useEffect(() => {
     setIsMounted(true);
