@@ -9,12 +9,6 @@ export const Footer: React.FC = () => {
   const [isAtTop, setIsAtTop] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  
-  // 관리자 사이트 URL 설정
-  // 배포된 사이트에서는 무조건 배포된 관리자 사이트로, localhost에서만 로컬 주소 사용
-  const backofficeUrl = typeof window !== 'undefined' && window.location.hostname === 'localhost'
-    ? 'http://localhost:3005'
-    : 'https://hyeyeon-portfolio-admin.vercel.app';
 
   useEffect(() => {
     setIsMounted(true);
@@ -371,17 +365,6 @@ export const Footer: React.FC = () => {
             <p className="text-sm text-text-secondary">
               © 2025 Jang Haeyeon Portfolio All rights reserved.
             </p>
-            
-            <div className="flex items-center gap-6 text-sm">
-              <a 
-                href={`${backofficeUrl}/admin/viewer`} 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="text-text-secondary hover:text-brand-main transition-colors"
-              >
-                Viewer Access
-              </a>
-            </div>
           </div>
         </div>
       </div>
