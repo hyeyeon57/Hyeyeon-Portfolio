@@ -704,6 +704,75 @@ app.get('/api/projects/:id/files/:filename', async (req, res) => {
 // 정적 파일 서빙 (모든 라우트 이후)
 app.use(express.static(path.join(__dirname, 'public')));
 
+// 정적 프로젝트 데이터를 MongoDB로 자동 마이그레이션
+const migrateStaticProjects = async () => {
+  try {
+    // MongoDB 연결 확인
+    if (mongoose.connection.readyState !== 1) {
+      console.log('⚠️  MongoDB 연결되지 않음, 마이그레이션 건너뜀');
+      return false;
+    }
+    
+    // 이미 프로젝트가 있는지 확인
+    const existingCount = await Project.countDocuments();
+    if (existingCount > 0) {
+      console.log(`✅ MongoDB에 이미 ${existingCount}개의 프로젝트가 있습니다. 마이그레이션 건너뜀`);
+      return true;
+    }
+    
+    // 정적 프로젝트 데이터 로드
+    const projectsJsonPath = path.join(__dirname, '../data/projects.json');
+    
+    if (!existsSync(projectsJsonPath)) {
+      console.log('⚠️  data/projects.json 파일을 찾을 수 없습니다. 마이그레이션 건너뜀');
+      return false;
+    }
+    
+    const projectsData = JSON.parse(readFileSync(projectsJsonPath, 'utf-8'));
+    
+    if (projectsData.length === 0) {
+      console.log('⚠️  마이그레이션할 프로젝트 데이터가 없습니다.');
+      return false;
+    }
+    
+    console.log(`\n📦 ${projectsData.length}개의 정적 프로젝트를 MongoDB로 마이그레이션합니다...\n`);
+    
+    let added = 0;
+    let updated = 0;
+    let skipped = 0;
+    
+    for (const projectData of projectsData) {
+      try {
+        // id로 기존 프로젝트 찾기
+        const existing = await Project.findOne({ id: projectData.id });
+        
+        if (existing) {
+          // 기존 프로젝트 업데이트
+          await Project.findOneAndUpdate(
+            { id: projectData.id },
+            projectData,
+            { new: true, runValidators: true }
+          );
+          updated++;
+        } else {
+          // 새 프로젝트 추가
+          await Project.create(projectData);
+          added++;
+        }
+      } catch (error) {
+        console.error(`❌ 프로젝트 "${projectData.title}" (ID: ${projectData.id}) 처리 실패:`, error.message);
+        skipped++;
+      }
+    }
+    
+    console.log(`✨ 마이그레이션 완료! (추가: ${added}개, 업데이트: ${updated}개, 실패: ${skipped}개)\n`);
+    return true;
+  } catch (error) {
+    console.error('❌ 마이그레이션 오류:', error.message);
+    return false;
+  }
+};
+
 // 서버 시작
 const startServer = async () => {
   try {
@@ -713,6 +782,9 @@ const startServer = async () => {
     if (!dbConnected) {
       console.log('⚠️  MongoDB 연결 없이 서버를 시작합니다.');
       console.log('⚠️  프로젝트 관리 기능은 사용할 수 없습니다.');
+    } else {
+      // MongoDB 연결 성공 시 자동 마이그레이션 실행
+      await migrateStaticProjects();
     }
     
     // 서버 시작
