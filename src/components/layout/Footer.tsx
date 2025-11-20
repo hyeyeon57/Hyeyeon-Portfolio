@@ -9,6 +9,11 @@ export const Footer: React.FC = () => {
   const [isAtTop, setIsAtTop] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  
+  // 관리자 사이트 URL 설정 (배포된 사이트로 항상 연결)
+  const backofficeUrl = typeof window !== 'undefined' && window.location.hostname === 'localhost'
+    ? (process.env.NEXT_PUBLIC_BACKOFFICE_URL || 'http://localhost:3005')
+    : (process.env.NEXT_PUBLIC_BACKOFFICE_URL || 'https://hyeyeon-portfolio-admin.vercel.app');
 
   useEffect(() => {
     setIsMounted(true);
@@ -368,9 +373,7 @@ export const Footer: React.FC = () => {
             
             <div className="flex items-center gap-6 text-sm">
               <a 
-                href={typeof window !== 'undefined' && window.location.hostname === 'localhost'
-                  ? 'http://localhost:3005/admin/viewer'
-                  : 'https://hyeyeon-portfolio-admin.vercel.app/admin/viewer'} 
+                href={`${backofficeUrl}/admin/viewer`} 
                 target="_blank" 
                 rel="noopener noreferrer" 
                 className="text-text-secondary hover:text-brand-main transition-colors"
@@ -378,9 +381,15 @@ export const Footer: React.FC = () => {
                 Viewer Access
               </a>
               <a 
-                href={typeof window !== 'undefined' && window.location.hostname === 'localhost'
-                  ? 'http://localhost:3005/admin/login'
-                  : 'https://hyeyeon-portfolio-admin.vercel.app/admin/login'} 
+                href={`${backofficeUrl}/admin`} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="text-text-secondary hover:text-brand-main transition-colors"
+              >
+                Admin
+              </a>
+              <a 
+                href={`${backofficeUrl}/admin/login`} 
                 target="_blank" 
                 rel="noopener noreferrer" 
                 className="text-text-secondary hover:text-brand-main transition-colors"
