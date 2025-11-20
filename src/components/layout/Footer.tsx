@@ -365,6 +365,14 @@ export const Footer: React.FC = () => {
             <p className="text-sm text-text-secondary">
               © 2025 Jang Haeyeon Portfolio All rights reserved.
             </p>
+            <a
+              href="https://hyeyeon-portfolio-admin.vercel.app/admin"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-text-secondary hover:text-brand-main transition-colors"
+            >
+              Admin Login
+            </a>
           </div>
         </div>
       </div>
