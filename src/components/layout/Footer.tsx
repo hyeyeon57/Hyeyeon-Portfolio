@@ -381,22 +381,6 @@ export const Footer: React.FC = () => {
               >
                 Viewer Access
               </a>
-              <a 
-                href={`${backofficeUrl}/admin`} 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="text-text-secondary hover:text-brand-main transition-colors"
-              >
-                Admin
-              </a>
-              <a 
-                href={`${backofficeUrl}/admin/login`} 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="text-text-secondary hover:text-brand-main transition-colors"
-              >
-                Admin Login
-              </a>
             </div>
           </div>
         </div>
