@@ -21,6 +21,7 @@ Thumbs.db
 # build
 dist/
 build/
+.next/
 
 # Vercel
 .vercel
