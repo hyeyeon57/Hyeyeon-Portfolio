@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ChevronUp, ChevronDown } from 'lucide-react';
 import { personalInfo } from '@/data/portfolio';
@@ -365,12 +366,12 @@ export const Footer: React.FC = () => {
             <p className="text-sm text-text-secondary">
               © 2025 Jang Haeyeon Portfolio All rights reserved.
             </p>
-            <a
+            <Link
               href="/admin/login"
               className="text-sm text-text-secondary hover:text-brand-main transition-colors"
             >
               Admin Login
-            </a>
+            </Link>
           </div>
         </div>
       </div>
