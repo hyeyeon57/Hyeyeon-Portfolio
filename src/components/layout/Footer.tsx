@@ -366,9 +366,7 @@ export const Footer: React.FC = () => {
               © 2025 Jang Haeyeon Portfolio All rights reserved.
             </p>
             <a
-              href="https://hyeyeon-portfolio-admin.vercel.app/admin"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="/admin/login"
               className="text-sm text-text-secondary hover:text-brand-main transition-colors"
             >
               Admin Login
