@@ -364,16 +364,16 @@ export const Footer: React.FC = () => {
           {/* Footer 하단 */}
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <p className="text-sm text-text-secondary">
-              © 2025 Jang Haeyeon Portfolio All rights reserved.
+              © 2025 Jang Haeyeon Portfolio All rights reserved.{' '}
+              <a
+                href="https://hyeyeon-portfolio-admin.vercel.app/admin/login"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-text-secondary hover:text-brand-main transition-colors underline"
+              >
+                Admin Login
+              </a>
             </p>
-            <a
-              href="https://hyeyeon-portfolio-admin.vercel.app/admin/login"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm text-text-secondary hover:text-brand-main transition-colors"
-            >
-              Admin Login
-            </a>
           </div>
         </div>
       </div>
