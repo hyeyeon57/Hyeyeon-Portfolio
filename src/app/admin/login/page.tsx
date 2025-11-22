@@ -19,26 +19,47 @@ export default function AdminLoginPage() {
 
     try {
       // 백오피스 서버 URL 설정
-      // 프로덕션: 같은 프로젝트 내 서버리스 함수 사용
-      // 개발: 로컬 BO 서버
+      // 별도 프로젝트로 배포된 경우 백엔드 URL 사용
       const getBackofficeUrl = () => {
+        // 클라이언트 사이드에서는 NEXT_PUBLIC_ 접두사가 붙은 환경 변수만 접근 가능
+        // 빌드 타임에 주입되므로 런타임에 확인
+        if (typeof window !== 'undefined') {
+          // 환경 변수는 빌드 타임에 주입되므로 직접 확인 불가
+          // 대신 호스트명으로 판단
+          const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+          
+          if (isLocalhost) {
+            return 'http://localhost:3005';
+          }
+          
+          // 프로덕션: 별도 프로젝트로 배포된 경우 백엔드 URL 사용
+          // 프론트엔드: hyeyeon-portfolio.vercel.app
+          // 백엔드: hyeyeon-portfolio-admin.vercel.app
+          return 'https://hyeyeon-portfolio-admin.vercel.app';
+        }
+        
+        // 서버 사이드 렌더링 시
         if (process.env.NEXT_PUBLIC_BACKOFFICE_URL) {
           return process.env.NEXT_PUBLIC_BACKOFFICE_URL;
         }
         
         if (process.env.NODE_ENV === 'production') {
-          // 프로덕션: 같은 도메인의 상대 경로 사용
-          return '';
+          return 'https://hyeyeon-portfolio-admin.vercel.app';
         }
         
         return 'http://localhost:3005';
       };
 
       const backofficeUrl = getBackofficeUrl();
-      // 프로덕션에서는 상대 경로, 개발에서는 절대 경로
-      const fetchUrl = backofficeUrl 
-        ? `${backofficeUrl}/api/bo/auth/login`
-        : '/api/bo/auth/login';
+      const fetchUrl = `${backofficeUrl}/api/bo/auth/login`;
+      
+      console.log('🔐 로그인 요청 시작:', {
+        backofficeUrl,
+        fetchUrl,
+        username,
+        password: password ? '***' : '없음',
+        hostname: typeof window !== 'undefined' ? window.location.hostname : 'server'
+      });
 
       const response = await fetch(fetchUrl, {
         method: 'POST',
@@ -48,21 +69,65 @@ export default function AdminLoginPage() {
         credentials: 'include',
         body: JSON.stringify({ username, password }),
       });
+      
+      console.log('📡 응답 받음:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok,
+        headers: Object.fromEntries(response.headers.entries())
+      });
 
-      const result = await response.json();
+      // 응답 상태 확인
+      if (!response.ok) {
+        console.error('❌ 응답 오류:', {
+          status: response.status,
+          statusText: response.statusText,
+          url: fetchUrl
+        });
+        
+        if (response.status === 401) {
+          const result = await response.json().catch((e) => {
+            console.error('JSON 파싱 오류:', e);
+            return { error: '아이디 또는 비밀번호가 올바르지 않습니다.' };
+          });
+          console.error('❌ 인증 실패:', result);
+          setError(result.error || '아이디 또는 비밀번호가 올바르지 않습니다.');
+          return;
+        }
+        
+        if (response.status === 404) {
+          setError('백엔드 서버를 찾을 수 없습니다. 환경 변수를 확인해주세요.');
+          console.error('❌ 백엔드 서버 연결 실패:', fetchUrl);
+          return;
+        }
+        
+        const errorText = await response.text().catch(() => '알 수 없는 오류');
+        console.error('❌ HTTP 오류:', errorText);
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
+      }
+
+      const result = await response.json().catch((e) => {
+        console.error('❌ JSON 파싱 오류:', e);
+        throw new Error('서버 응답을 파싱할 수 없습니다.');
+      });
+      
+      console.log('✅ 응답 데이터:', result);
 
       if (result.success) {
-        // 로그인 성공 - 같은 프로젝트의 백오피스 관리자 페이지로 리다이렉트
-        const adminUrl = process.env.NODE_ENV === 'production' 
-          ? '/admin' 
-          : 'http://localhost:3005/admin';
+        console.log('✅ 로그인 성공');
+        // 로그인 성공 - 백엔드 관리자 페이지로 리다이렉트
+        const adminUrl = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+          ? 'http://localhost:3005/admin'
+          : 'https://hyeyeon-portfolio-admin.vercel.app/admin';
+        
+        console.log('🔄 리다이렉트:', adminUrl);
         window.location.href = adminUrl;
       } else {
         setError(result.error || '아이디 또는 비밀번호가 올바르지 않습니다.');
       }
-    } catch (error) {
-      console.error('로그인 오류:', error);
-      setError('로그인 중 오류가 발생했습니다.');
+    } catch (error: any) {
+      console.error('❌ 로그인 오류:', error);
+      setError(error.message || '로그인 중 오류가 발생했습니다. 네트워크 연결을 확인해주세요.');
     } finally {
       setIsLoading(false);
     }

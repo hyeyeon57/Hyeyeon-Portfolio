@@ -26,10 +26,6 @@
               <i data-lucide="arrow-left" class="w-4 h-4"></i>
               홈으로
             </a>
-            <a href="/admin/create" id="createBtn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2" style="display: none;">
-              <i data-lucide="plus" class="w-4 h-4"></i>
-              새 프로젝트
-            </a>
             <button onclick="logout()" id="logoutBtn" class="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition flex items-center gap-2" style="display: none;">
               <i data-lucide="log-out" class="w-4 h-4"></i>
               로그아웃
@@ -78,7 +74,13 @@
       <!-- 프로젝트 목록 -->
       <div class="bg-white rounded-xl shadow-sm border">
         <div class="px-6 py-4 border-b">
-          <h2 class="text-xl font-semibold text-gray-900">프로젝트 목록</h2>
+          <div class="flex items-center gap-4">
+            <h2 class="text-xl font-semibold text-gray-900">프로젝트 목록</h2>
+            <a href="/admin/create" id="createBtn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2" style="display: none;">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+              새 프로젝트
+            </a>
+          </div>
         </div>
 
         <div class="overflow-x-auto">
@@ -182,11 +184,31 @@
     // 로그인 상태 확인
     async function checkAuth() {
       try {
-        const response = await fetch(`${API_URL}/auth/check`, {
-          credentials: 'include'
+        // /api/bo/auth/check 경로 사용
+        const authCheckUrl = window.location.hostname === 'localhost' 
+          ? 'http://localhost:3005/api/auth/check'
+          : '/api/bo/auth/check';
+        
+        const response = await fetch(authCheckUrl, {
+          credentials: 'include',
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
+          }
         });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        
         const result = await response.json();
         isAuthenticated = result.authenticated || false;
+        
+        console.log('🔍 인증 상태:', {
+          authenticated: isAuthenticated,
+          username: result.username,
+          url: authCheckUrl
+        });
         
         // 로그인 상태에 따라 UI 업데이트
         updateUIForAuth();

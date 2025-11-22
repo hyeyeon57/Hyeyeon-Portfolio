@@ -4,9 +4,22 @@ const connectDB = async () => {
   try {
     const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/vibe-coding-portfolio';
     
+    // 디버깅: 환경 변수 확인 (비밀번호는 마스킹)
+    const isVercel = process.env.VERCEL === '1';
+    const hasMongoURI = !!process.env.MONGODB_URI;
+    const mongoURIPreview = hasMongoURI 
+      ? process.env.MONGODB_URI.replace(/:[^:@]+@/, ':****@') // 비밀번호 마스킹
+      : '없음 (기본값 사용)';
+    
+    console.log('🔍 MongoDB 연결 시도:');
+    console.log(`   - Vercel 환경: ${isVercel ? '예' : '아니오'}`);
+    console.log(`   - MONGODB_URI 설정: ${hasMongoURI ? '예' : '아니오'}`);
+    console.log(`   - 연결 문자열: ${mongoURIPreview}`);
+    
     // MongoDB 연결 옵션
     const options = {
-      serverSelectionTimeoutMS: 5000, // 5초 타임아웃
+      serverSelectionTimeoutMS: 10000, // 10초로 증가
+      connectTimeoutMS: 10000,
     };
     
     const conn = await mongoose.connect(mongoURI, options);
@@ -15,8 +28,18 @@ const connectDB = async () => {
   } catch (error) {
     console.error('❌ MongoDB 연결 실패:', error.message);
     console.error('⚠️  MongoDB가 실행되지 않았거나 연결 정보가 잘못되었습니다.');
+    
+    // 상세 오류 정보
+    if (error.name === 'MongoServerSelectionError') {
+      console.error('💡 네트워크 연결 문제일 수 있습니다. MongoDB Atlas의 Network Access 설정을 확인하세요.');
+    } else if (error.name === 'MongoAuthenticationError') {
+      console.error('💡 인증 실패입니다. 사용자명과 비밀번호를 확인하세요.');
+    } else if (error.message.includes('ENOTFOUND') || error.message.includes('getaddrinfo')) {
+      console.error('💡 DNS 조회 실패입니다. 클러스터 주소를 확인하세요.');
+    }
+    
     console.error('💡 MongoDB를 설치하고 실행하거나, MongoDB Atlas를 사용하세요.');
-    console.error('💡 또는 .env 파일에 MONGODB_URI를 설정하세요.');
+    console.error('💡 Vercel 환경 변수에 MONGODB_URI가 설정되어 있는지 확인하세요.');
     // MongoDB 연결 실패해도 서버는 계속 실행 (개발 환경)
     return false;
   }

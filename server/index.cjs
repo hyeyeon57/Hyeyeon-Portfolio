@@ -56,7 +56,17 @@ const upload = multer({ storage });
 
 // 관리자 계정 정보 (환경 변수 또는 기본값)
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'hing0915';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'dpffla525!';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'dpffla525';
+
+// 서버 시작 시 관리자 정보 출력 (디버깅용)
+console.log('🔑 관리자 계정 정보:', {
+  username: ADMIN_USERNAME,
+  password: ADMIN_PASSWORD ? '***' : '없음',
+  hasEnvUsername: !!process.env.ADMIN_USERNAME,
+  hasEnvPassword: !!process.env.ADMIN_PASSWORD,
+  envUsername: process.env.ADMIN_USERNAME || '없음',
+  envPassword: process.env.ADMIN_PASSWORD ? '***' : '없음'
+});
 
 // 로그인 체크 미들웨어
 const requireAuth = (req, res, next) => {
@@ -65,6 +75,11 @@ const requireAuth = (req, res, next) => {
   }
   res.redirect('/admin/login');
 };
+
+// 루트 경로 - 관리자 로그인 페이지로 리다이렉트
+app.get('/', (req, res) => {
+  res.redirect('/admin/login');
+});
 
 // 백오피스 관리자 페이지 라우트 (API 라우트보다 먼저 정의)
 app.get('/admin/login', (req, res) => {
@@ -138,33 +153,71 @@ app.get('/admin/create', requireAuth, (req, res) => {
 // API Routes
 
 // 인증 API
-app.post('/api/auth/login', (req, res) => {
+const handleLogin = (req, res) => {
   const { username, password } = req.body;
   
-  if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+  // 공백 제거 및 정규화
+  const trimmedUsername = username ? username.trim() : '';
+  const trimmedPassword = password ? password.trim() : '';
+  
+  console.log('🔐 로그인 요청 받음:', {
+    receivedUsername: trimmedUsername,
+    receivedPassword: trimmedPassword ? '***' : '없음',
+    receivedUsernameLength: trimmedUsername.length,
+    receivedPasswordLength: trimmedPassword.length,
+    expectedUsername: ADMIN_USERNAME,
+    expectedPassword: ADMIN_PASSWORD ? '***' : '없음',
+    expectedUsernameLength: ADMIN_USERNAME.length,
+    expectedPasswordLength: ADMIN_PASSWORD ? ADMIN_PASSWORD.length : 0,
+    usernameMatch: trimmedUsername === ADMIN_USERNAME,
+    passwordMatch: trimmedPassword === ADMIN_PASSWORD,
+    usernameCharCodes: trimmedUsername.split('').map(c => c.charCodeAt(0)),
+    expectedUsernameCharCodes: ADMIN_USERNAME.split('').map(c => c.charCodeAt(0)),
+    body: req.body
+  });
+  
+  if (trimmedUsername === ADMIN_USERNAME && trimmedPassword === ADMIN_PASSWORD) {
     req.session.isAuthenticated = true;
-    req.session.username = username;
+    req.session.username = trimmedUsername;
+    console.log('✅ 로그인 성공');
     res.json({ success: true, message: '로그인 성공' });
   } else {
+    console.log('❌ 로그인 실패:', {
+      usernameMatch: trimmedUsername === ADMIN_USERNAME,
+      passwordMatch: trimmedPassword === ADMIN_PASSWORD,
+      receivedUsername: `"${trimmedUsername}"`,
+      expectedUsername: `"${ADMIN_USERNAME}"`,
+      receivedPassword: trimmedPassword ? `"***"` : '없음',
+      receivedPasswordLength: trimmedPassword.length,
+      expectedPasswordLength: ADMIN_PASSWORD ? ADMIN_PASSWORD.length : 0
+    });
     res.status(401).json({ success: false, error: '아이디 또는 비밀번호가 올바르지 않습니다.' });
   }
-});
+};
 
-app.post('/api/auth/logout', (req, res) => {
+const handleLogout = (req, res) => {
   req.session.destroy((err) => {
     if (err) {
       return res.status(500).json({ success: false, error: '로그아웃 실패' });
     }
     res.json({ success: true, message: '로그아웃 성공' });
   });
-});
+};
 
-app.get('/api/auth/check', (req, res) => {
+const handleAuthCheck = (req, res) => {
   res.json({ 
     success: true, 
     authenticated: req.session && req.session.isAuthenticated || false 
   });
-});
+};
+
+// /api/auth와 /api/bo/auth 모두 처리
+app.post('/api/auth/login', handleLogin);
+app.post('/api/bo/auth/login', handleLogin);
+app.post('/api/auth/logout', handleLogout);
+app.post('/api/bo/auth/logout', handleLogout);
+app.get('/api/auth/check', handleAuthCheck);
+app.get('/api/bo/auth/check', handleAuthCheck);
 
 // 방문자 로그 API
 app.post('/api/visitors', async (req, res) => {
@@ -792,6 +845,9 @@ const startServer = async () => {
       console.log(`============================================`);
       console.log(`  백오피스 서버 시작`);
       console.log(`  포트: ${PORT}`);
+      console.log(`  관리자 아이디: ${ADMIN_USERNAME}`);
+      console.log(`  관리자 비밀번호: ${ADMIN_PASSWORD ? '***' : '없음'}`);
+      console.log(`  로그인 엔드포인트: http://localhost:${PORT}/api/bo/auth/login`);
       console.log(`  주소: http://localhost:${PORT}`);
       console.log(`  관리자: http://localhost:${PORT}/admin`);
       if (!dbConnected) {
