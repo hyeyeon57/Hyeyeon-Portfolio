@@ -210,6 +210,25 @@ app.get('/', (req, res) => {
 });
 
 // 백오피스 관리자 페이지 라우트 (정적 파일 서빙보다 먼저 정의)
+// Vercel 서버리스 환경에서 안전한 파일 경로 생성
+const getAdminFilePath = (filename) => {
+  // Vercel 환경에서는 process.cwd() 사용, 로컬에서는 __dirname 사용
+  const basePath = isVercel ? process.cwd() : __dirname;
+  const filePath = path.join(basePath, 'server', 'admin', filename);
+  
+  // 파일 존재 여부 확인 및 로깅
+  if (!existsSync(filePath)) {
+    console.error(`❌ 파일을 찾을 수 없음: ${filePath}`);
+    console.error(`현재 작업 디렉토리: ${process.cwd()}`);
+    console.error(`__dirname: ${__dirname}`);
+    console.error(`isVercel: ${isVercel}`);
+  } else {
+    console.log(`✅ 파일 경로 확인: ${filePath}`);
+  }
+  
+  return filePath;
+};
+
 app.get('/admin/login', (req, res) => {
   // JWT 토큰 확인
   const token = req.cookies[JWT_COOKIE_NAME] || req.headers.authorization?.replace('Bearer ', '');
@@ -228,18 +247,33 @@ app.get('/admin/login', (req, res) => {
     return res.redirect('/admin');
   }
   
-  const loginPath = path.join(__dirname, '../server/admin/login.html');
-  res.sendFile(loginPath);
+  const loginPath = getAdminFilePath('login.html');
+  res.sendFile(loginPath, (err) => {
+    if (err) {
+      console.error('❌ 로그인 페이지 로드 오류:', err);
+      res.status(500).send('로그인 페이지를 불러올 수 없습니다.');
+    }
+  });
 });
 
 app.get('/admin/viewer', (req, res) => {
-  const adminPath = path.join(__dirname, '../server/admin/index.html');
-  res.sendFile(adminPath);
+  const adminPath = getAdminFilePath('index.html');
+  res.sendFile(adminPath, (err) => {
+    if (err) {
+      console.error('❌ 관리자 페이지 로드 오류:', err);
+      res.status(500).send('관리자 페이지를 불러올 수 없습니다.');
+    }
+  });
 });
 
 app.get('/admin', requireAuth, (req, res) => {
-  const adminPath = path.join(__dirname, '../server/admin/index.html');
-  res.sendFile(adminPath);
+  const adminPath = getAdminFilePath('index.html');
+  res.sendFile(adminPath, (err) => {
+    if (err) {
+      console.error('❌ 관리자 페이지 로드 오류:', err);
+      res.status(500).send('관리자 페이지를 불러올 수 없습니다.');
+    }
+  });
 });
 
 app.get('/admin/create', requireAuth, (req, res) => {
