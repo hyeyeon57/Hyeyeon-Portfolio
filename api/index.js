@@ -288,8 +288,13 @@ app.get('/admin/create', requireAuth, (req, res) => {
     referer: req.headers.referer
   });
   
-  const createPath = path.join(__dirname, '../server/admin/create.html');
-  res.sendFile(createPath);
+  const createPath = getAdminFilePath('create.html');
+  res.sendFile(createPath, (err) => {
+    if (err) {
+      console.error('❌ 프로젝트 생성 페이지 로드 오류:', err);
+      res.status(500).send('프로젝트 생성 페이지를 불러올 수 없습니다.');
+    }
+  });
 });
 
 // API Routes
