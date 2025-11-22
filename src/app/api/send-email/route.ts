@@ -26,13 +26,27 @@ export async function POST(request: NextRequest) {
 
     // 백오피스 서버에 연락 정보 저장
     try {
-      const backofficeUrl = process.env.NEXT_PUBLIC_BACKOFFICE_URL || 
-        process.env.BACKOFFICE_API_URL ||
-        (process.env.NODE_ENV === 'production' 
-          ? 'https://hyeyeon-portfolio-admin.vercel.app' 
-          : 'http://localhost:3005');
+      const getBackofficeUrl = (request: NextRequest) => {
+        // 환경 변수가 설정되어 있으면 우선 사용
+        if (process.env.NEXT_PUBLIC_BACKOFFICE_URL || process.env.BACKOFFICE_API_URL) {
+          return process.env.NEXT_PUBLIC_BACKOFFICE_URL || process.env.BACKOFFICE_API_URL || '';
+        }
+        
+        // 프로덕션에서는 같은 프로젝트 내 API 사용
+        if (process.env.NODE_ENV === 'production') {
+          // request에서 origin 추출
+          const url = new URL(request.url);
+          return url.origin;
+        }
+        
+        // 개발 환경: 로컬 서버
+        return 'http://localhost:3005';
+      };
       
-      await fetch(`${backofficeUrl}/api/bo/contacts`, {
+      const backofficeUrl = getBackofficeUrl(request);
+      const fetchUrl = `${backofficeUrl}/api/bo/contacts`;
+      
+      await fetch(fetchUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

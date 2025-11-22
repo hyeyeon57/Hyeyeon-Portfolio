@@ -18,12 +18,29 @@ export default function AdminLoginPage() {
     setIsLoading(true);
 
     try {
-      const backofficeUrl = process.env.NEXT_PUBLIC_BACKOFFICE_URL || 
-        (process.env.NODE_ENV === 'production' 
-          ? 'https://hyeyeon-portfolio-admin.vercel.app' 
-          : 'http://localhost:3005');
+      // 백오피스 서버 URL 설정
+      // 프로덕션: 같은 프로젝트 내 서버리스 함수 사용
+      // 개발: 로컬 BO 서버
+      const getBackofficeUrl = () => {
+        if (process.env.NEXT_PUBLIC_BACKOFFICE_URL) {
+          return process.env.NEXT_PUBLIC_BACKOFFICE_URL;
+        }
+        
+        if (process.env.NODE_ENV === 'production') {
+          // 프로덕션: 같은 도메인의 상대 경로 사용
+          return '';
+        }
+        
+        return 'http://localhost:3005';
+      };
 
-      const response = await fetch(`${backofficeUrl}/api/bo/auth/login`, {
+      const backofficeUrl = getBackofficeUrl();
+      // 프로덕션에서는 상대 경로, 개발에서는 절대 경로
+      const fetchUrl = backofficeUrl 
+        ? `${backofficeUrl}/api/bo/auth/login`
+        : '/api/bo/auth/login';
+
+      const response = await fetch(fetchUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -35,8 +52,11 @@ export default function AdminLoginPage() {
       const result = await response.json();
 
       if (result.success) {
-        // 로그인 성공 - 백오피스 관리자 페이지로 리다이렉트
-        window.location.href = 'https://hyeyeon-portfolio-admin.vercel.app/admin';
+        // 로그인 성공 - 같은 프로젝트의 백오피스 관리자 페이지로 리다이렉트
+        const adminUrl = process.env.NODE_ENV === 'production' 
+          ? '/admin' 
+          : 'http://localhost:3005/admin';
+        window.location.href = adminUrl;
       } else {
         setError(result.error || '아이디 또는 비밀번호가 올바르지 않습니다.');
       }

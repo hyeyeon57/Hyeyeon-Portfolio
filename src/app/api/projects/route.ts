@@ -1,18 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 // 백오피스 서버 URL 설정
-// 프로덕션: 별도 Vercel 프로젝트의 BO 서버
+// 프로덕션: 같은 프로젝트 내 서버리스 함수 사용 (/api/bo/*)
 // 개발: 로컬 BO 서버
-const BACKOFFICE_API_URL = process.env.NEXT_PUBLIC_BACKOFFICE_URL || 
-  process.env.BACKOFFICE_API_URL || 
-  (process.env.NODE_ENV === 'production' 
-    ? 'https://hyeyeon-portfolio-admin.vercel.app' 
-    : 'http://localhost:3005');
+const getBackofficeUrl = (request?: NextRequest) => {
+  // 환경 변수가 설정되어 있으면 우선 사용
+  if (process.env.NEXT_PUBLIC_BACKOFFICE_URL || process.env.BACKOFFICE_API_URL) {
+    return process.env.NEXT_PUBLIC_BACKOFFICE_URL || process.env.BACKOFFICE_API_URL || '';
+  }
+  
+  // 프로덕션에서는 같은 프로젝트 내 API 사용
+  if (process.env.NODE_ENV === 'production') {
+    // request에서 origin 추출
+    if (request) {
+      const url = new URL(request.url);
+      return url.origin;
+    }
+    // request가 없으면 환경 변수 사용
+    return process.env.VERCEL_URL 
+      ? `https://${process.env.VERCEL_URL}` 
+      : process.env.NEXT_PUBLIC_SITE_URL || '';
+  }
+  
+  // 개발 환경: 로컬 서버
+  return 'http://localhost:3005';
+};
 
 export async function GET(request: NextRequest) {
   try {
-    // 백오피스 서버 API 호출
-    const fetchUrl = `${BACKOFFICE_API_URL}/api/bo/projects`;
+    const backofficeUrl = getBackofficeUrl(request);
+    const fetchUrl = `${backofficeUrl}/api/bo/projects`;
     
     const response = await fetch(fetchUrl, {
       method: 'GET',

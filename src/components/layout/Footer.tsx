@@ -366,7 +366,9 @@ export const Footer: React.FC = () => {
             <p className="text-sm text-text-secondary">
               © 2025 Jang Haeyeon Portfolio All rights reserved.{' '}
               <a
-                href="https://hyeyeon-portfolio-admin.vercel.app/admin/login"
+                href={typeof window !== 'undefined' && window.location.hostname === 'localhost'
+                  ? 'http://localhost:3005/admin/login'
+                  : '/admin/login'}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-text-secondary hover:text-brand-main transition-colors underline"

@@ -38,12 +38,28 @@ export default function Home() {
       
       try {
         // 백오피스 서버 URL 설정
-        const apiUrl = process.env.NEXT_PUBLIC_BACKOFFICE_URL || 
-          (process.env.NODE_ENV === 'production' 
-            ? 'https://hyeyeon-portfolio-admin.vercel.app' 
-            : 'http://localhost:3005');
+        // 프로덕션: 같은 프로젝트 내 서버리스 함수 사용
+        // 개발: 로컬 BO 서버
+        const getApiUrl = () => {
+          if (process.env.NEXT_PUBLIC_BACKOFFICE_URL) {
+            return process.env.NEXT_PUBLIC_BACKOFFICE_URL;
+          }
+          
+          if (process.env.NODE_ENV === 'production') {
+            // 프로덕션: 같은 도메인의 상대 경로 사용
+            return '';
+          }
+          
+          return 'http://localhost:3005';
+        };
         
-        await fetch(`${apiUrl}/api/bo/visitors`, {
+        const apiUrl = getApiUrl();
+        // 프로덕션에서는 상대 경로, 개발에서는 절대 경로
+        const fetchUrl = apiUrl 
+          ? `${apiUrl}/api/bo/visitors`
+          : '/api/bo/visitors';
+        
+        await fetch(fetchUrl, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
