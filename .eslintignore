@@ -1,0 +1,10 @@
+# CommonJS files (use require, not import)
+api/
+server/
+
+# Build outputs
+.next/
+node_modules/
+dist/
+build/
+
