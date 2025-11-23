@@ -243,6 +243,7 @@ const getAdminFile = (filename) => {
   const possiblePaths = [];
   
   // Vercel 환경에서는 /var/task/server/admin/filename을 최우선으로 시도
+  // 주의: /var/task/api/admin/ 경로는 잘못된 경로이므로 제외
   if (isVercel) {
     const vercelPath = `/var/task/server/admin/${filename}`;
     possiblePaths.push(vercelPath);
@@ -250,11 +251,21 @@ const getAdminFile = (filename) => {
   }
   
   basePaths.forEach(base => {
-    possiblePaths.push(path.join(base, 'server', 'admin', filename));
-    possiblePaths.push(path.join(base, 'server/admin', filename));
-    // 절대 경로도 시도
+    const serverAdminPath = path.join(base, 'server', 'admin', filename);
+    const serverAdminPath2 = path.join(base, 'server/admin', filename);
+    
+    // 잘못된 경로(/api/admin/) 제외
+    if (!serverAdminPath.includes('/api/admin/') && !serverAdminPath2.includes('/api/admin/')) {
+      possiblePaths.push(serverAdminPath);
+      possiblePaths.push(serverAdminPath2);
+    }
+    
+    // 절대 경로도 시도 (잘못된 경로 제외)
     if (path.isAbsolute(base)) {
-      possiblePaths.push(path.resolve(base, 'server', 'admin', filename));
+      const resolvedPath = path.resolve(base, 'server', 'admin', filename);
+      if (!resolvedPath.includes('/api/admin/')) {
+        possiblePaths.push(resolvedPath);
+      }
     }
   });
   
@@ -270,6 +281,11 @@ const getAdminFile = (filename) => {
   // 디렉토리 탐색으로 파일 찾기 시도
   for (const basePath of basePaths) {
     try {
+      // 잘못된 경로(/api/admin/) 제외
+      if (basePath.includes('/api/admin/')) {
+        continue;
+      }
+      
       // server 폴더 확인
       const serverPath = path.join(basePath, 'server');
       if (existsSync(serverPath)) {
@@ -287,6 +303,14 @@ const getAdminFile = (filename) => {
             try {
               const content = readFileSync(filePath, 'utf-8');
               console.log(`✅ 파일 읽기 성공, 크기: ${content.length} bytes`);
+              
+              // 파일 내용 확인 (디버깅용)
+              if (filename === 'index.html' && content.includes('bo화면')) {
+                console.log(`✅ "bo화면" 텍스트 확인됨`);
+              } else if (filename === 'index.html') {
+                console.warn(`⚠️ "bo화면" 텍스트를 찾을 수 없음. 내용 일부: ${content.substring(0, 200)}`);
+              }
+              
               return { content, path: filePath };
             } catch (error) {
               console.error(`❌ 파일 읽기 오류:`, error);
@@ -303,10 +327,24 @@ const getAdminFile = (filename) => {
   // 직접 경로 시도
   for (const filePath of uniquePaths) {
     try {
+      // 잘못된 경로(/api/admin/) 제외
+      if (filePath.includes('/api/admin/')) {
+        console.log(`⚠️ 잘못된 경로 제외: ${filePath}`);
+        continue;
+      }
+      
       if (existsSync(filePath)) {
         console.log(`✅ 파일 찾음 (직접): ${filePath}`);
         const content = readFileSync(filePath, 'utf-8');
         console.log(`✅ 파일 읽기 성공, 크기: ${content.length} bytes`);
+        
+        // 파일 내용 확인 (디버깅용)
+        if (filename === 'index.html' && content.includes('bo화면')) {
+          console.log(`✅ "bo화면" 텍스트 확인됨`);
+        } else if (filename === 'index.html') {
+          console.warn(`⚠️ "bo화면" 텍스트를 찾을 수 없음. 내용 일부: ${content.substring(0, 200)}`);
+        }
+        
         return { content, path: filePath };
       }
     } catch (error) {
