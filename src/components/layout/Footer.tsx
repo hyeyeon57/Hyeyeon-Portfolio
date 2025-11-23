@@ -364,18 +364,18 @@ export const Footer: React.FC = () => {
           {/* Footer 하단 */}
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <p className="text-sm text-text-secondary">
-              © 2025 Jang Haeyeon Portfolio All rights reserved.{' '}
-              <a
-                href={typeof window !== 'undefined' && window.location.hostname === 'localhost'
-                  ? 'http://localhost:3005/admin/login'
-                  : '/admin/login'}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-text-secondary hover:text-brand-main transition-colors underline"
-              >
-                Admin Login
-              </a>
+              © 2025 Jang Haeyeon Portfolio All rights reserved.
             </p>
+            <a
+              href={typeof window !== 'undefined' && window.location.hostname === 'localhost'
+                ? 'http://localhost:3005/admin/login'
+                : '/admin/login'}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-text-secondary hover:text-brand-main transition-colors underline"
+            >
+              Admin Login
+            </a>
           </div>
         </div>
       </div>
