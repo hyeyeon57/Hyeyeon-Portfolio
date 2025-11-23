@@ -367,11 +367,23 @@ app.get('/admin/viewer', (req, res) => {
 });
 
 app.get('/admin', requireAuth, (req, res) => {
+  console.log('📄 /admin 요청 처리 시작');
   const adminFile = getAdminFile('index.html');
   if (adminFile) {
+    console.log('✅ admin 파일 읽기 성공, 내용 길이:', adminFile.content.length);
+    // 파일 내용에 "bo화면"이 포함되어 있는지 확인
+    if (adminFile.content.includes('bo화면')) {
+      console.log('✅ "bo화면" 텍스트 확인됨');
+    } else {
+      console.warn('⚠️ "bo화면" 텍스트를 찾을 수 없음');
+    }
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
     res.send(adminFile.content);
   } else {
+    console.error('❌ admin 파일을 찾을 수 없음');
     res.status(500).send('관리자 페이지를 불러올 수 없습니다.');
   }
 });
