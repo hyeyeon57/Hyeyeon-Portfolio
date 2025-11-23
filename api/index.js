@@ -305,10 +305,12 @@ const getAdminFile = (filename) => {
               console.log(`✅ 파일 읽기 성공, 크기: ${content.length} bytes`);
               
               // 파일 내용 확인 (디버깅용)
-              if (filename === 'index.html' && content.includes('bo화면')) {
-                console.log(`✅ "bo화면" 텍스트 확인됨`);
+              if (filename === 'index.html' && content.includes('BO화면')) {
+                console.log(`✅ "BO화면" 텍스트 확인됨`);
+              } else if (filename === 'index.html' && content.includes('bo화면')) {
+                console.warn(`⚠️ "bo화면" (소문자) 텍스트 발견 - "BO화면"으로 업데이트 필요`);
               } else if (filename === 'index.html') {
-                console.warn(`⚠️ "bo화면" 텍스트를 찾을 수 없음. 내용 일부: ${content.substring(0, 200)}`);
+                console.warn(`⚠️ "BO화면" 텍스트를 찾을 수 없음. 내용 일부: ${content.substring(0, 200)}`);
               }
               
               return { content, path: filePath };
@@ -339,10 +341,12 @@ const getAdminFile = (filename) => {
         console.log(`✅ 파일 읽기 성공, 크기: ${content.length} bytes`);
         
         // 파일 내용 확인 (디버깅용)
-        if (filename === 'index.html' && content.includes('bo화면')) {
-          console.log(`✅ "bo화면" 텍스트 확인됨`);
+        if (filename === 'index.html' && content.includes('BO화면')) {
+          console.log(`✅ "BO화면" 텍스트 확인됨`);
+        } else if (filename === 'index.html' && content.includes('bo화면')) {
+          console.warn(`⚠️ "bo화면" (소문자) 텍스트 발견 - "BO화면"으로 업데이트 필요`);
         } else if (filename === 'index.html') {
-          console.warn(`⚠️ "bo화면" 텍스트를 찾을 수 없음. 내용 일부: ${content.substring(0, 200)}`);
+          console.warn(`⚠️ "BO화면" 텍스트를 찾을 수 없음. 내용 일부: ${content.substring(0, 200)}`);
         }
         
         return { content, path: filePath };
@@ -424,16 +428,21 @@ app.get('/admin', requireAuth, (req, res) => {
   const adminFile = getAdminFile('index.html');
   if (adminFile) {
     console.log('✅ admin 파일 읽기 성공, 내용 길이:', adminFile.content.length);
-    // 파일 내용에 "bo화면"이 포함되어 있는지 확인
-    if (adminFile.content.includes('bo화면')) {
-      console.log('✅ "bo화면" 텍스트 확인됨');
+    // 파일 내용에 "BO화면"이 포함되어 있는지 확인
+    if (adminFile.content.includes('BO화면')) {
+      console.log('✅ "BO화면" 텍스트 확인됨');
+    } else if (adminFile.content.includes('bo화면')) {
+      console.warn('⚠️ "bo화면" (소문자) 텍스트 발견 - "BO화면"으로 업데이트 필요');
     } else {
-      console.warn('⚠️ "bo화면" 텍스트를 찾을 수 없음');
+      console.warn('⚠️ "BO화면" 텍스트를 찾을 수 없음');
     }
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    // 강력한 캐시 무효화 헤더
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Expires', '0');
+    res.setHeader('Last-Modified', new Date().toUTCString());
+    res.setHeader('ETag', `"${Date.now()}"`);
     res.send(adminFile.content);
   } else {
     console.error('❌ admin 파일을 찾을 수 없음');
