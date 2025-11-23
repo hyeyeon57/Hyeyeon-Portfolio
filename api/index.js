@@ -210,23 +210,35 @@ app.get('/', (req, res) => {
 });
 
 // 백오피스 관리자 페이지 라우트 (정적 파일 서빙보다 먼저 정의)
-// Vercel 서버리스 환경에서 안전한 파일 경로 생성
-const getAdminFilePath = (filename) => {
-  // Vercel 환경에서는 process.cwd() 사용, 로컬에서는 __dirname 사용
-  const basePath = isVercel ? process.cwd() : __dirname;
-  const filePath = path.join(basePath, 'server', 'admin', filename);
+// Vercel 서버리스 환경에서 안전한 파일 읽기
+const getAdminFile = (filename) => {
+  // 여러 경로 시도
+  const possiblePaths = [
+    path.join(process.cwd(), 'server', 'admin', filename),
+    path.join(__dirname, '..', 'server', 'admin', filename),
+    path.join(__dirname, '../server/admin', filename),
+  ];
   
-  // 파일 존재 여부 확인 및 로깅
-  if (!existsSync(filePath)) {
-    console.error(`❌ 파일을 찾을 수 없음: ${filePath}`);
-    console.error(`현재 작업 디렉토리: ${process.cwd()}`);
-    console.error(`__dirname: ${__dirname}`);
-    console.error(`isVercel: ${isVercel}`);
-  } else {
-    console.log(`✅ 파일 경로 확인: ${filePath}`);
+  for (const filePath of possiblePaths) {
+    if (existsSync(filePath)) {
+      console.log(`✅ 파일 찾음: ${filePath}`);
+      try {
+        const content = readFileSync(filePath, 'utf-8');
+        return { content, path: filePath };
+      } catch (error) {
+        console.error(`❌ 파일 읽기 오류 (${filePath}):`, error);
+      }
+    }
   }
   
-  return filePath;
+  // 모든 경로 실패
+  console.error(`❌ 파일을 찾을 수 없음: ${filename}`);
+  console.error(`시도한 경로들:`, possiblePaths);
+  console.error(`현재 작업 디렉토리: ${process.cwd()}`);
+  console.error(`__dirname: ${__dirname}`);
+  console.error(`isVercel: ${isVercel}`);
+  
+  return null;
 };
 
 app.get('/admin/login', (req, res) => {
@@ -247,33 +259,33 @@ app.get('/admin/login', (req, res) => {
     return res.redirect('/admin');
   }
   
-  const loginPath = getAdminFilePath('login.html');
-  res.sendFile(loginPath, (err) => {
-    if (err) {
-      console.error('❌ 로그인 페이지 로드 오류:', err);
-      res.status(500).send('로그인 페이지를 불러올 수 없습니다.');
-    }
-  });
+  const loginFile = getAdminFile('login.html');
+  if (loginFile) {
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(loginFile.content);
+  } else {
+    res.status(500).send('로그인 페이지를 불러올 수 없습니다.');
+  }
 });
 
 app.get('/admin/viewer', (req, res) => {
-  const adminPath = getAdminFilePath('index.html');
-  res.sendFile(adminPath, (err) => {
-    if (err) {
-      console.error('❌ 관리자 페이지 로드 오류:', err);
-      res.status(500).send('관리자 페이지를 불러올 수 없습니다.');
-    }
-  });
+  const adminFile = getAdminFile('index.html');
+  if (adminFile) {
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(adminFile.content);
+  } else {
+    res.status(500).send('관리자 페이지를 불러올 수 없습니다.');
+  }
 });
 
 app.get('/admin', requireAuth, (req, res) => {
-  const adminPath = getAdminFilePath('index.html');
-  res.sendFile(adminPath, (err) => {
-    if (err) {
-      console.error('❌ 관리자 페이지 로드 오류:', err);
-      res.status(500).send('관리자 페이지를 불러올 수 없습니다.');
-    }
-  });
+  const adminFile = getAdminFile('index.html');
+  if (adminFile) {
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(adminFile.content);
+  } else {
+    res.status(500).send('관리자 페이지를 불러올 수 없습니다.');
+  }
 });
 
 app.get('/admin/create', requireAuth, (req, res) => {
@@ -288,13 +300,13 @@ app.get('/admin/create', requireAuth, (req, res) => {
     referer: req.headers.referer
   });
   
-  const createPath = getAdminFilePath('create.html');
-  res.sendFile(createPath, (err) => {
-    if (err) {
-      console.error('❌ 프로젝트 생성 페이지 로드 오류:', err);
-      res.status(500).send('프로젝트 생성 페이지를 불러올 수 없습니다.');
-    }
-  });
+  const createFile = getAdminFile('create.html');
+  if (createFile) {
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(createFile.content);
+  } else {
+    res.status(500).send('프로젝트 생성 페이지를 불러올 수 없습니다.');
+  }
 });
 
 // API Routes
