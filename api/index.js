@@ -212,6 +212,11 @@ app.get('/', (req, res) => {
 // 백오피스 관리자 페이지 라우트 (정적 파일 서빙보다 먼저 정의)
 // Vercel 서버리스 환경에서 안전한 파일 읽기
 const getAdminFile = (filename) => {
+  console.log(`\n🔍 [${new Date().toISOString()}] 파일 찾기 시작: ${filename}`);
+  console.log(`🌍 환경: ${isVercel ? 'Vercel 서버리스' : '로컬 개발'}`);
+  console.log(`📂 process.cwd(): ${process.cwd()}`);
+  console.log(`📂 __dirname: ${__dirname}`);
+  
   // Vercel 서버리스 환경에서는 process.cwd()가 프로젝트 루트를 가리킴
   // api/index.js는 /api 폴더에 있으므로, server/admin은 루트에서 상대 경로
   const basePaths = [];
@@ -219,6 +224,8 @@ const getAdminFile = (filename) => {
   if (isVercel) {
     // Vercel 환경: process.cwd()가 프로젝트 루트
     basePaths.push(process.cwd());
+    // Vercel에서는 /var/task도 시도
+    basePaths.push('/var/task');
   } else {
     // 로컬 환경: __dirname 기준
     basePaths.push(path.join(__dirname, '..'));
@@ -239,16 +246,50 @@ const getAdminFile = (filename) => {
   // 중복 제거
   const uniquePaths = [...new Set(possiblePaths)];
   
-  console.log(`🔍 파일 찾기 시도: ${filename}`);
-  console.log(`📁 시도할 경로들:`, uniquePaths);
-  console.log(`🌍 환경: ${isVercel ? 'Vercel' : '로컬'}`);
-  console.log(`📂 process.cwd(): ${process.cwd()}`);
-  console.log(`📂 __dirname: ${__dirname}`);
+  console.log(`📁 시도할 경로들 (${uniquePaths.length}개):`);
+  uniquePaths.forEach((p, i) => {
+    const exists = existsSync(p);
+    console.log(`  ${i + 1}. ${p} ${exists ? '✅ 존재' : '❌ 없음'}`);
+  });
   
+  // 디렉토리 탐색으로 파일 찾기 시도
+  for (const basePath of basePaths) {
+    try {
+      // server 폴더 확인
+      const serverPath = path.join(basePath, 'server');
+      if (existsSync(serverPath)) {
+        console.log(`📂 server 폴더 발견: ${serverPath}`);
+        
+        // admin 폴더 확인
+        const adminPath = path.join(serverPath, 'admin');
+        if (existsSync(adminPath)) {
+          console.log(`📂 admin 폴더 발견: ${adminPath}`);
+          
+          // 파일 확인
+          const filePath = path.join(adminPath, filename);
+          if (existsSync(filePath)) {
+            console.log(`✅ 파일 찾음 (탐색): ${filePath}`);
+            try {
+              const content = readFileSync(filePath, 'utf-8');
+              console.log(`✅ 파일 읽기 성공, 크기: ${content.length} bytes`);
+              return { content, path: filePath };
+            } catch (error) {
+              console.error(`❌ 파일 읽기 오류:`, error);
+            }
+          }
+        }
+      }
+    } catch (error) {
+      // 디렉토리 탐색 중 오류는 무시
+      continue;
+    }
+  }
+  
+  // 직접 경로 시도
   for (const filePath of uniquePaths) {
     try {
       if (existsSync(filePath)) {
-        console.log(`✅ 파일 찾음: ${filePath}`);
+        console.log(`✅ 파일 찾음 (직접): ${filePath}`);
         const content = readFileSync(filePath, 'utf-8');
         console.log(`✅ 파일 읽기 성공, 크기: ${content.length} bytes`);
         return { content, path: filePath };
@@ -260,11 +301,30 @@ const getAdminFile = (filename) => {
   }
   
   // 모든 경로 실패 - 상세 로그
-  console.error(`❌ 파일을 찾을 수 없음: ${filename}`);
-  console.error(`📋 시도한 경로들:`);
+  console.error(`\n❌ 파일을 찾을 수 없음: ${filename}`);
+  console.error(`📋 최종 확인 - 시도한 경로들:`);
   uniquePaths.forEach((p, i) => {
-    console.error(`  ${i + 1}. ${p} (존재: ${existsSync(p)})`);
+    const exists = existsSync(p);
+    console.error(`  ${i + 1}. ${p} ${exists ? '✅' : '❌'}`);
   });
+  
+  // 디렉토리 구조 확인
+  try {
+    console.error(`\n📂 디렉토리 구조 확인:`);
+    for (const basePath of basePaths) {
+      if (existsSync(basePath)) {
+        console.error(`  ${basePath}:`);
+        try {
+          const items = readdirSync(basePath);
+          console.error(`    - 항목들: ${items.slice(0, 10).join(', ')}${items.length > 10 ? '...' : ''}`);
+        } catch (e) {
+          console.error(`    - 읽기 불가`);
+        }
+      }
+    }
+  } catch (error) {
+    console.error(`디렉토리 구조 확인 실패:`, error);
+  }
   
   return null;
 };
