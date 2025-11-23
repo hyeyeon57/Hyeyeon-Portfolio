@@ -240,6 +240,14 @@ const getAdminFile = (filename) => {
   
   // 여러 경로 시도
   const possiblePaths = [];
+  
+  // Vercel 환경에서는 /var/task/server/admin/filename을 최우선으로 시도
+  if (isVercel) {
+    const vercelPath = `/var/task/server/admin/${filename}`;
+    possiblePaths.push(vercelPath);
+    console.log(`🎯 Vercel 우선 경로: ${vercelPath}`);
+  }
+  
   basePaths.forEach(base => {
     possiblePaths.push(path.join(base, 'server', 'admin', filename));
     possiblePaths.push(path.join(base, 'server/admin', filename));
