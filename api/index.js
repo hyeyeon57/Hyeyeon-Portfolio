@@ -212,31 +212,59 @@ app.get('/', (req, res) => {
 // 백오피스 관리자 페이지 라우트 (정적 파일 서빙보다 먼저 정의)
 // Vercel 서버리스 환경에서 안전한 파일 읽기
 const getAdminFile = (filename) => {
-  // 여러 경로 시도
-  const possiblePaths = [
-    path.join(process.cwd(), 'server', 'admin', filename),
-    path.join(__dirname, '..', 'server', 'admin', filename),
-    path.join(__dirname, '../server/admin', filename),
-  ];
+  // Vercel 서버리스 환경에서는 process.cwd()가 프로젝트 루트를 가리킴
+  // api/index.js는 /api 폴더에 있으므로, server/admin은 루트에서 상대 경로
+  const basePaths = [];
   
-  for (const filePath of possiblePaths) {
-    if (existsSync(filePath)) {
-      console.log(`✅ 파일 찾음: ${filePath}`);
-      try {
+  if (isVercel) {
+    // Vercel 환경: process.cwd()가 프로젝트 루트
+    basePaths.push(process.cwd());
+  } else {
+    // 로컬 환경: __dirname 기준
+    basePaths.push(path.join(__dirname, '..'));
+    basePaths.push(__dirname);
+  }
+  
+  // 여러 경로 시도
+  const possiblePaths = [];
+  basePaths.forEach(base => {
+    possiblePaths.push(path.join(base, 'server', 'admin', filename));
+    possiblePaths.push(path.join(base, 'server/admin', filename));
+    // 절대 경로도 시도
+    if (path.isAbsolute(base)) {
+      possiblePaths.push(path.resolve(base, 'server', 'admin', filename));
+    }
+  });
+  
+  // 중복 제거
+  const uniquePaths = [...new Set(possiblePaths)];
+  
+  console.log(`🔍 파일 찾기 시도: ${filename}`);
+  console.log(`📁 시도할 경로들:`, uniquePaths);
+  console.log(`🌍 환경: ${isVercel ? 'Vercel' : '로컬'}`);
+  console.log(`📂 process.cwd(): ${process.cwd()}`);
+  console.log(`📂 __dirname: ${__dirname}`);
+  
+  for (const filePath of uniquePaths) {
+    try {
+      if (existsSync(filePath)) {
+        console.log(`✅ 파일 찾음: ${filePath}`);
         const content = readFileSync(filePath, 'utf-8');
+        console.log(`✅ 파일 읽기 성공, 크기: ${content.length} bytes`);
         return { content, path: filePath };
-      } catch (error) {
-        console.error(`❌ 파일 읽기 오류 (${filePath}):`, error);
       }
+    } catch (error) {
+      // 파일 존재 확인 중 오류는 무시하고 다음 경로 시도
+      continue;
     }
   }
   
-  // 모든 경로 실패
+  // 모든 경로 실패 - 상세 로그
   console.error(`❌ 파일을 찾을 수 없음: ${filename}`);
-  console.error(`시도한 경로들:`, possiblePaths);
-  console.error(`현재 작업 디렉토리: ${process.cwd()}`);
-  console.error(`__dirname: ${__dirname}`);
-  console.error(`isVercel: ${isVercel}`);
+  console.error(`📋 시도한 경로들:`);
+  uniquePaths.forEach((p, i) => {
+    console.error(`  ${i + 1}. ${p} (존재: ${existsSync(p)})`);
+  });
   
   return null;
 };
