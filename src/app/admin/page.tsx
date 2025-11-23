@@ -142,7 +142,7 @@ export default function AdminDashboard() {
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">관리자 대시보드</h1>
-              <p className="text-gray-500 mt-1">프로젝트를 관리하세요</p>
+              <p className="text-gray-500 mt-1">BO화면</p>
             </div>
             <div className="flex gap-3">
               <Link 
