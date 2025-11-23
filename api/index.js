@@ -222,10 +222,16 @@ const getAdminFile = (filename) => {
   const basePaths = [];
   
   if (isVercel) {
-    // Vercel 환경: process.cwd()가 프로젝트 루트
-    basePaths.push(process.cwd());
-    // Vercel에서는 /var/task도 시도
+    // Vercel 환경: /var/task가 프로젝트 루트
+    // process.cwd()도 시도하지만, /var/task가 더 확실함
     basePaths.push('/var/task');
+    basePaths.push(process.cwd());
+    // __dirname에서 상위로 올라가서 루트 찾기 시도
+    // api/index.js는 /var/task/api/index.js이므로, 상위는 /var/task
+    const parentDir = path.dirname(__dirname);
+    if (parentDir !== __dirname) {
+      basePaths.push(parentDir);
+    }
   } else {
     // 로컬 환경: __dirname 기준
     basePaths.push(path.join(__dirname, '..'));
