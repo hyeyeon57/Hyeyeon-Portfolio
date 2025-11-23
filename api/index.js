@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 // Vercel 서버리스 함수로 Express 서버 래핑
 const express = require('express');
 const cors = require('cors');
