@@ -16,6 +16,13 @@
       "source": "/admin/:path*",
       "destination": "/api/index.js"
     }
-  ]
+  ],
+  "functions": {
+    "api/index.js": {
+      "includeFiles": [
+        "server/**"
+      ]
+    }
+  }
 }
 
