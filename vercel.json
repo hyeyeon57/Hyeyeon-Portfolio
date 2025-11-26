@@ -10,11 +10,11 @@
   "rewrites": [
     {
       "source": "/bo-api/:path*",
-      "destination": "/api/index.js"
+      "destination": "/api/index"
     },
     {
       "source": "/admin/:path*",
-      "destination": "/api/index.js"
+      "destination": "/api/index"
     }
   ],
   "functions": {
