@@ -7,20 +7,25 @@ export const dynamic = 'force-dynamic';
 // 별도 백엔드 서버로 분리하여 배포
 const getBackofficeUrl = () => {
   // 환경 변수가 설정되어 있으면 우선 사용 (별도 배포 시 필수)
-  if (process.env.NEXT_PUBLIC_BACKOFFICE_URL) {
-    return process.env.NEXT_PUBLIC_BACKOFFICE_URL;
-  }
-  if (process.env.BACKOFFICE_API_URL) {
-    return process.env.BACKOFFICE_API_URL;
+  // NEXT_PUBLIC_ 접두사가 있으면 클라이언트/서버 모두 접근 가능
+  // BACKOFFICE_API_URL은 서버 사이드에서만 접근 가능
+  const backofficeUrl = process.env.NEXT_PUBLIC_BACKOFFICE_URL 
+    || process.env.BACKOFFICE_API_URL;
+  
+  if (backofficeUrl) {
+    console.log('🔗 백엔드 URL (환경 변수):', backofficeUrl);
+    return backofficeUrl;
   }
   
   // 프로덕션: 별도 백엔드 서버 URL (기본값)
   if (process.env.NODE_ENV === 'production' || process.env.VERCEL) {
-    // 별도 백엔드 프로젝트 URL (환경 변수로 설정 필요)
-    return 'https://hyeyeon-portfolio-admin.vercel.app';
+    const defaultUrl = 'https://hyeyeon-portfolio-admin.vercel.app';
+    console.log('🔗 백엔드 URL (기본값):', defaultUrl);
+    return defaultUrl;
   }
   
   // 개발 환경: 로컬 서버
+  console.log('🔗 백엔드 URL (로컬):', 'http://localhost:3005');
   return 'http://localhost:3005';
 };
 
@@ -32,7 +37,12 @@ export async function GET(request: NextRequest) {
     const timestamp = Date.now();
     const fetchUrl = `${backofficeUrl}/bo-api/projects?_t=${timestamp}`;
     
-    console.log('📡 백오피스 API 호출 (별도 서버):', { backofficeUrl, fetchUrl, timestamp });
+    console.log('📡 백오피스 API 호출 (별도 서버):', { 
+      backofficeUrl, 
+      fetchUrl, 
+      timestamp,
+      hasEnvVar: !!(process.env.NEXT_PUBLIC_BACKOFFICE_URL || process.env.BACKOFFICE_API_URL)
+    });
     
     const response = await fetch(fetchUrl, {
       method: 'GET',
