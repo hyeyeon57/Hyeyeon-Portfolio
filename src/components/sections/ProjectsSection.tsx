@@ -18,9 +18,17 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
 
   // BO 서버에서 프로젝트 데이터 가져오기
   useEffect(() => {
-    const fetchProjects = async () => {
+    const fetchProjects = async (forceRefresh = false) => {
       try {
-        const response = await fetch('/api/projects?t=' + Date.now()); // 캐시 방지
+        // 강제 새로고침 시 타임스탬프를 더 크게 만들어 캐시 완전 무효화
+        const timestamp = forceRefresh ? Date.now() + Math.random() : Date.now();
+        const response = await fetch(`/api/projects?t=${timestamp}&_=${timestamp}`, {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+          }
+        });
         const result = await response.json();
         
         if (result.success && Array.isArray(result.data)) {
@@ -61,20 +69,29 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
       }
     };
 
-    fetchProjects();
+    fetchProjects(true); // 초기 로드 시 강제 새로고침
     
     // 페이지 포커스를 받을 때마다 데이터 새로고침 (즐겨찾기 변경 즉시 반영)
     const handleFocus = () => {
-      fetchProjects();
+      fetchProjects(true); // 강제 새로고침
     };
     window.addEventListener('focus', handleFocus);
     
-    // 주기적으로 새로고침 (10초마다 - 더 자주 체크)
-    const interval = setInterval(fetchProjects, 10000);
+    // visibilitychange 이벤트도 감지 (탭 전환 시)
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        fetchProjects(true); // 강제 새로고침
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    // 주기적으로 새로고침 (5초마다 - 더 자주 체크)
+    const interval = setInterval(() => fetchProjects(true), 5000);
     
     return () => {
       clearInterval(interval);
       window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
 

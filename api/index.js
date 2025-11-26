@@ -1116,13 +1116,31 @@ const handlePutProject = async (req, res) => {
 
     console.log('📝 프로젝트 수정 요청:', {
       projectId: req.params.id,
-      featured: projectData.featured,
-      updateData: { ...projectData, description: projectData.description?.substring(0, 50) + '...' }
+      currentFeatured: project.featured,
+      newFeatured: projectData.featured,
+      updateFields: Object.keys(projectData)
+    });
+
+    // featured 필드만 업데이트하는 경우 명시적으로 처리
+    const updateData = {};
+    if ('featured' in projectData) {
+      updateData.featured = projectData.featured === true || projectData.featured === 'true';
+      console.log('🔖 featured 필드 업데이트:', {
+        from: project.featured,
+        to: updateData.featured
+      });
+    }
+    
+    // 다른 필드도 업데이트
+    Object.keys(projectData).forEach(key => {
+      if (key !== '_id' && key !== 'id') {
+        updateData[key] = projectData[key];
+      }
     });
 
     const updatedProject = await Project.findOneAndUpdate(
       { _id: project._id },
-      { $set: projectData }, // $set 연산자 사용으로 명확한 업데이트
+      { $set: updateData }, // $set 연산자 사용으로 명확한 업데이트
       { new: true, runValidators: true }
     );
 
@@ -1130,7 +1148,8 @@ const handlePutProject = async (req, res) => {
       _id: updatedProject._id,
       id: updatedProject.id,
       title: updatedProject.title,
-      featured: updatedProject.featured
+      featured: updatedProject.featured,
+      featuredType: typeof updatedProject.featured
     });
 
     // 캐시 무효화를 위한 헤더 추가
