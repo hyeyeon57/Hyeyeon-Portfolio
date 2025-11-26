@@ -63,9 +63,19 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
 
     fetchProjects();
     
-    // 주기적으로 새로고침 (30초마다)
-    const interval = setInterval(fetchProjects, 30000);
-    return () => clearInterval(interval);
+    // 페이지 포커스를 받을 때마다 데이터 새로고침 (즐겨찾기 변경 즉시 반영)
+    const handleFocus = () => {
+      fetchProjects();
+    };
+    window.addEventListener('focus', handleFocus);
+    
+    // 주기적으로 새로고침 (10초마다 - 더 자주 체크)
+    const interval = setInterval(fetchProjects, 10000);
+    
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', handleFocus);
+    };
   }, []);
 
   // BO에서 featured=true로 설정된 프로젝트를 대표 프로젝트로 표시
