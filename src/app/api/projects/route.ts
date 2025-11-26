@@ -47,9 +47,19 @@ export async function GET(request: NextRequest) {
     });
 
     if (!response.ok) {
-      // BO 서버가 응답하지 않으면 빈 배열 반환 (정적 데이터 사용)
-      console.warn(`백오피스 서버 연결 실패 (${response.status}): ${response.statusText}`);
-      return NextResponse.json({ success: true, data: [] });
+      // BO 서버가 응답하지 않으면 에러 반환 (정적 데이터 사용 방지)
+      console.error(`❌ 백오피스 서버 연결 실패:`, {
+        status: response.status,
+        statusText: response.statusText,
+        url: fetchUrl,
+        backofficeUrl
+      });
+      // 빈 배열 대신 에러 반환하여 프론트엔드가 정적 데이터 사용하지 않도록
+      return NextResponse.json({ 
+        success: false, 
+        error: `백엔드 서버 연결 실패 (${response.status})`,
+        data: [] 
+      }, { status: response.status });
     }
 
     const result = await response.json();
