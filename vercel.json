@@ -9,7 +9,7 @@
   "trailingSlash": false,
   "rewrites": [
     {
-      "source": "/api/bo/:path*",
+      "source": "/bo-api/:path*",
       "destination": "/api/index.js"
     },
     {

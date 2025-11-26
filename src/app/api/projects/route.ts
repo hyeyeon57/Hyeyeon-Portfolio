@@ -29,7 +29,7 @@ const getBackofficeUrl = (request?: NextRequest) => {
 export async function GET(request: NextRequest) {
   try {
     const backofficeUrl = getBackofficeUrl(request);
-    const fetchUrl = `${backofficeUrl}/api/bo/projects`;
+    const fetchUrl = `${backofficeUrl}/bo-api/projects`;
     
     const response = await fetch(fetchUrl, {
       method: 'GET',

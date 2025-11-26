@@ -616,13 +616,16 @@ const handleAuthCheck = (req, res) => {
   });
 };
 
-// /api/auth와 /api/bo/auth 모두 처리
+// /api/auth와 /api/bo/auth, /bo-api/auth 모두 처리
 app.post('/api/auth/login', handleLogin);
 app.post('/api/bo/auth/login', handleLogin);
+app.post('/bo-api/auth/login', handleLogin);
 app.post('/api/auth/logout', handleLogout);
 app.post('/api/bo/auth/logout', handleLogout);
+app.post('/bo-api/auth/logout', handleLogout);
 app.get('/api/auth/check', handleAuthCheck);
 app.get('/api/bo/auth/check', handleAuthCheck);
+app.get('/bo-api/auth/check', handleAuthCheck);
 
 // MongoDB 연결 초기화
 let dbConnected = false;
@@ -706,7 +709,7 @@ const migrateStaticProjects = async () => {
   }
 };
 
-// 방문자 로그 API
+// 방문자 로그 API (/api/visitors, /api/bo/visitors, /bo-api/visitors)
 const handlePostVisitor = async (req, res) => {
   try {
     await initDB();
@@ -751,6 +754,7 @@ const handlePostVisitor = async (req, res) => {
 
 app.post('/api/visitors', handlePostVisitor);
 app.post('/api/bo/visitors', handlePostVisitor);
+app.post('/bo-api/visitors', handlePostVisitor);
 
 const handleGetVisitorStats = async (req, res) => {
   try {
@@ -801,6 +805,7 @@ const handleGetVisitorStats = async (req, res) => {
 
 app.get('/api/visitors/stats', handleGetVisitorStats);
 app.get('/api/bo/visitors/stats', handleGetVisitorStats);
+app.get('/bo-api/visitors/stats', handleGetVisitorStats);
 
 const handleGetVisitors = async (req, res) => {
   try {
@@ -838,6 +843,7 @@ const handleGetVisitors = async (req, res) => {
 
 app.get('/api/visitors', handleGetVisitors);
 app.get('/api/bo/visitors', handleGetVisitors);
+app.get('/bo-api/visitors', handleGetVisitors);
 
 // 프로젝트 목록 조회 (백오피스 API)
 const handleGetProjects = async (req, res) => {
@@ -881,9 +887,10 @@ const handleGetProjects = async (req, res) => {
   }
 };
 
-// /api/projects와 /api/bo/projects 모두 처리 (무한 루프 방지)
+// /api/projects와 /api/bo/projects, /bo-api/projects 모두 처리 (무한 루프 방지)
 app.get('/api/projects', handleGetProjects);
 app.get('/api/bo/projects', handleGetProjects);
+app.get('/bo-api/projects', handleGetProjects);
 
 // 프로젝트 생성 핸들러
 const handlePostProject = async (req, res) => {
@@ -1033,15 +1040,18 @@ const handleDeleteProject = async (req, res) => {
   }
 };
 
-// /api/projects와 /api/bo/projects 모두 처리
+// /api/projects와 /api/bo/projects, /bo-api/projects 모두 처리
 app.post('/api/projects', requireAuth, upload.array('images', 9), handlePostProject);
 app.post('/api/bo/projects', requireAuth, upload.array('images', 9), handlePostProject);
+app.post('/bo-api/projects', requireAuth, upload.array('images', 9), handlePostProject);
 app.put('/api/projects/:id', upload.array('images', 9), handlePutProject);
 app.put('/api/bo/projects/:id', upload.array('images', 9), handlePutProject);
+app.put('/bo-api/projects/:id', upload.array('images', 9), handlePutProject);
 app.delete('/api/projects/:id', handleDeleteProject);
 app.delete('/api/bo/projects/:id', handleDeleteProject);
+app.delete('/bo-api/projects/:id', handleDeleteProject);
 
-// 강제 마이그레이션 API (관리자용) - 두 경로 모두 지원
+// 강제 마이그레이션 API (관리자용) - /api, /api/bo, /bo-api 모두 지원
 const handleMigrate = async (req, res) => {
   try {
     await initDB();
@@ -1077,6 +1087,7 @@ const handleMigrate = async (req, res) => {
 
 app.post('/api/migrate', requireAuth, handleMigrate);
 app.post('/api/bo/migrate', requireAuth, handleMigrate);
+app.post('/bo-api/migrate', requireAuth, handleMigrate);
 
 // 프로젝트 상세 조회
 app.get('/api/projects/:id', async (req, res) => {
@@ -1103,7 +1114,7 @@ app.get('/api/projects/:id', async (req, res) => {
   }
 });
 
-// 연락처 API
+// 연락처 API (/api/contacts, /api/bo/contacts, /bo-api/contacts)
 const handlePostContact = async (req, res) => {
   try {
     await initDB();
@@ -1170,15 +1181,19 @@ const handleDeleteContact = async (req, res) => {
   }
 };
 
-// /api/contacts와 /api/bo/contacts 모두 처리
+// /api/contacts와 /api/bo/contacts, /bo-api/contacts 모두 처리
 app.post('/api/contacts', handlePostContact);
 app.post('/api/bo/contacts', handlePostContact);
+app.post('/bo-api/contacts', handlePostContact);
 app.get('/api/contacts', handleGetContacts);
 app.get('/api/bo/contacts', handleGetContacts);
+app.get('/bo-api/contacts', handleGetContacts);
 app.put('/api/contacts/:id/read', handlePutContactRead);
 app.put('/api/bo/contacts/:id/read', handlePutContactRead);
+app.put('/bo-api/contacts/:id/read', handlePutContactRead);
 app.delete('/api/contacts/:id', handleDeleteContact);
 app.delete('/api/bo/contacts/:id', handleDeleteContact);
+app.delete('/bo-api/contacts/:id', handleDeleteContact);
 
 // Vercel 서버리스 함수 핸들러
 // Vercel 환경에서는 서버리스 함수로, 로컬에서는 Express 앱으로 동작

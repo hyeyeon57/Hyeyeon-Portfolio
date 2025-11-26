@@ -54,10 +54,10 @@ export default function Home() {
         };
         
         const apiUrl = getApiUrl();
-        // 프로덕션에서는 상대 경로, 개발에서는 절대 경로
+        // 프로덕션에서는 상대 경로(/bo-api), 개발에서는 절대 경로
         const fetchUrl = apiUrl 
-          ? `${apiUrl}/api/bo/visitors`
-          : '/api/bo/visitors';
+          ? `${apiUrl}/bo-api/visitors`
+          : '/bo-api/visitors';
         
         await fetch(fetchUrl, {
           method: 'POST',

@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
       };
       
       const backofficeUrl = getBackofficeUrl(request);
-      const fetchUrl = `${backofficeUrl}/api/bo/contacts`;
+      const fetchUrl = `${backofficeUrl}/bo-api/contacts`;
       
       await fetch(fetchUrl, {
         method: 'POST',
