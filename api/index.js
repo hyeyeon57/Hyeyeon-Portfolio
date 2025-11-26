@@ -453,7 +453,9 @@ app.get('/admin', requireAuth, (req, res) => {
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Expires', '0');
     res.setHeader('Last-Modified', new Date().toUTCString());
-    res.setHeader('ETag', `"${Date.now()}"`);
+    res.setHeader('ETag', `"${Date.now()}-${Math.random()}"`);
+    // Vercel 캐시 무효화를 위한 헤더
+    res.setHeader('X-Vercel-Cache-Control', 'no-cache');
     res.send(adminFile.content);
   } else {
     console.error('❌ admin 파일을 찾을 수 없음');
