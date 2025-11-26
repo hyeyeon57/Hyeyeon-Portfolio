@@ -51,7 +51,8 @@ export default function AdminLoginPage() {
       };
 
       const backofficeUrl = getBackofficeUrl();
-      const fetchUrl = `${backofficeUrl}/api/bo/auth/login`;
+      // 백오피스 API는 /bo-api/* 경로로 분리됨 (Next.js /api와 충돌 방지)
+      const fetchUrl = `${backofficeUrl}/bo-api/auth/login`;
       
       console.log('🔐 로그인 요청 시작:', {
         backofficeUrl,
