@@ -655,6 +655,48 @@ const initDB = async () => {
   return dbConnected;
 };
 
+// MongoDB 연결 상태 확인 헬스체크
+const handleHealthCheck = async (req, res) => {
+  try {
+    await initDB();
+    const isConnected = mongoose.connection.readyState === 1;
+    const connectionState = mongoose.connection.readyState;
+    const stateText = {
+      0: 'disconnected',
+      1: 'connected',
+      2: 'connecting',
+      3: 'disconnecting'
+    }[connectionState] || 'unknown';
+
+    res.json({
+      success: true,
+      mongodb: {
+        connected: isConnected,
+        state: connectionState,
+        stateText: stateText,
+        host: isConnected ? mongoose.connection.host : null,
+        database: isConnected ? mongoose.connection.name : null,
+        hasMongoURI: !!process.env.MONGODB_URI
+      },
+      vercel: process.env.VERCEL === '1',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.json({
+      success: false,
+      mongodb: {
+        connected: false,
+        error: error.message
+      },
+      timestamp: new Date().toISOString()
+    });
+  }
+};
+
+app.get('/api/health', handleHealthCheck);
+app.get('/api/bo/health', handleHealthCheck);
+app.get('/bo-api/health', handleHealthCheck);
+
 // 정적 프로젝트 데이터를 MongoDB로 자동 마이그레이션
 const migrateStaticProjects = async () => {
   try {

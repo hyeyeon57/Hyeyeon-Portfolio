@@ -22,7 +22,12 @@
             <h1 class="text-3xl font-bold text-gray-900">관리자 대시보드</h1>
             <p class="text-gray-500 mt-1">BO화면</p>
           </div>
-          <div class="flex gap-3">
+          <div class="flex gap-3 items-center">
+            <!-- MongoDB 연결 상태 표시 -->
+            <div id="mongodbStatus" class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm">
+              <span class="w-2 h-2 rounded-full bg-gray-400 animate-pulse"></span>
+              <span class="text-gray-600">MongoDB 확인 중...</span>
+            </div>
             <a href="/" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition flex items-center gap-2">
               <i data-lucide="arrow-left" class="w-4 h-4"></i>
               홈으로
@@ -308,9 +313,40 @@
     // 전역 함수로 등록 (HTML에서 호출 가능하도록)
     window.switchTab = switchTab;
 
+    // MongoDB 연결 상태 확인
+    async function checkMongoDBStatus() {
+      try {
+        const response = await fetch(`${API_URL}/health`);
+        const result = await response.json();
+        const statusEl = document.getElementById('mongodbStatus');
+        
+        if (result.success && result.mongodb && result.mongodb.connected) {
+          statusEl.innerHTML = `
+            <span class="w-2 h-2 rounded-full bg-green-500"></span>
+            <span class="text-green-700 font-medium">MongoDB 연결됨</span>
+          `;
+          statusEl.className = 'flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm bg-green-50';
+        } else {
+          statusEl.innerHTML = `
+            <span class="w-2 h-2 rounded-full bg-red-500"></span>
+            <span class="text-red-700 font-medium">MongoDB 연결 안됨</span>
+          `;
+          statusEl.className = 'flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm bg-red-50';
+        }
+      } catch (error) {
+        const statusEl = document.getElementById('mongodbStatus');
+        statusEl.innerHTML = `
+          <span class="w-2 h-2 rounded-full bg-red-500"></span>
+          <span class="text-red-700 font-medium">MongoDB 확인 실패</span>
+        `;
+        statusEl.className = 'flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm bg-red-50';
+      }
+    }
+
     // 페이지 로드 시 실행
     window.addEventListener('DOMContentLoaded', async () => {
       await checkAuth();
+      await checkMongoDBStatus();
       
       // 초기 탭 설정 (데이터 로드는 switchTab에서 처리)
       await switchTab('projects');
