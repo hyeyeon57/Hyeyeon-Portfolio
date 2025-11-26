@@ -15,6 +15,8 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
   const [selectedProject, setSelectedProject] = useState<typeof projects[0] | null>(null);
   const [showGalleryModal, setShowGalleryModal] = useState(false);
   const [galleryProject, setGalleryProject] = useState<typeof projects[0] | null>(null);
+  const [error, setError] = useState<string | null>(null); // 에러 상태 추가
+  const [loading, setLoading] = useState(true); // 로딩 상태 추가
 
   // BO 서버에서 프로젝트 데이터 가져오기
   useEffect(() => {
@@ -30,14 +32,17 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
           }
         });
         if (!response.ok) {
+          const errorMsg = `백엔드 API 호출 실패 (${response.status}: ${response.statusText})`;
           console.error('❌ 백엔드 API 호출 실패:', {
             status: response.status,
             statusText: response.statusText,
             url: response.url
           });
-          // API 호출 실패 시 빈 배열 사용 (정적 데이터 사용 안 함)
+          // API 호출 실패 시 에러 메시지 표시
           console.warn('⚠️ 백엔드 연결 실패 - 빈 배열 사용 (정적 데이터 사용 안 함)');
+          setError(errorMsg);
           setProjects([]);
+          setLoading(false);
           return;
         }
         
@@ -77,21 +82,29 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
               featuredProjects: boProjects.filter(p => p.featured).map(p => p.title)
             });
             setProjects(boProjects);
+            setError(null); // 성공 시 에러 초기화
           } else {
             // BO에 데이터가 없으면 빈 배열 사용 (정적 데이터 사용 안 함)
             console.warn('⚠️ 백엔드에 프로젝트가 없음 - 빈 배열 사용');
             setProjects([]);
+            setError('백엔드에 프로젝트 데이터가 없습니다.');
           }
         } else {
           // 응답 형식 오류 시 빈 배열 사용
+          const errorMsg = result.error || '백엔드 응답 형식 오류';
           console.error('❌ 백엔드 응답 형식 오류:', result);
           setProjects([]);
+          setError(errorMsg);
         }
-      } catch (error) {
+        setLoading(false);
+      } catch (error: any) {
+        const errorMsg = error.message || '프로젝트 로드 중 오류가 발생했습니다.';
         console.error('❌ 프로젝트 로드 오류:', error);
         // 오류 시 빈 배열 사용 (정적 데이터 사용 안 함)
         console.warn('⚠️ 백엔드 연결 실패 - 빈 배열 사용 (정적 데이터 사용 안 함)');
         setProjects([]);
+        setError(errorMsg);
+        setLoading(false);
       }
     };
 
@@ -137,6 +150,35 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
       featuredProjects: displayedProjects.map(p => ({ title: p.title, featured: p.featured })),
       allProjects: projects.map(p => ({ title: p.title, featured: p.featured, featuredType: typeof p.featured }))
     });
+  }
+
+  // 에러 또는 로딩 상태 표시
+  if (loading) {
+    return (
+      <section id="projects" className="py-20 relative overflow-hidden" style={{ backgroundColor: '#F7F7FB' }}>
+        <div className="container mx-auto px-4 text-center">
+          <p className="text-text-secondary">프로젝트를 불러오는 중...</p>
+        </div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section id="projects" className="py-20 relative overflow-hidden" style={{ backgroundColor: '#F7F7FB' }}>
+        <div className="container mx-auto px-4 text-center">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-2xl mx-auto">
+            <h3 className="text-red-800 font-semibold mb-2">⚠️ 프로젝트를 불러올 수 없습니다</h3>
+            <p className="text-red-600 mb-4">{error}</p>
+            <p className="text-sm text-red-500">
+              브라우저 콘솔(F12)을 열어 자세한 오류를 확인하세요.
+              <br />
+              백엔드 서버 연결 상태를 확인해주세요.
+            </p>
+          </div>
+        </div>
+      </section>
+    );
   }
 
   return (
