@@ -122,7 +122,8 @@
       submitBtn.innerHTML = '<div class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> 로그인 중...';
       
       try {
-        const response = await fetch('/api/auth/login', {
+        // Vercel 프로덕션에서는 /api/bo/* 경로가 Express 백오피스로 라우팅됨
+        const response = await fetch('/api/bo/auth/login', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
