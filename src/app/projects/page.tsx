@@ -10,7 +10,7 @@ type Project = typeof initialProjects[0];
 
 export default function AllProjectsPage() {
   const [isMounted, setIsMounted] = useState(false);
-  const [projects, setProjects] = useState<Project[]>(initialProjects);
+  const [projects, setProjects] = useState<Project[]>([]); // 초기값을 빈 배열로 변경 (정적 데이터 사용 안 함)
   const [selectedCategories, setSelectedCategories] = useState<string[]>(['all']);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [showGalleryModal, setShowGalleryModal] = useState(false);
@@ -33,6 +33,20 @@ export default function AllProjectsPage() {
         });
         const result = await response.json();
         
+        if (!response.ok) {
+          console.error('❌ 백엔드 API 호출 실패:', {
+            status: response.status,
+            statusText: response.statusText,
+            url: response.url
+          });
+          // API 호출 실패 시 빈 배열 사용 (정적 데이터 사용 안 함)
+          console.warn('⚠️ 백엔드 연결 실패 - 빈 배열 사용 (정적 데이터 사용 안 함)');
+          setProjects([]);
+          return;
+        }
+        
+        const result = await response.json();
+        
         if (result.success && Array.isArray(result.data)) {
           // BO 데이터를 우선으로 사용
           const boProjects: Project[] = result.data.map((p: any) => ({
@@ -50,24 +64,33 @@ export default function AllProjectsPage() {
             team: p.team || '',
             achievements: p.achievements || [],
             link: p.link || '#',
-            featured: p.featured || false,
+            featured: p.featured === true || p.featured === 'true', // boolean 강제 변환
           }));
           
-          // BO에 프로젝트가 있으면 BO 데이터 사용, 없으면 정적 데이터 사용
+          // BO에 프로젝트가 있으면 BO 데이터 사용, 없으면 빈 배열 사용
           if (boProjects.length > 0) {
+            const featuredCount = boProjects.filter(p => p.featured).length;
+            console.log('✅ 백엔드 프로젝트 데이터 로드 성공:', {
+              total: boProjects.length,
+              featured: featuredCount,
+              featuredProjects: boProjects.filter(p => p.featured).map(p => p.title)
+            });
             setProjects(boProjects);
           } else {
-            // BO에 데이터가 없으면 정적 데이터 사용
-            setProjects(initialProjects);
+            // BO에 데이터가 없으면 빈 배열 사용 (정적 데이터 사용 안 함)
+            console.warn('⚠️ 백엔드에 프로젝트가 없음 - 빈 배열 사용');
+            setProjects([]);
           }
         } else {
-          // 오류 시 정적 데이터 사용
-          setProjects(initialProjects);
+          // 응답 형식 오류 시 빈 배열 사용 (정적 데이터 사용 안 함)
+          console.error('❌ 백엔드 응답 형식 오류:', result);
+          setProjects([]);
         }
       } catch (error) {
-        console.error('프로젝트 로드 오류:', error);
-        // 오류 시 정적 데이터 사용
-        setProjects(initialProjects);
+        console.error('❌ 프로젝트 로드 오류:', error);
+        // 오류 시 빈 배열 사용 (정적 데이터 사용 안 함)
+        console.warn('⚠️ 백엔드 연결 실패 - 빈 배열 사용 (정적 데이터 사용 안 함)');
+        setProjects([]);
       }
     };
 

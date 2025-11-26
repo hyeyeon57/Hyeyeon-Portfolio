@@ -11,7 +11,7 @@ interface ProjectsSectionProps {
 }
 
 export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
-  const [projects, setProjects] = useState<typeof initialProjects>(initialProjects);
+  const [projects, setProjects] = useState<typeof initialProjects>([]); // 초기값을 빈 배열로 변경 (정적 데이터 사용 안 함)
   const [selectedProject, setSelectedProject] = useState<typeof projects[0] | null>(null);
   const [showGalleryModal, setShowGalleryModal] = useState(false);
   const [galleryProject, setGalleryProject] = useState<typeof projects[0] | null>(null);
@@ -35,9 +35,9 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
             statusText: response.statusText,
             url: response.url
           });
-          // API 호출 실패 시에도 정적 데이터 사용하지 않고 경고만 표시
-          console.warn('⚠️ 백엔드 연결 실패 - 정적 데이터 사용 중');
-          setProjects(initialProjects);
+          // API 호출 실패 시 빈 배열 사용 (정적 데이터 사용 안 함)
+          console.warn('⚠️ 백엔드 연결 실패 - 빈 배열 사용 (정적 데이터 사용 안 함)');
+          setProjects([]);
           return;
         }
         
@@ -89,9 +89,9 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
         }
       } catch (error) {
         console.error('❌ 프로젝트 로드 오류:', error);
-        // 오류 시 정적 데이터 사용 (경고)
-        console.warn('⚠️ 백엔드 연결 실패, 정적 데이터 사용');
-        setProjects(initialProjects);
+        // 오류 시 빈 배열 사용 (정적 데이터 사용 안 함)
+        console.warn('⚠️ 백엔드 연결 실패 - 빈 배열 사용 (정적 데이터 사용 안 함)');
+        setProjects([]);
       }
     };
 
