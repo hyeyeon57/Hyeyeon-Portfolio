@@ -123,13 +123,19 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
 
   // BO에서 featured=true로 설정된 프로젝트를 대표 프로젝트로 표시
   // featured 프로젝트만 표시 (개수 제한 없음 - 백엔드에서 설정한 대로)
-  const displayedProjects = projects.filter(project => project.featured === true);
+  // featured 필드를 명시적으로 boolean으로 변환하여 필터링
+  const displayedProjects = projects.filter(project => {
+    const isFeatured = project.featured === true || project.featured === 'true';
+    return isFeatured;
+  });
   
-  // 디버깅: featured 프로젝트 개수 확인
-  if (typeof window !== 'undefined' && displayedProjects.length > 0) {
-    console.log('📌 대표 프로젝트:', {
-      count: displayedProjects.length,
-      projects: displayedProjects.map(p => p.title)
+  // 디버깅: featured 프로젝트 개수 확인 (항상 로그 출력)
+  if (typeof window !== 'undefined') {
+    console.log('📌 대표 프로젝트 필터링 결과:', {
+      totalProjects: projects.length,
+      featuredCount: displayedProjects.length,
+      featuredProjects: displayedProjects.map(p => ({ title: p.title, featured: p.featured })),
+      allProjects: projects.map(p => ({ title: p.title, featured: p.featured, featuredType: typeof p.featured }))
     });
   }
 

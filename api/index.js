@@ -972,6 +972,15 @@ const handleGetProjects = async (req, res) => {
     
     const projects = await Project.find().sort({ createdAt: -1 });
     
+    // featured 프로젝트 개수 확인 및 로깅
+    const featuredProjects = projects.filter(p => p.featured === true || p.featured === 'true');
+    console.log('📊 백엔드 프로젝트 데이터:', {
+      total: projects.length,
+      featured: featuredProjects.length,
+      featuredTitles: featuredProjects.map(p => p.title),
+      allProjects: projects.map(p => ({ title: p.title, featured: p.featured }))
+    });
+    
     // 캐시 무효화를 위한 헤더 추가 (즐겨찾기 변경 즉시 반영)
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
     res.setHeader('Pragma', 'no-cache');
