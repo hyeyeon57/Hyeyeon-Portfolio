@@ -970,6 +970,14 @@ const handleGetProjects = async (req, res) => {
     }
     
     const projects = await Project.find().sort({ createdAt: -1 });
+    
+    // 캐시 무효화를 위한 헤더 추가 (즐겨찾기 변경 즉시 반영)
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.setHeader('Last-Modified', new Date().toUTCString());
+    res.setHeader('ETag', `"${Date.now()}"`);
+    
     res.json({ success: true, data: projects });
   } catch (error) {
     console.error('프로젝트 조회 오류:', error);
@@ -1084,23 +1092,56 @@ const handlePutProject = async (req, res) => {
       return res.status(404).json({ success: false, error: '프로젝트를 찾을 수 없습니다.' });
     }
 
-    const projectData = req.body.project ? JSON.parse(req.body.project) : req.body;
+    // 요청 본문 파싱 (다양한 형식 지원)
+    let projectData;
+    if (typeof req.body === 'string') {
+      projectData = JSON.parse(req.body);
+    } else if (req.body.project) {
+      projectData = typeof req.body.project === 'string' ? JSON.parse(req.body.project) : req.body.project;
+    } else {
+      projectData = req.body;
+    }
+
+    // 파일 업로드 처리
     if (req.files && Array.isArray(req.files) && req.files.length > 0) {
       const imagePaths = req.files.map(file => `/tmp/projects/${file.filename}`);
       projectData.images = [...(project.images || []), ...imagePaths];
     }
+    
+    // ID 유지
     projectData.id = project.id || req.params.id;
+    
+    // _id는 업데이트하지 않음 (MongoDB가 자동 처리)
+    delete projectData._id;
+
+    console.log('📝 프로젝트 수정 요청:', {
+      projectId: req.params.id,
+      featured: projectData.featured,
+      updateData: { ...projectData, description: projectData.description?.substring(0, 50) + '...' }
+    });
 
     const updatedProject = await Project.findOneAndUpdate(
       { _id: project._id },
-      projectData,
+      { $set: projectData }, // $set 연산자 사용으로 명확한 업데이트
       { new: true, runValidators: true }
     );
 
+    console.log('✅ 프로젝트 수정 성공:', {
+      _id: updatedProject._id,
+      id: updatedProject.id,
+      title: updatedProject.title,
+      featured: updatedProject.featured
+    });
+
+    // 캐시 무효화를 위한 헤더 추가
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    
     res.json({ success: true, data: updatedProject });
   } catch (error) {
-    console.error('프로젝트 수정 오류:', error);
-    res.status(500).json({ success: false, error: '프로젝트 수정에 실패했습니다.' });
+    console.error('❌ 프로젝트 수정 오류:', error);
+    res.status(500).json({ success: false, error: '프로젝트 수정에 실패했습니다: ' + error.message });
   }
 };
 

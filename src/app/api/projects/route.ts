@@ -27,16 +27,20 @@ export async function GET(request: NextRequest) {
   try {
     const backofficeUrl = getBackofficeUrl();
     // backofficeUrl이 빈 문자열이면 상대 경로 사용
+    // 타임스탬프를 쿼리 파라미터로 추가하여 캐시 무효화
+    const timestamp = Date.now();
     const fetchUrl = backofficeUrl 
-      ? `${backofficeUrl}/bo-api/projects`
-      : '/bo-api/projects';
+      ? `${backofficeUrl}/bo-api/projects?_t=${timestamp}`
+      : `/bo-api/projects?_t=${timestamp}`;
     
-    console.log('📡 백오피스 API 호출:', { backofficeUrl, fetchUrl });
+    console.log('📡 백오피스 API 호출:', { backofficeUrl, fetchUrl, timestamp });
     
     const response = await fetch(fetchUrl, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
       },
       // Next.js 서버에서 실행되므로 timeout 설정
       next: { revalidate: 0 }, // 항상 최신 데이터 가져오기
