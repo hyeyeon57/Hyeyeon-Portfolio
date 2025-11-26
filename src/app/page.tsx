@@ -37,27 +37,34 @@ export default function Home() {
       sessionStorage.setItem('lastVisitTime', now.toString());
       
       try {
-        // 백오피스 서버 URL 설정
-        // 프로덕션: 같은 프로젝트 내 서버리스 함수 사용
-        // 개발: 로컬 BO 서버
+        // 백오피스 서버 URL 설정 (별도 백엔드 서버)
         const getApiUrl = () => {
+          // 환경 변수가 설정되어 있으면 우선 사용
+          if (typeof window !== 'undefined') {
+            // 클라이언트 사이드에서는 호스트명으로 판단
+            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            if (isLocalhost) {
+              return 'http://localhost:3005';
+            }
+            // 프로덕션: 별도 백엔드 서버
+            return 'https://hyeyeon-portfolio-admin.vercel.app';
+          }
+          
+          // 서버 사이드
           if (process.env.NEXT_PUBLIC_BACKOFFICE_URL) {
             return process.env.NEXT_PUBLIC_BACKOFFICE_URL;
           }
           
           if (process.env.NODE_ENV === 'production') {
-            // 프로덕션: 같은 도메인의 상대 경로 사용
-            return '';
+            return 'https://hyeyeon-portfolio-admin.vercel.app';
           }
           
           return 'http://localhost:3005';
         };
         
         const apiUrl = getApiUrl();
-        // 프로덕션에서는 상대 경로(/bo-api), 개발에서는 절대 경로
-        const fetchUrl = apiUrl 
-          ? `${apiUrl}/bo-api/visitors`
-          : '/bo-api/visitors';
+        // 별도 백엔드 서버로 절대 URL로 호출
+        const fetchUrl = `${apiUrl}/bo-api/visitors`;
         
         await fetch(fetchUrl, {
           method: 'POST',

@@ -23,7 +23,7 @@ const app = express();
 const isVercel = process.env.VERCEL === '1';
 
 // 미들웨어
-// CORS 설정: Vercel 프리뷰 배포 URL도 동적으로 허용
+// CORS 설정: 별도 프론트엔드 서버와 Vercel 프리뷰 배포 URL 허용
 app.use(cors({
   origin: (origin, callback) => {
     // 허용할 origin 목록
@@ -32,28 +32,29 @@ app.use(cors({
       'http://localhost:3001',
       'http://localhost:3002',
       'http://localhost:3005',
-      'https://hyeyeon-portfolio.vercel.app',
-      'https://hyeyeon-portfolio-admin.vercel.app',
+      'https://hyeyeon-portfolio.vercel.app', // 별도 프론트엔드 프로젝트
+      'https://hyeyeon-portfolio-admin.vercel.app', // 백엔드 프로젝트
       process.env.FRONTEND_URL,
       process.env.BACKOFFICE_URL
     ].filter(Boolean); // undefined 제거
 
-    // Vercel 프리뷰 배포 URL 패턴 허용
+    // Vercel 프리뷰 배포 URL 패턴 허용 (프론트엔드와 백엔드 모두)
     const isVercelPreview = origin && (
-      origin.includes('hyeyeon-portfolio-admin') && 
+      (origin.includes('hyeyeon-portfolio') || origin.includes('hyeyeon-portfolio-admin')) && 
       origin.includes('.vercel.app')
     );
 
-    // origin이 없거나 (같은 도메인 요청) 허용 목록에 있거나 Vercel 프리뷰면 허용
+    // origin이 없거나 (서버 사이드 요청) 허용 목록에 있거나 Vercel 프리뷰면 허용
     if (!origin || allowedOrigins.includes(origin) || isVercelPreview) {
       callback(null, true);
     } else {
+      console.warn('🚫 CORS 차단:', origin);
       callback(new Error('Not allowed by CORS'));
     }
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

@@ -6,18 +6,19 @@ export const dynamic = 'force-dynamic';
 
 const resend = new Resend(process.env.RESEND_API_KEY || 'dummy-key-for-build');
 
-// 백오피스 서버 URL 설정
+// 백오피스 서버 URL 설정 (별도 백엔드 서버)
 const getBackofficeUrl = () => {
-  // 환경 변수가 설정되어 있으면 우선 사용
-  if (process.env.NEXT_PUBLIC_BACKOFFICE_URL || process.env.BACKOFFICE_API_URL) {
-    return process.env.NEXT_PUBLIC_BACKOFFICE_URL || process.env.BACKOFFICE_API_URL || '';
+  // 환경 변수가 설정되어 있으면 우선 사용 (별도 배포 시 필수)
+  if (process.env.NEXT_PUBLIC_BACKOFFICE_URL) {
+    return process.env.NEXT_PUBLIC_BACKOFFICE_URL;
+  }
+  if (process.env.BACKOFFICE_API_URL) {
+    return process.env.BACKOFFICE_API_URL;
   }
   
-  // 프로덕션에서는 환경 변수 사용 (request.url 사용하지 않음)
-  if (process.env.NODE_ENV === 'production') {
-    return process.env.VERCEL_URL 
-      ? `https://${process.env.VERCEL_URL}` 
-      : process.env.NEXT_PUBLIC_SITE_URL || '';
+  // 프로덕션: 별도 백엔드 서버 URL (기본값)
+  if (process.env.NODE_ENV === 'production' || process.env.VERCEL) {
+    return 'https://hyeyeon-portfolio-admin.vercel.app';
   }
   
   // 개발 환경: 로컬 서버

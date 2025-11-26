@@ -4,19 +4,20 @@ import { NextRequest, NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 
 // 백오피스 서버 URL 설정
-// 프로덕션: 같은 프로젝트 내 서버리스 함수 사용 (/bo-api/*)
-// 개발: 로컬 BO 서버
+// 별도 백엔드 서버로 분리하여 배포
 const getBackofficeUrl = () => {
-  // 환경 변수가 설정되어 있으면 우선 사용
-  if (process.env.NEXT_PUBLIC_BACKOFFICE_URL || process.env.BACKOFFICE_API_URL) {
-    return process.env.NEXT_PUBLIC_BACKOFFICE_URL || process.env.BACKOFFICE_API_URL || '';
+  // 환경 변수가 설정되어 있으면 우선 사용 (별도 배포 시 필수)
+  if (process.env.NEXT_PUBLIC_BACKOFFICE_URL) {
+    return process.env.NEXT_PUBLIC_BACKOFFICE_URL;
+  }
+  if (process.env.BACKOFFICE_API_URL) {
+    return process.env.BACKOFFICE_API_URL;
   }
   
-  // 프로덕션에서는 같은 도메인 사용 (상대 경로로 호출)
-  // Vercel에서는 같은 프로젝트 내 서버리스 함수이므로 빈 문자열 반환
-  // 이렇게 하면 fetchUrl이 '/bo-api/projects'가 되어 같은 도메인으로 요청됨
+  // 프로덕션: 별도 백엔드 서버 URL (기본값)
   if (process.env.NODE_ENV === 'production' || process.env.VERCEL) {
-    return ''; // 빈 문자열 = 같은 도메인
+    // 별도 백엔드 프로젝트 URL (환경 변수로 설정 필요)
+    return 'https://hyeyeon-portfolio-admin.vercel.app';
   }
   
   // 개발 환경: 로컬 서버
@@ -26,14 +27,12 @@ const getBackofficeUrl = () => {
 export async function GET(request: NextRequest) {
   try {
     const backofficeUrl = getBackofficeUrl();
-    // backofficeUrl이 빈 문자열이면 상대 경로 사용
+    // 별도 백엔드 서버로 절대 URL로 호출
     // 타임스탬프를 쿼리 파라미터로 추가하여 캐시 무효화
     const timestamp = Date.now();
-    const fetchUrl = backofficeUrl 
-      ? `${backofficeUrl}/bo-api/projects?_t=${timestamp}`
-      : `/bo-api/projects?_t=${timestamp}`;
+    const fetchUrl = `${backofficeUrl}/bo-api/projects?_t=${timestamp}`;
     
-    console.log('📡 백오피스 API 호출:', { backofficeUrl, fetchUrl, timestamp });
+    console.log('📡 백오피스 API 호출 (별도 서버):', { backofficeUrl, fetchUrl, timestamp });
     
     const response = await fetch(fetchUrl, {
       method: 'GET',
