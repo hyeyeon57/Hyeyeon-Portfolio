@@ -428,14 +428,38 @@ app.get('/admin', requireAuth, (req, res) => {
   const adminFile = getAdminFile('index.html');
   if (adminFile) {
     console.log('✅ admin 파일 읽기 성공, 내용 길이:', adminFile.content.length);
-    // 파일 내용에 "BO화면"이 포함되어 있는지 확인
-    if (adminFile.content.includes('BO화면')) {
-      console.log('✅ "BO화면" 텍스트 확인됨');
-    } else if (adminFile.content.includes('bo화면')) {
-      console.warn('⚠️ "bo화면" (소문자) 텍스트 발견 - "BO화면"으로 업데이트 필요');
-    } else {
-      console.warn('⚠️ "BO화면" 텍스트를 찾을 수 없음');
+
+    // 서버에서 텍스트를 강제로 정규화하여, 번들에 예전 HTML이 남아 있어도 항상 "BO화면"이 보이도록 처리
+    let html = adminFile.content;
+    const beforeSample = html.substring(0, 200);
+
+    // 과거 문구를 BO화면으로 치환 (여러 형태 대비)
+    const replacements = [
+      '프로젝트를 관리하세요',
+      '프로젝트를  관리하세요',
+      '프로젝트 를 관리하세요'
+    ];
+
+    let replaced = false;
+    replacements.forEach((fromText) => {
+      if (html.includes(fromText)) {
+        html = html.replace(new RegExp(fromText, 'g'), 'BO화면');
+        replaced = true;
+      }
+    });
+
+    // 이미 BO화면이 들어 있는 경우도 로깅
+    if (html.includes('BO화면')) {
+      console.log('✅ 최종 HTML에 "BO화면" 텍스트 존재');
     }
+
+    if (replaced) {
+      console.log('🔁 "프로젝트를 관리하세요" 문구를 "BO화면"으로 치환 완료');
+      console.log('   치환 전 일부 내용:', beforeSample);
+    } else {
+      console.log('ℹ️ 치환 대상 문구를 찾지 못함. (이미 최신 HTML일 수 있음)');
+    }
+
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     // 강력한 캐시 무효화 헤더
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
@@ -443,7 +467,7 @@ app.get('/admin', requireAuth, (req, res) => {
     res.setHeader('Expires', '0');
     res.setHeader('Last-Modified', new Date().toUTCString());
     res.setHeader('ETag', `"${Date.now()}"`);
-    res.send(adminFile.content);
+    res.send(html);
   } else {
     console.error('❌ admin 파일을 찾을 수 없음');
     res.status(500).send('관리자 페이지를 불러올 수 없습니다.');
