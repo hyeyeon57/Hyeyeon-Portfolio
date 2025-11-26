@@ -1185,15 +1185,13 @@ app.delete('/api/bo/contacts/:id', handleDeleteContact);
 if (isVercel) {
   // Vercel 서버리스 함수 형식
   module.exports = (req, res) => {
-    // CORS 헤더 추가
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    
+    // CORS 처리는 Express의 cors 미들웨어에서 담당
+    // (여기서 '*' Origin을 강제로 넣으면 credentials: true와 충돌 → CORS 에러 발생)
     if (req.method === 'OPTIONS') {
-      return res.status(200).end();
+      // Express 앱에 OPTIONS 처리를 위임
+      return app(req, res);
     }
-    
+
     return app(req, res);
   };
 } else {
