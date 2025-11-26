@@ -31,7 +31,6 @@ export default function AllProjectsPage() {
             'Pragma': 'no-cache'
           }
         });
-        const result = await response.json();
         
         if (!response.ok) {
           console.error('❌ 백엔드 API 호출 실패:', {
