@@ -12,11 +12,11 @@ const getBackofficeUrl = () => {
     return process.env.NEXT_PUBLIC_BACKOFFICE_URL || process.env.BACKOFFICE_API_URL || '';
   }
   
-  // 프로덕션에서는 환경 변수 사용 (request.url 사용하지 않음)
-  if (process.env.NODE_ENV === 'production') {
-    return process.env.VERCEL_URL 
-      ? `https://${process.env.VERCEL_URL}` 
-      : process.env.NEXT_PUBLIC_SITE_URL || '';
+  // 프로덕션에서는 같은 도메인 사용 (상대 경로로 호출)
+  // Vercel에서는 같은 프로젝트 내 서버리스 함수이므로 빈 문자열 반환
+  // 이렇게 하면 fetchUrl이 '/bo-api/projects'가 되어 같은 도메인으로 요청됨
+  if (process.env.NODE_ENV === 'production' || process.env.VERCEL) {
+    return ''; // 빈 문자열 = 같은 도메인
   }
   
   // 개발 환경: 로컬 서버
@@ -26,7 +26,12 @@ const getBackofficeUrl = () => {
 export async function GET(request: NextRequest) {
   try {
     const backofficeUrl = getBackofficeUrl();
-    const fetchUrl = `${backofficeUrl}/bo-api/projects`;
+    // backofficeUrl이 빈 문자열이면 상대 경로 사용
+    const fetchUrl = backofficeUrl 
+      ? `${backofficeUrl}/bo-api/projects`
+      : '/bo-api/projects';
+    
+    console.log('📡 백오피스 API 호출:', { backofficeUrl, fetchUrl });
     
     const response = await fetch(fetchUrl, {
       method: 'GET',
@@ -35,11 +40,12 @@ export async function GET(request: NextRequest) {
       },
       // Next.js 서버에서 실행되므로 timeout 설정
       next: { revalidate: 0 }, // 항상 최신 데이터 가져오기
+      cache: 'no-store', // 캐시 사용 안 함
     });
 
     if (!response.ok) {
       // BO 서버가 응답하지 않으면 빈 배열 반환 (정적 데이터 사용)
-      console.warn('백오피스 서버 연결 실패, 정적 데이터 사용');
+      console.warn(`백오피스 서버 연결 실패 (${response.status}): ${response.statusText}`);
       return NextResponse.json({ success: true, data: [] });
     }
 
