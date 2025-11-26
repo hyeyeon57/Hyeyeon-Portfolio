@@ -649,75 +649,105 @@ app.get('/api/auth/check', handleAuthCheck);
 app.get('/api/bo/auth/check', handleAuthCheck);
 app.get('/bo-api/auth/check', handleAuthCheck);
 
-// MongoDB 연결 초기화 (재연결 로직 포함)
+// MongoDB 연결 초기화 (재연결 로직 포함, 타임아웃 추가)
 let dbConnected = false;
 let connectionAttempts = 0;
-const MAX_RETRIES = 3;
-const RETRY_DELAY = 1000; // 1초
+const MAX_RETRIES = 2; // 재시도 횟수 감소 (3 -> 2)
+const RETRY_DELAY = 500; // 재시도 간격 감소 (1초 -> 0.5초)
+const CONNECTION_TIMEOUT = 8000; // 전체 연결 타임아웃 8초
 
 const initDB = async (forceReconnect = false) => {
-  // 연결 상태 확인
-  const currentState = mongoose.connection.readyState;
-  const isConnected = currentState === 1;
-  
-  // 연결이 끊어졌거나 강제 재연결이 필요한 경우
-  if (forceReconnect || !dbConnected || !isConnected) {
-    // 재시도 횟수 초기화 (새로운 연결 시도)
-    if (forceReconnect || !dbConnected) {
-      connectionAttempts = 0;
+  // 타임아웃 래퍼 함수
+  const timeoutPromise = new Promise((_, reject) => {
+    setTimeout(() => reject(new Error('MongoDB 연결 타임아웃')), CONNECTION_TIMEOUT);
+  });
+
+  const connectWithTimeout = async () => {
+    // 연결 상태 확인
+    const currentState = mongoose.connection.readyState;
+    const isConnected = currentState === 1;
+    
+    // 이미 연결되어 있으면 즉시 반환
+    if (!forceReconnect && isConnected && dbConnected) {
+      return true;
     }
     
-    // 최대 재시도 횟수 확인
-    if (connectionAttempts >= MAX_RETRIES) {
-      console.error(`❌ MongoDB 연결 실패: 최대 재시도 횟수(${MAX_RETRIES}) 초과`);
-      return false;
-    }
-    
-    try {
-      connectionAttempts++;
-      console.log(`🔄 MongoDB 연결 시도 (${connectionAttempts}/${MAX_RETRIES})...`);
-      
-      // 기존 연결이 있으면 먼저 닫기
-      if (currentState !== 0 && currentState !== 3) {
-        try {
-          await mongoose.connection.close();
-          console.log('   - 기존 연결 종료');
-        } catch (closeError) {
-          console.log('   - 기존 연결 종료 실패 (무시)');
-        }
+    // 연결이 끊어졌거나 강제 재연결이 필요한 경우
+    if (forceReconnect || !dbConnected || !isConnected) {
+      // 재시도 횟수 초기화 (새로운 연결 시도)
+      if (forceReconnect || !dbConnected) {
+        connectionAttempts = 0;
       }
       
-      // 새 연결 시도
-      dbConnected = await connectDB();
+      // 최대 재시도 횟수 확인
+      if (connectionAttempts >= MAX_RETRIES) {
+        console.error(`❌ MongoDB 연결 실패: 최대 재시도 횟수(${MAX_RETRIES}) 초과`);
+        return false;
+      }
       
-      if (dbConnected && mongoose.connection.readyState === 1) {
-        connectionAttempts = 0; // 성공 시 재시도 횟수 초기화
-        console.log('✅ MongoDB 연결 성공');
-        return true;
-      } else {
+      try {
+        connectionAttempts++;
+        console.log(`🔄 MongoDB 연결 시도 (${connectionAttempts}/${MAX_RETRIES})...`);
+        
+        // 기존 연결이 있으면 먼저 닫기 (타임아웃 적용)
+        if (currentState !== 0 && currentState !== 3) {
+          try {
+            await Promise.race([
+              mongoose.connection.close(),
+              new Promise((_, reject) => setTimeout(() => reject(new Error('Close timeout')), 2000))
+            ]).catch(() => {}); // 타임아웃 무시
+            console.log('   - 기존 연결 종료');
+          } catch (closeError) {
+            console.log('   - 기존 연결 종료 실패 (무시)');
+          }
+        }
+        
+        // 새 연결 시도 (타임아웃 적용)
+        dbConnected = await Promise.race([
+          connectDB(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Connection timeout')), 5000))
+        ]);
+        
+        if (dbConnected && mongoose.connection.readyState === 1) {
+          connectionAttempts = 0; // 성공 시 재시도 횟수 초기화
+          console.log('✅ MongoDB 연결 성공');
+          return true;
+        } else {
+          dbConnected = false;
+          if (connectionAttempts < MAX_RETRIES) {
+            console.log(`   ⏳ ${RETRY_DELAY}ms 후 재시도...`);
+            await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+            return await connectWithTimeout(); // 재귀적으로 재시도
+          }
+          return false;
+        }
+      } catch (error) {
+        console.error(`❌ MongoDB 연결 시도 ${connectionAttempts} 실패:`, error.message);
         dbConnected = false;
+        
         if (connectionAttempts < MAX_RETRIES) {
           console.log(`   ⏳ ${RETRY_DELAY}ms 후 재시도...`);
           await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
-          return await initDB(true); // 재귀적으로 재시도
+          return await connectWithTimeout(); // 재귀적으로 재시도
         }
+        
         return false;
       }
-    } catch (error) {
-      console.error(`❌ MongoDB 연결 시도 ${connectionAttempts} 실패:`, error.message);
-      dbConnected = false;
-      
-      if (connectionAttempts < MAX_RETRIES) {
-        console.log(`   ⏳ ${RETRY_DELAY}ms 후 재시도...`);
-        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
-        return await initDB(true); // 재귀적으로 재시도
-      }
-      
-      return false;
     }
+    
+    return isConnected;
+  };
+
+  // 타임아웃과 함께 연결 시도
+  try {
+    return await Promise.race([
+      connectWithTimeout(),
+      timeoutPromise
+    ]);
+  } catch (error) {
+    console.error('❌ MongoDB 연결 타임아웃:', error.message);
+    return false;
   }
-  
-  return isConnected;
 };
 
 // MongoDB 연결 상태 확인 헬스체크
@@ -1005,9 +1035,23 @@ app.get('/bo-api/visitors', handleGetVisitors);
 
 // 프로젝트 목록 조회 (백오피스 API)
 const handleGetProjects = async (req, res) => {
+  // 요청 타임아웃 설정 (전체 요청 처리 시간 제한)
+  const requestTimeout = setTimeout(() => {
+    if (!res.headersSent) {
+      console.error('❌ 요청 타임아웃 (10초 초과)');
+      res.status(504).json({
+        success: false,
+        error: '요청 처리 시간이 초과되었습니다. MongoDB 연결을 확인해주세요.',
+        timeout: true
+      });
+    }
+  }, 10000); // 10초 타임아웃
+
   try {
     // MongoDB 연결 시도 (강제 재연결 포함)
     const connected = await initDB(true);
+    
+    clearTimeout(requestTimeout); // 성공 시 타임아웃 제거
     
     if (!connected || mongoose.connection.readyState !== 1) {
       console.error('❌ MongoDB 연결 실패:', {
@@ -1080,6 +1124,7 @@ const handleGetProjects = async (req, res) => {
         allProjects: updatedProjects.map(p => ({ title: p.title, featured: p.featured }))
       });
       
+      clearTimeout(requestTimeout); // 성공 시 타임아웃 제거
       return res.json({ success: true, data: updatedProjects });
     }
     
@@ -1097,10 +1142,14 @@ const handleGetProjects = async (req, res) => {
     res.setHeader('Last-Modified', new Date().toUTCString());
     res.setHeader('ETag', `"${Date.now()}"`);
     
+    clearTimeout(requestTimeout); // 성공 시 타임아웃 제거
     res.json({ success: true, data: projects });
   } catch (error) {
+    clearTimeout(requestTimeout); // 오류 시 타임아웃 제거
     console.error('프로젝트 조회 오류:', error);
-    res.status(500).json({ success: false, error: '프로젝트를 불러오는데 실패했습니다: ' + error.message });
+    if (!res.headersSent) {
+      res.status(500).json({ success: false, error: '프로젝트를 불러오는데 실패했습니다: ' + error.message });
+    }
   }
 };
 
