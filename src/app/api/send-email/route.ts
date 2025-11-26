@@ -1,7 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 
+// 이 라우트는 동적이므로 정적 생성하지 않음
+export const dynamic = 'force-dynamic';
+
 const resend = new Resend(process.env.RESEND_API_KEY || 'dummy-key-for-build');
+
+// 백오피스 서버 URL 설정
+const getBackofficeUrl = () => {
+  // 환경 변수가 설정되어 있으면 우선 사용
+  if (process.env.NEXT_PUBLIC_BACKOFFICE_URL || process.env.BACKOFFICE_API_URL) {
+    return process.env.NEXT_PUBLIC_BACKOFFICE_URL || process.env.BACKOFFICE_API_URL || '';
+  }
+  
+  // 프로덕션에서는 환경 변수 사용 (request.url 사용하지 않음)
+  if (process.env.NODE_ENV === 'production') {
+    return process.env.VERCEL_URL 
+      ? `https://${process.env.VERCEL_URL}` 
+      : process.env.NEXT_PUBLIC_SITE_URL || '';
+  }
+  
+  // 개발 환경: 로컬 서버
+  return 'http://localhost:3005';
+};
 
 export async function POST(request: NextRequest) {
   try {
@@ -26,24 +47,7 @@ export async function POST(request: NextRequest) {
 
     // 백오피스 서버에 연락 정보 저장
     try {
-      const getBackofficeUrl = (request: NextRequest) => {
-        // 환경 변수가 설정되어 있으면 우선 사용
-        if (process.env.NEXT_PUBLIC_BACKOFFICE_URL || process.env.BACKOFFICE_API_URL) {
-          return process.env.NEXT_PUBLIC_BACKOFFICE_URL || process.env.BACKOFFICE_API_URL || '';
-        }
-        
-        // 프로덕션에서는 같은 프로젝트 내 API 사용
-        if (process.env.NODE_ENV === 'production') {
-          // request에서 origin 추출
-          const url = new URL(request.url);
-          return url.origin;
-        }
-        
-        // 개발 환경: 로컬 서버
-        return 'http://localhost:3005';
-      };
-      
-      const backofficeUrl = getBackofficeUrl(request);
+      const backofficeUrl = getBackofficeUrl();
       const fetchUrl = `${backofficeUrl}/bo-api/contacts`;
       
       await fetch(fetchUrl, {

@@ -1,22 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// 이 라우트는 동적이므로 정적 생성하지 않음
+export const dynamic = 'force-dynamic';
+
 // 백오피스 서버 URL 설정
-// 프로덕션: 같은 프로젝트 내 서버리스 함수 사용 (/api/bo/*)
+// 프로덕션: 같은 프로젝트 내 서버리스 함수 사용 (/bo-api/*)
 // 개발: 로컬 BO 서버
-const getBackofficeUrl = (request?: NextRequest) => {
+const getBackofficeUrl = () => {
   // 환경 변수가 설정되어 있으면 우선 사용
   if (process.env.NEXT_PUBLIC_BACKOFFICE_URL || process.env.BACKOFFICE_API_URL) {
     return process.env.NEXT_PUBLIC_BACKOFFICE_URL || process.env.BACKOFFICE_API_URL || '';
   }
   
-  // 프로덕션에서는 같은 프로젝트 내 API 사용
+  // 프로덕션에서는 환경 변수 사용 (request.url 사용하지 않음)
   if (process.env.NODE_ENV === 'production') {
-    // request에서 origin 추출
-    if (request) {
-      const url = new URL(request.url);
-      return url.origin;
-    }
-    // request가 없으면 환경 변수 사용
     return process.env.VERCEL_URL 
       ? `https://${process.env.VERCEL_URL}` 
       : process.env.NEXT_PUBLIC_SITE_URL || '';
@@ -28,7 +25,7 @@ const getBackofficeUrl = (request?: NextRequest) => {
 
 export async function GET(request: NextRequest) {
   try {
-    const backofficeUrl = getBackofficeUrl(request);
+    const backofficeUrl = getBackofficeUrl();
     const fetchUrl = `${backofficeUrl}/bo-api/projects`;
     
     const response = await fetch(fetchUrl, {
