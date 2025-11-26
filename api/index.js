@@ -649,13 +649,23 @@ app.get('/api/auth/check', handleAuthCheck);
 app.get('/api/bo/auth/check', handleAuthCheck);
 app.get('/bo-api/auth/check', handleAuthCheck);
 
-// MongoDB 연결 초기화
+// MongoDB 연결 초기화 (재연결 로직 포함)
 let dbConnected = false;
-const initDB = async () => {
-  if (!dbConnected) {
-    dbConnected = await connectDB();
+const initDB = async (forceReconnect = false) => {
+  // 연결이 끊어졌거나 강제 재연결이 필요한 경우
+  if (forceReconnect || !dbConnected || mongoose.connection.readyState !== 1) {
+    try {
+      // 기존 연결이 있으면 먼저 닫기
+      if (mongoose.connection.readyState !== 0) {
+        await mongoose.connection.close().catch(() => {});
+      }
+      dbConnected = await connectDB();
+    } catch (error) {
+      console.error('❌ MongoDB 재연결 실패:', error.message);
+      dbConnected = false;
+    }
   }
-  return dbConnected;
+  return dbConnected && mongoose.connection.readyState === 1;
 };
 
 // MongoDB 연결 상태 확인 헬스체크
@@ -979,6 +989,39 @@ const handleGetProjects = async (req, res) => {
     
     // featured 프로젝트 개수 확인 및 로깅
     const featuredProjects = projects.filter(p => p.featured === true || p.featured === 'true');
+    
+    // featured 프로젝트가 1개보다 많으면 자동으로 정리 (가장 최근 것만 유지)
+    if (featuredProjects.length > 1) {
+      console.log(`⚠️  Featured 프로젝트가 ${featuredProjects.length}개입니다. 1개만 유지하고 나머지는 해제합니다.`);
+      // createdAt이 가장 최근인 프로젝트만 유지
+      const sortedFeatured = featuredProjects.sort((a, b) => {
+        const dateA = a.createdAt || a.updatedAt || new Date(0);
+        const dateB = b.createdAt || b.updatedAt || new Date(0);
+        return dateB - dateA;
+      });
+      const keepProject = sortedFeatured[0];
+      const unsetProjects = sortedFeatured.slice(1);
+      
+      // 나머지 프로젝트들의 featured를 false로 변경
+      for (const project of unsetProjects) {
+        await Project.findByIdAndUpdate(project._id, { $set: { featured: false } });
+        console.log(`   - "${project.title}"의 featured를 false로 변경`);
+      }
+      
+      // 업데이트된 프로젝트 목록 다시 가져오기
+      const updatedProjects = await Project.find().sort({ createdAt: -1 });
+      const updatedFeatured = updatedProjects.filter(p => p.featured === true || p.featured === 'true');
+      
+      console.log('📊 백엔드 프로젝트 데이터 (정리 후):', {
+        total: updatedProjects.length,
+        featured: updatedFeatured.length,
+        featuredTitles: updatedFeatured.map(p => p.title),
+        allProjects: updatedProjects.map(p => ({ title: p.title, featured: p.featured }))
+      });
+      
+      return res.json({ success: true, data: updatedProjects });
+    }
+    
     console.log('📊 백엔드 프로젝트 데이터:', {
       total: projects.length,
       featured: featuredProjects.length,
