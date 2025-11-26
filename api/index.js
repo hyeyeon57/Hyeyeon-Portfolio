@@ -746,13 +746,18 @@ const migrateStaticProjects = async () => {
         const existing = await Project.findOne({ id: projectData.id });
         
         if (existing) {
-          // 기존 프로젝트 업데이트
+          // 기존 프로젝트 업데이트 시 featured 필드는 보존 (사용자가 설정한 featured 상태 유지)
+          // featured 필드를 제외한 나머지 필드만 업데이트
+          const updateData = { ...projectData };
+          delete updateData.featured; // featured 필드 제거하여 기존 값 유지
+          
           await Project.findOneAndUpdate(
             { id: projectData.id },
-            projectData,
+            updateData,
             { new: true, runValidators: true }
           );
           updated++;
+          console.log(`✅ 프로젝트 업데이트 (featured 보존): ${projectData.title}`);
         } else {
           // 새 프로젝트 추가
           await Project.create(projectData);
@@ -1133,11 +1138,16 @@ const handlePutProject = async (req, res) => {
 
     // featured 필드만 업데이트하는 경우 명시적으로 처리
     const updateData = {};
+    let isFeaturedUpdate = false;
+    let newFeaturedValue = null;
+    
     if ('featured' in projectData) {
-      updateData.featured = projectData.featured === true || projectData.featured === 'true';
+      newFeaturedValue = projectData.featured === true || projectData.featured === 'true';
+      updateData.featured = newFeaturedValue;
+      isFeaturedUpdate = true;
       console.log('🔖 featured 필드 업데이트:', {
         from: project.featured,
-        to: updateData.featured
+        to: newFeaturedValue
       });
     }
     
@@ -1153,6 +1163,17 @@ const handlePutProject = async (req, res) => {
       { $set: updateData }, // $set 연산자 사용으로 명확한 업데이트
       { new: true, runValidators: true }
     );
+    
+    // featured를 true로 설정한 경우, 다른 프로젝트들의 featured를 false로 변경
+    if (isFeaturedUpdate && newFeaturedValue === true) {
+      const otherProjectsUpdated = await Project.updateMany(
+        { _id: { $ne: project._id }, featured: true },
+        { $set: { featured: false } }
+      );
+      if (otherProjectsUpdated.modifiedCount > 0) {
+        console.log(`🔄 다른 ${otherProjectsUpdated.modifiedCount}개 프로젝트의 featured를 false로 변경`);
+      }
+    }
 
     console.log('✅ 프로젝트 수정 성공:', {
       _id: updatedProject._id,
