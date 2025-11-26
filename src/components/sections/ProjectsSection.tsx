@@ -51,20 +51,28 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
             featured: p.featured || false,
           })) as typeof initialProjects;
           
-          // BO에 프로젝트가 있으면 BO 데이터 사용, 없으면 정적 데이터 사용
+          // BO에 프로젝트가 있으면 BO 데이터 사용
           if (boProjects.length > 0) {
+            console.log('✅ 백엔드 프로젝트 데이터 로드 성공:', {
+              total: boProjects.length,
+              featured: boProjects.filter(p => p.featured).length,
+              featuredProjects: boProjects.filter(p => p.featured).map(p => p.title)
+            });
             setProjects(boProjects);
           } else {
-            // BO에 데이터가 없으면 정적 데이터 사용
+            // BO에 데이터가 없으면 정적 데이터 사용 (경고)
+            console.warn('⚠️ 백엔드에 프로젝트가 없어 정적 데이터 사용');
             setProjects(initialProjects);
           }
         } else {
-          // 오류 시 정적 데이터 사용
+          // 오류 시 정적 데이터 사용 (경고)
+          console.warn('⚠️ 백엔드 응답 형식 오류, 정적 데이터 사용:', result);
           setProjects(initialProjects);
         }
       } catch (error) {
-        console.error('프로젝트 로드 오류:', error);
-        // 오류 시 정적 데이터 사용
+        console.error('❌ 프로젝트 로드 오류:', error);
+        // 오류 시 정적 데이터 사용 (경고)
+        console.warn('⚠️ 백엔드 연결 실패, 정적 데이터 사용');
         setProjects(initialProjects);
       }
     };
@@ -96,10 +104,16 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
   }, []);
 
   // BO에서 featured=true로 설정된 프로젝트를 대표 프로젝트로 표시
-  // 최대 3개까지 표시 (featured 우선, 없으면 최신순)
-  const displayedProjects = projects
-    .filter(project => project.featured)
-    .slice(0, 3);
+  // featured 프로젝트만 표시 (개수 제한 없음 - 백엔드에서 설정한 대로)
+  const displayedProjects = projects.filter(project => project.featured === true);
+  
+  // 디버깅: featured 프로젝트 개수 확인
+  if (typeof window !== 'undefined' && displayedProjects.length > 0) {
+    console.log('📌 대표 프로젝트:', {
+      count: displayedProjects.length,
+      projects: displayedProjects.map(p => p.title)
+    });
+  }
 
   return (
     <section id="projects" className="py-20 relative overflow-hidden" style={{ backgroundColor: '#F7F7FB' }}>

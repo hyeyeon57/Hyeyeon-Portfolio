@@ -54,6 +54,12 @@ export async function GET(request: NextRequest) {
 
     const result = await response.json();
     
+    console.log('📦 백엔드 프로젝트 응답:', {
+      success: result.success,
+      dataLength: result.data?.length || 0,
+      featuredCount: result.data?.filter((p: any) => p.featured).length || 0
+    });
+    
     if (result.success && Array.isArray(result.data)) {
       // MongoDB에서 가져온 데이터를 Project 타입에 맞게 변환
       const projects = result.data.map((project: any) => ({
@@ -71,8 +77,15 @@ export async function GET(request: NextRequest) {
         team: project.team || '',
         achievements: project.achievements || [],
         link: project.link || '#',
-        featured: project.featured || false,
+        featured: project.featured === true || project.featured === 'true', // boolean 강제 변환
       }));
+
+      const featuredCount = projects.filter(p => p.featured).length;
+      console.log('✅ 변환된 프로젝트:', {
+        total: projects.length,
+        featured: featuredCount,
+        featuredTitles: projects.filter(p => p.featured).map(p => p.title)
+      });
 
       return NextResponse.json({ success: true, data: projects });
     }
