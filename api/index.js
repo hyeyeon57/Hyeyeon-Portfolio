@@ -651,21 +651,73 @@ app.get('/bo-api/auth/check', handleAuthCheck);
 
 // MongoDB 연결 초기화 (재연결 로직 포함)
 let dbConnected = false;
+let connectionAttempts = 0;
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 1000; // 1초
+
 const initDB = async (forceReconnect = false) => {
+  // 연결 상태 확인
+  const currentState = mongoose.connection.readyState;
+  const isConnected = currentState === 1;
+  
   // 연결이 끊어졌거나 강제 재연결이 필요한 경우
-  if (forceReconnect || !dbConnected || mongoose.connection.readyState !== 1) {
+  if (forceReconnect || !dbConnected || !isConnected) {
+    // 재시도 횟수 초기화 (새로운 연결 시도)
+    if (forceReconnect || !dbConnected) {
+      connectionAttempts = 0;
+    }
+    
+    // 최대 재시도 횟수 확인
+    if (connectionAttempts >= MAX_RETRIES) {
+      console.error(`❌ MongoDB 연결 실패: 최대 재시도 횟수(${MAX_RETRIES}) 초과`);
+      return false;
+    }
+    
     try {
+      connectionAttempts++;
+      console.log(`🔄 MongoDB 연결 시도 (${connectionAttempts}/${MAX_RETRIES})...`);
+      
       // 기존 연결이 있으면 먼저 닫기
-      if (mongoose.connection.readyState !== 0) {
-        await mongoose.connection.close().catch(() => {});
+      if (currentState !== 0 && currentState !== 3) {
+        try {
+          await mongoose.connection.close();
+          console.log('   - 기존 연결 종료');
+        } catch (closeError) {
+          console.log('   - 기존 연결 종료 실패 (무시)');
+        }
       }
+      
+      // 새 연결 시도
       dbConnected = await connectDB();
+      
+      if (dbConnected && mongoose.connection.readyState === 1) {
+        connectionAttempts = 0; // 성공 시 재시도 횟수 초기화
+        console.log('✅ MongoDB 연결 성공');
+        return true;
+      } else {
+        dbConnected = false;
+        if (connectionAttempts < MAX_RETRIES) {
+          console.log(`   ⏳ ${RETRY_DELAY}ms 후 재시도...`);
+          await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+          return await initDB(true); // 재귀적으로 재시도
+        }
+        return false;
+      }
     } catch (error) {
-      console.error('❌ MongoDB 재연결 실패:', error.message);
+      console.error(`❌ MongoDB 연결 시도 ${connectionAttempts} 실패:`, error.message);
       dbConnected = false;
+      
+      if (connectionAttempts < MAX_RETRIES) {
+        console.log(`   ⏳ ${RETRY_DELAY}ms 후 재시도...`);
+        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+        return await initDB(true); // 재귀적으로 재시도
+      }
+      
+      return false;
     }
   }
-  return dbConnected && mongoose.connection.readyState === 1;
+  
+  return isConnected;
 };
 
 // MongoDB 연결 상태 확인 헬스체크
@@ -954,14 +1006,23 @@ app.get('/bo-api/visitors', handleGetVisitors);
 // 프로젝트 목록 조회 (백오피스 API)
 const handleGetProjects = async (req, res) => {
   try {
-    // MongoDB 연결 시도
-    const connected = await initDB();
+    // MongoDB 연결 시도 (강제 재연결 포함)
+    const connected = await initDB(true);
     
     if (!connected || mongoose.connection.readyState !== 1) {
-      console.error('❌ MongoDB 연결 실패');
+      console.error('❌ MongoDB 연결 실패:', {
+        connected,
+        readyState: mongoose.connection.readyState,
+        hasMongoURI: !!process.env.MONGODB_URI,
+        vercel: process.env.VERCEL === '1'
+      });
       return res.status(503).json({
         success: false,
-        error: 'MongoDB가 연결되지 않았습니다. MongoDB를 실행하거나 .env 파일에 MONGODB_URI를 설정하세요.'
+        error: 'MongoDB가 연결되지 않았습니다. MongoDB를 실행하거나 .env 파일에 MONGODB_URI를 설정하세요.',
+        details: {
+          readyState: mongoose.connection.readyState,
+          hasMongoURI: !!process.env.MONGODB_URI
+        }
       });
     }
     
