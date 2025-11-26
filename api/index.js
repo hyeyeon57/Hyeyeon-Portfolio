@@ -782,6 +782,7 @@ const handleGetVisitorStats = async (req, res) => {
       return res.json({
         success: true,
         today: 0,
+        thisWeek: 0,
         total: 0
       });
     }
@@ -789,6 +790,13 @@ const handleGetVisitorStats = async (req, res) => {
     today.setHours(0, 0, 0, 0);
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
+
+    // 이번 주 시작일 (월요일)
+    const thisWeekStart = new Date(today);
+    const dayOfWeek = today.getDay();
+    const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+    thisWeekStart.setDate(today.getDate() - daysToMonday);
+    thisWeekStart.setHours(0, 0, 0, 0);
 
     const todayCount = await Visitor.countDocuments({
       date: {
@@ -805,11 +813,29 @@ const handleGetVisitorStats = async (req, res) => {
     });
 
     const finalTodayCount = Math.max(todayCount, todayCountCreatedAt);
+
+    // 이번 주 방문자 수
+    const thisWeekCount = await Visitor.countDocuments({
+      $or: [
+        {
+          date: {
+            $gte: thisWeekStart
+          }
+        },
+        {
+          createdAt: {
+            $gte: thisWeekStart
+          }
+        }
+      ]
+    });
+
     const totalCount = await Visitor.countDocuments();
 
     res.json({
       success: true,
       today: finalTodayCount,
+      thisWeek: thisWeekCount,
       total: totalCount
     });
   } catch (error) {
@@ -817,6 +843,7 @@ const handleGetVisitorStats = async (req, res) => {
     res.json({
       success: true,
       today: 0,
+      thisWeek: 0,
       total: 0
     });
   }

@@ -103,10 +103,17 @@
 
       <!-- 연락 관리 탭 -->
       <div class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 tab-content hidden" id="content-contacts">
+        <!-- 연락 통계 카드 -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8" id="contact-stats">
+          <!-- 연락 통계는 JavaScript로 동적 생성 -->
+        </div>
+
         <div class="bg-white rounded-xl shadow-sm border">
-          <div class="px-6 py-4 border-b">
-            <h2 class="text-xl font-semibold text-gray-900">연락 관리</h2>
-            <p class="text-sm text-gray-500 mt-1">포트폴리오 사이트를 통해 받은 연락 내역</p>
+          <div class="px-6 py-4 border-b flex justify-between items-center">
+            <div>
+              <h2 class="text-xl font-semibold text-gray-900">이메일 폼 연락 내역</h2>
+              <p class="text-sm text-gray-500 mt-1">포트폴리오 사이트를 통해 받은 연락 내역</p>
+            </div>
           </div>
           <div class="overflow-x-auto">
             <table class="w-full">
@@ -117,6 +124,7 @@
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">이메일</th>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">메시지</th>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">상태</th>
+                  <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">작업</th>
                 </tr>
               </thead>
               <tbody id="contactsTable" class="bg-white divide-y divide-gray-200">
@@ -130,7 +138,7 @@
       <!-- 방문자 관리 탭 -->
       <div class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 tab-content hidden" id="content-visitors">
         <!-- 통계 카드 -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8" id="visitor-stats">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8" id="visitor-stats">
           <!-- 방문자 통계는 JavaScript로 동적 생성 -->
         </div>
 
@@ -337,14 +345,65 @@
       }
     }
 
+    // 연락 통계 렌더링
+    function renderContactStats(contactsList) {
+      const total = contactsList.length;
+      const unread = contactsList.filter(c => !c.read).length;
+      const read = contactsList.filter(c => c.read).length;
+      
+      const statsHtml = `
+        <div class="bg-white p-6 rounded-xl shadow-sm border">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-500 text-sm">총 연락 수</p>
+              <p class="text-3xl font-bold text-gray-900 mt-1">${total}</p>
+            </div>
+            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+              <span class="text-2xl">📧</span>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white p-6 rounded-xl shadow-sm border">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-500 text-sm">읽지 않음</p>
+              <p class="text-3xl font-bold text-blue-600 mt-1">${unread}</p>
+            </div>
+            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+              <i data-lucide="mail" class="w-6 h-6 text-blue-600"></i>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white p-6 rounded-xl shadow-sm border">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-500 text-sm">읽음</p>
+              <p class="text-3xl font-bold text-green-600 mt-1">${read}</p>
+            </div>
+            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+              <i data-lucide="mail-check" class="w-6 h-6 text-green-600"></i>
+            </div>
+          </div>
+        </div>
+      `;
+      const statsContainer = document.getElementById('contact-stats');
+      if (statsContainer) {
+        statsContainer.innerHTML = statsHtml;
+        lucide.createIcons();
+      }
+    }
+
     // 연락 목록 렌더링
     function renderContacts(contactsList) {
       const tbody = document.getElementById('contactsTable');
       
+      // 통계 렌더링
+      renderContactStats(contactsList || []);
+      
       if (!contactsList || contactsList.length === 0) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="5" class="px-6 py-12 text-center">
+            <td colspan="6" class="px-6 py-12 text-center">
               <div class="text-gray-400">
                 <p class="text-4xl mb-4">📧</p>
                 <p class="text-lg">연락 내역이 없습니다</p>
@@ -356,6 +415,7 @@
       }
       
       tbody.innerHTML = contactsList.map(contact => {
+        const contactId = contact._id || contact.id;
         const contactDate = new Date(contact.createdAt || contact.date || Date.now());
         const formattedDate = contactDate.toLocaleString('ko-KR', {
           year: 'numeric',
@@ -372,28 +432,84 @@
           : message;
         
         const status = contact.read ? '읽음' : '읽지 않음';
-        const statusColor = contact.read ? 'text-green-600' : 'text-blue-600';
+        const statusColor = contact.read ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800';
         
         return `
-          <tr class="hover:bg-gray-50">
+          <tr class="hover:bg-gray-50 ${!contact.read ? 'bg-blue-50' : ''}">
             <td class="px-6 py-4 whitespace-nowrap">
               <div class="text-sm font-medium text-gray-900">${formattedDate}</div>
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
-              <div class="text-sm text-gray-900">${contact.name || '-'}</div>
+              <div class="text-sm font-medium text-gray-900">${contact.name || '-'}</div>
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
               <div class="text-sm text-gray-500">${contact.email || '-'}</div>
             </td>
             <td class="px-6 py-4">
-              <div class="text-sm text-gray-500" title="${message}">${shortMessage}</div>
+              <div class="text-sm text-gray-500 max-w-md truncate" title="${message.replace(/"/g, '&quot;')}">${shortMessage}</div>
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
               <span class="px-2 py-1 text-xs font-medium rounded-full ${statusColor}">${status}</span>
             </td>
+            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+              <div class="flex justify-end gap-2">
+                ${!contact.read ? `
+                  <button onclick="markContactRead('${contactId}')" class="p-2 text-blue-600 hover:bg-blue-50 rounded transition" title="읽음 처리">
+                    <i data-lucide="check" class="w-4 h-4"></i>
+                  </button>
+                ` : ''}
+                <button onclick="deleteContact('${contactId}')" class="p-2 text-red-600 hover:bg-red-50 rounded transition" title="삭제">
+                  <i data-lucide="trash-2" class="w-4 h-4"></i>
+                </button>
+              </div>
+            </td>
           </tr>
         `;
       }).join('');
+      lucide.createIcons();
+    }
+
+    // 연락 읽음 처리
+    async function markContactRead(id) {
+      if (!isAuthenticated) {
+        alert('로그인이 필요합니다.');
+        return;
+      }
+      try {
+        const response = await fetch(`${API_URL}/contacts/${id}/read`, {
+          method: 'PUT'
+        });
+        const result = await response.json();
+        if (result.success) {
+          await loadContacts();
+        }
+      } catch (error) {
+        console.error('읽음 처리 오류:', error);
+        alert('읽음 처리에 실패했습니다.');
+      }
+    }
+
+    // 연락 삭제
+    async function deleteContact(id) {
+      if (!isAuthenticated) {
+        alert('로그인이 필요합니다.');
+        return;
+      }
+      if (!confirm('정말 삭제하시겠습니까?')) return;
+      
+      try {
+        const response = await fetch(`${API_URL}/contacts/${id}`, {
+          method: 'DELETE'
+        });
+        const result = await response.json();
+        if (result.success) {
+          alert('연락이 삭제되었습니다.');
+          await loadContacts();
+        }
+      } catch (error) {
+        console.error('삭제 오류:', error);
+        alert('삭제에 실패했습니다.');
+      }
     }
 
     // 방문자 목록 로드
@@ -432,7 +548,18 @@
               <p class="text-3xl font-bold text-gray-900 mt-1">${stats.today || 0}</p>
             </div>
             <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-              <span class="text-2xl">👥</span>
+              <i data-lucide="users" class="w-6 h-6 text-purple-600"></i>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white p-6 rounded-xl shadow-sm border">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-500 text-sm">이번 주 방문자</p>
+              <p class="text-3xl font-bold text-gray-900 mt-1">${stats.thisWeek || 0}</p>
+            </div>
+            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+              <i data-lucide="calendar" class="w-6 h-6 text-blue-600"></i>
             </div>
           </div>
         </div>
@@ -443,7 +570,7 @@
               <p class="text-3xl font-bold text-gray-900 mt-1">${stats.total || 0}</p>
             </div>
             <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-              <span class="text-2xl">📊</span>
+              <i data-lucide="trending-up" class="w-6 h-6 text-green-600"></i>
             </div>
           </div>
         </div>
@@ -451,6 +578,7 @@
       const statsContainer = document.getElementById('visitor-stats');
       if (statsContainer) {
         statsContainer.innerHTML = statsHtml;
+        lucide.createIcons();
       }
     }
 
