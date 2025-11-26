@@ -57,18 +57,40 @@ export async function GET(request: NextRequest) {
     });
 
     if (!response.ok) {
+      // 응답 본문 읽기 시도
+      let errorDetails = '';
+      try {
+        const errorText = await response.text();
+        try {
+          const errorJson = JSON.parse(errorText);
+          errorDetails = errorJson.error || errorJson.message || errorText;
+        } catch {
+          errorDetails = errorText || '응답 본문을 읽을 수 없습니다.';
+        }
+      } catch (e) {
+        errorDetails = '응답 본문을 읽을 수 없습니다.';
+      }
+      
       // BO 서버가 응답하지 않으면 에러 반환 (정적 데이터 사용 방지)
       console.error(`❌ 백오피스 서버 연결 실패:`, {
         status: response.status,
         statusText: response.statusText,
         url: fetchUrl,
-        backofficeUrl
+        backofficeUrl,
+        error: errorDetails,
+        headers: Object.fromEntries(response.headers.entries())
       });
+      
       // 빈 배열 대신 에러 반환하여 프론트엔드가 정적 데이터 사용하지 않도록
       return NextResponse.json({ 
         success: false, 
-        error: `백엔드 서버 연결 실패 (${response.status})`,
-        data: [] 
+        error: `백엔드 서버 연결 실패 (${response.status}: ${response.statusText})${errorDetails ? ` - ${errorDetails}` : ''}`,
+        data: [],
+        details: {
+          status: response.status,
+          statusText: response.statusText,
+          url: fetchUrl
+        }
       }, { status: response.status });
     }
 
@@ -111,10 +133,24 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true, data: [] });
-  } catch (error) {
-    console.error('프로젝트 API 오류:', error);
-    // 오류 발생 시 빈 배열 반환 (정적 데이터 사용)
-    return NextResponse.json({ success: true, data: [] });
+  } catch (error: any) {
+    console.error('프로젝트 API 오류:', {
+      message: error.message,
+      name: error.name,
+      stack: error.stack,
+      cause: error.cause,
+      fullError: error
+    });
+    // 오류 발생 시 에러 반환 (정적 데이터 사용 방지)
+    return NextResponse.json({ 
+      success: false, 
+      error: `프로젝트를 불러오는데 실패했습니다: ${error.message || '알 수 없는 오류'}`,
+      data: [],
+      details: {
+        name: error.name,
+        message: error.message
+      }
+    }, { status: 500 });
   }
 }
 

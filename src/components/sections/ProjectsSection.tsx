@@ -32,12 +32,27 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
           }
         });
         if (!response.ok) {
-          const errorMsg = `백엔드 API 호출 실패 (${response.status}: ${response.statusText})`;
+          // 응답 본문 읽기 시도
+          let errorDetails = '';
+          try {
+            const errorData = await response.clone().json().catch(() => null);
+            if (errorData) {
+              errorDetails = errorData.error || JSON.stringify(errorData);
+            }
+          } catch (e) {
+            errorDetails = await response.text().catch(() => '응답 본문을 읽을 수 없습니다.');
+          }
+          
+          const errorMsg = `백엔드 API 호출 실패 (${response.status}: ${response.statusText})${errorDetails ? ` - ${errorDetails}` : ''}`;
+          
           console.error('❌ 백엔드 API 호출 실패:', {
             status: response.status,
             statusText: response.statusText,
-            url: response.url
+            url: response.url,
+            error: errorDetails,
+            headers: Object.fromEntries(response.headers.entries())
           });
+          
           // API 호출 실패 시 에러 메시지 표시
           console.warn('⚠️ 백엔드 연결 실패 - 빈 배열 사용 (정적 데이터 사용 안 함)');
           setError(errorMsg);
@@ -99,11 +114,17 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
         setLoading(false);
       } catch (error: any) {
         const errorMsg = error.message || '프로젝트 로드 중 오류가 발생했습니다.';
-        console.error('❌ 프로젝트 로드 오류:', error);
+        console.error('❌ 프로젝트 로드 오류:', {
+          message: error.message,
+          name: error.name,
+          stack: error.stack,
+          cause: error.cause,
+          fullError: error
+        });
         // 오류 시 빈 배열 사용 (정적 데이터 사용 안 함)
         console.warn('⚠️ 백엔드 연결 실패 - 빈 배열 사용 (정적 데이터 사용 안 함)');
         setProjects([]);
-        setError(errorMsg);
+        setError(`${errorMsg} (자세한 내용은 콘솔 확인)`);
         setLoading(false);
       }
     };
