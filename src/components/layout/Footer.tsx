@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ChevronUp, ChevronDown } from 'lucide-react';
 import { personalInfo } from '@/data/portfolio';
@@ -10,6 +11,7 @@ export const Footer: React.FC = () => {
   const [isAtTop, setIsAtTop] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const pathname = usePathname();
 
   useEffect(() => {
     setIsMounted(true);
@@ -280,6 +282,11 @@ export const Footer: React.FC = () => {
   const scrollToBottom = () => {
     window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
   };
+
+  // 관리자 페이지에서는 Footer 숨기기
+  if (pathname?.startsWith('/admin')) {
+    return null;
+  }
 
   return (
     <footer className="relative bg-white border-t border-line-light">

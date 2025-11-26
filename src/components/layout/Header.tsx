@@ -88,6 +88,11 @@ export const Header: React.FC = () => {
     },
   ];
 
+  // 관리자 페이지에서는 Header 숨기기
+  if (pathname?.startsWith('/admin')) {
+    return null;
+  }
+
   return (
     <motion.header
       initial={{ y: -100 }}
