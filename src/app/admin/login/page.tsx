@@ -1,11 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 
 export default function AdminLoginPage() {
-  const router = useRouter();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -120,19 +118,20 @@ export default function AdminLoginPage() {
 
       if (result.success) {
         console.log('✅ 로그인 성공');
-        // 로그인 성공 - 백엔드 관리자 페이지로 리다이렉트
+        // 로그인 성공 - 같은 프로젝트 내 관리자 페이지로 리다이렉트
         const adminUrl = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
           ? 'http://localhost:3005/admin'
-          : 'https://hyeyeon-portfolio-admin.vercel.app/admin';
+          : `${window.location.origin}/admin`; // 같은 프로젝트 내 /admin 경로
         
         console.log('🔄 리다이렉트:', adminUrl);
         window.location.href = adminUrl;
       } else {
         setError(result.error || '아이디 또는 비밀번호가 올바르지 않습니다.');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ 로그인 오류:', error);
-      setError(error.message || '로그인 중 오류가 발생했습니다. 네트워크 연결을 확인해주세요.');
+      const errorMessage = error instanceof Error ? error.message : '로그인 중 오류가 발생했습니다. 네트워크 연결을 확인해주세요.';
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
