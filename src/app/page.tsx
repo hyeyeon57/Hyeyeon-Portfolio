@@ -37,17 +37,16 @@ export default function Home() {
       sessionStorage.setItem('lastVisitTime', now.toString());
       
       try {
-        // 백오피스 서버 URL 설정 (별도 백엔드 서버)
+        // 백오피스 서버 URL 설정 (통합 배포 지원)
         const getApiUrl = () => {
-          // 환경 변수가 설정되어 있으면 우선 사용
           if (typeof window !== 'undefined') {
-            // 클라이언트 사이드에서는 호스트명으로 판단
+            // 클라이언트 사이드: 현재 호스트 사용 (같은 프로젝트)
             const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
             if (isLocalhost) {
               return 'http://localhost:3005';
             }
-            // 프로덕션: 별도 백엔드 서버
-            return 'https://hyeyeon-portfolio-admin.vercel.app';
+            // 같은 프로젝트 내에서 실행 중이면 현재 호스트 사용
+            return window.location.origin; // 예: https://hyeyeon-portfolio.vercel.app
           }
           
           // 서버 사이드
@@ -55,15 +54,23 @@ export default function Home() {
             return process.env.NEXT_PUBLIC_BACKOFFICE_URL;
           }
           
-          if (process.env.NODE_ENV === 'production') {
-            return 'https://hyeyeon-portfolio-admin.vercel.app';
+          if (process.env.BACKOFFICE_API_URL) {
+            return process.env.BACKOFFICE_API_URL;
+          }
+          
+          // Vercel 환경: 같은 프로젝트로 간주
+          if (process.env.VERCEL) {
+            const vercelUrl = process.env.VERCEL_URL 
+              ? `https://${process.env.VERCEL_URL}`
+              : 'https://hyeyeon-portfolio.vercel.app';
+            return vercelUrl;
           }
           
           return 'http://localhost:3005';
         };
         
         const apiUrl = getApiUrl();
-        // 별도 백엔드 서버로 절대 URL로 호출
+        // 같은 프로젝트 내에서 /bo-api 경로 사용
         const fetchUrl = `${apiUrl}/bo-api/visitors`;
         
         await fetch(fetchUrl, {
