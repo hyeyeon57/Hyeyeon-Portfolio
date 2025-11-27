@@ -62,6 +62,13 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
           throw fetchError; // 재시도 실패 시 에러 던지기
         }
         if (!response.ok) {
+          // 503 또는 504 에러인 경우 재시도
+          if ((response.status === 503 || response.status === 504) && retryCount < MAX_RETRIES) {
+            console.warn(`⚠️ 백엔드 서버 오류 (${response.status}), 재시도 중... (${retryCount + 1}/${MAX_RETRIES})`);
+            await new Promise(resolve => setTimeout(resolve, 2000 * (retryCount + 1))); // 지수 백오프
+            return fetchProjects(forceRefresh, retryCount + 1);
+          }
+          
           // 응답 본문 읽기 시도
           let errorDetails = '';
           try {
@@ -80,6 +87,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
             statusText: response.statusText,
             url: response.url,
             error: errorDetails,
+            retryCount,
             headers: Object.fromEntries(response.headers.entries())
           });
           
