@@ -41,27 +41,80 @@ export async function GET(request: NextRequest) {
       backofficeUrl, 
       fetchUrl, 
       timestamp,
-      hasEnvVar: !!(process.env.NEXT_PUBLIC_BACKOFFICE_URL || process.env.BACKOFFICE_API_URL)
+      hasEnvVar: !!(process.env.NEXT_PUBLIC_BACKOFFICE_URL || process.env.BACKOFFICE_API_URL),
+      nodeEnv: process.env.NODE_ENV,
+      vercel: process.env.VERCEL === '1'
     });
     
-    // 타임아웃 설정 (10초)
+    // 타임아웃 설정 (8초 - Vercel 서버리스 함수 제한 고려)
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    const timeoutId = setTimeout(() => {
+      console.error('⏱️ 백엔드 API 호출 타임아웃 (8초 초과):', { url: fetchUrl, backofficeUrl });
+      controller.abort();
+    }, 8000);
     
-    const response = await fetch(fetchUrl, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-      },
-      signal: controller.signal, // 타임아웃 신호
-      // Next.js 서버에서 실행되므로 timeout 설정
-      next: { revalidate: 0 }, // 항상 최신 데이터 가져오기
-      cache: 'no-store', // 캐시 사용 안 함
-    });
-    
-    clearTimeout(timeoutId); // 성공 시 타임아웃 제거
+    let response;
+    try {
+      response = await fetch(fetchUrl, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+        },
+        signal: controller.signal, // 타임아웃 신호
+        // Next.js 서버에서 실행되므로 timeout 설정
+        next: { revalidate: 0 }, // 항상 최신 데이터 가져오기
+        cache: 'no-store', // 캐시 사용 안 함
+      });
+      
+      clearTimeout(timeoutId); // 성공 시 타임아웃 제거
+    } catch (fetchError: any) {
+      clearTimeout(timeoutId); // 에러 시 타임아웃 제거
+      
+      // 네트워크 에러나 타임아웃 에러 처리
+      if (fetchError.name === 'AbortError' || fetchError.message?.includes('aborted')) {
+        console.error('❌ 백엔드 API 호출 타임아웃:', {
+          url: fetchUrl,
+          backofficeUrl,
+          timeout: '8초',
+          error: fetchError.message
+        });
+        return NextResponse.json({ 
+          success: false, 
+          error: '백엔드 서버 응답 시간 초과 (8초). MongoDB 연결이 너무 오래 걸리고 있습니다.',
+          data: [],
+          timeout: true,
+          details: {
+            url: fetchUrl,
+            backofficeUrl,
+            message: '백엔드 서버가 8초 내에 응답하지 않았습니다. Vercel 로그를 확인하세요.'
+          }
+        }, { status: 504 });
+      }
+      
+      // 네트워크 에러
+      console.error('❌ 백엔드 API 호출 네트워크 에러:', {
+        error: fetchError.message,
+        name: fetchError.name,
+        url: fetchUrl,
+        backofficeUrl,
+        stack: fetchError.stack
+      });
+      
+      return NextResponse.json({ 
+        success: false, 
+        error: `백엔드 서버에 연결할 수 없습니다: ${fetchError.message || '네트워크 오류'}`,
+        data: [],
+        networkError: true,
+        details: {
+          url: fetchUrl,
+          backofficeUrl,
+          errorName: fetchError.name,
+          errorMessage: fetchError.message
+        }
+      }, { status: 503 });
+    }
 
     if (!response.ok) {
       // 응답 본문 읽기 시도
