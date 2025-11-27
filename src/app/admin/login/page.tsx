@@ -18,24 +18,20 @@ export default function AdminLoginPage() {
     setIsLoading(true);
 
     try {
-      // 백오피스 서버 URL 설정
-      // 별도 프로젝트로 배포된 경우 백엔드 URL 사용
+      // 백오피스 서버 URL 설정 (통합 배포 지원)
       const getBackofficeUrl = () => {
-        // 클라이언트 사이드에서는 NEXT_PUBLIC_ 접두사가 붙은 환경 변수만 접근 가능
-        // 빌드 타임에 주입되므로 런타임에 확인
         if (typeof window !== 'undefined') {
-          // 환경 변수는 빌드 타임에 주입되므로 직접 확인 불가
-          // 대신 호스트명으로 판단
+          // 클라이언트 사이드: 현재 호스트 사용 (같은 프로젝트)
           const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
           
           if (isLocalhost) {
             return 'http://localhost:3005';
           }
           
-          // 프로덕션: 별도 프로젝트로 배포된 경우 백엔드 URL 사용
-          // 프론트엔드: hyeyeon-portfolio.vercel.app
-          // 백엔드: hyeyeon-portfolio-admin.vercel.app
-          return 'https://hyeyeon-portfolio-admin.vercel.app';
+          // 같은 프로젝트 내에서 실행 중이면 현재 호스트 사용
+          // 환경 변수가 없으면 같은 프로젝트로 간주
+          const currentHost = window.location.origin;
+          return currentHost; // 예: https://hyeyeon-portfolio.vercel.app
         }
         
         // 서버 사이드 렌더링 시
@@ -43,8 +39,16 @@ export default function AdminLoginPage() {
           return process.env.NEXT_PUBLIC_BACKOFFICE_URL;
         }
         
-        if (process.env.NODE_ENV === 'production') {
-          return 'https://hyeyeon-portfolio-admin.vercel.app';
+        if (process.env.BACKOFFICE_API_URL) {
+          return process.env.BACKOFFICE_API_URL;
+        }
+        
+        // Vercel 환경: 같은 프로젝트로 간주
+        if (process.env.VERCEL) {
+          const vercelUrl = process.env.VERCEL_URL 
+            ? `https://${process.env.VERCEL_URL}`
+            : 'https://hyeyeon-portfolio.vercel.app';
+          return vercelUrl;
         }
         
         return 'http://localhost:3005';

@@ -4,11 +4,9 @@ import { NextRequest, NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 
 // 백오피스 서버 URL 설정
-// 별도 백엔드 서버로 분리하여 배포
+// 같은 프로젝트 내에서 /bo-api 경로 사용 (통합 배포)
 const getBackofficeUrl = () => {
-  // 환경 변수가 설정되어 있으면 우선 사용 (별도 배포 시 필수)
-  // NEXT_PUBLIC_ 접두사가 있으면 클라이언트/서버 모두 접근 가능
-  // BACKOFFICE_API_URL은 서버 사이드에서만 접근 가능
+  // 환경 변수가 설정되어 있으면 우선 사용 (별도 배포 시)
   const backofficeUrl = process.env.NEXT_PUBLIC_BACKOFFICE_URL 
     || process.env.BACKOFFICE_API_URL;
   
@@ -17,11 +15,28 @@ const getBackofficeUrl = () => {
     return backofficeUrl;
   }
   
-  // 프로덕션: 별도 백엔드 서버 URL (기본값)
-  if (process.env.NODE_ENV === 'production' || process.env.VERCEL) {
-    const defaultUrl = 'https://hyeyeon-portfolio-admin.vercel.app';
-    console.log('🔗 백엔드 URL (기본값):', defaultUrl);
-    return defaultUrl;
+  // 같은 프로젝트 내에서 실행 중인 경우 (통합 배포)
+  // 서버 사이드에서는 상대 경로를 사용할 수 없으므로
+  // Vercel 환경에서는 현재 호스트를 사용하거나 빈 문자열 반환
+  if (process.env.VERCEL) {
+    // Vercel 환경: 같은 프로젝트 내에서 실행
+    // request 객체에서 호스트 정보를 가져와야 하지만, 여기서는 빈 문자열 반환
+    // 실제로는 상대 경로를 사용하거나 현재 호스트를 사용
+    const vercelUrl = process.env.VERCEL_URL 
+      ? `https://${process.env.VERCEL_URL}`
+      : '';
+    
+    // 같은 프로젝트 내에서 실행 중이면 빈 문자열 반환 (상대 경로 사용)
+    // 또는 현재 호스트 사용
+    if (vercelUrl) {
+      console.log('🔗 백엔드 URL (같은 프로젝트):', vercelUrl);
+      return vercelUrl;
+    }
+    
+    // 프로덕션 도메인이 있으면 사용
+    const productionUrl = 'https://hyeyeon-portfolio.vercel.app';
+    console.log('🔗 백엔드 URL (프로덕션):', productionUrl);
+    return productionUrl;
   }
   
   // 개발 환경: 로컬 서버
@@ -32,10 +47,27 @@ const getBackofficeUrl = () => {
 export async function GET(request: NextRequest) {
   try {
     const backofficeUrl = getBackofficeUrl();
-    // 별도 백엔드 서버로 절대 URL로 호출
-    // 타임스탬프를 쿼리 파라미터로 추가하여 캐시 무효화
+    // 같은 프로젝트 내에서 실행 중이면 상대 경로 사용
+    // 별도 프로젝트로 배포된 경우에만 절대 URL 사용
     const timestamp = Date.now();
-    const fetchUrl = `${backofficeUrl}/bo-api/projects?_t=${timestamp}`;
+    
+    // 같은 프로젝트 내에서 실행 중인지 확인
+    // 환경 변수가 없고 Vercel 환경이면 같은 프로젝트로 간주
+    const isSameProject = !process.env.NEXT_PUBLIC_BACKOFFICE_URL 
+      && !process.env.BACKOFFICE_API_URL
+      && process.env.VERCEL;
+    
+    let fetchUrl;
+    if (isSameProject && backofficeUrl) {
+      // 같은 프로젝트: 절대 URL 사용 (같은 도메인)
+      fetchUrl = `${backofficeUrl}/bo-api/projects?_t=${timestamp}`;
+    } else if (isSameProject) {
+      // 같은 프로젝트: 상대 경로 사용 (서버 사이드에서는 작동하지 않을 수 있음)
+      fetchUrl = `/bo-api/projects?_t=${timestamp}`;
+    } else {
+      // 별도 프로젝트: 절대 URL 사용
+      fetchUrl = `${backofficeUrl}/bo-api/projects?_t=${timestamp}`;
+    }
     
     console.log('📡 백오피스 API 호출 (별도 서버):', { 
       backofficeUrl, 
