@@ -652,9 +652,9 @@ app.get('/bo-api/auth/check', handleAuthCheck);
 // MongoDB 연결 초기화 (재연결 로직 포함, 타임아웃 추가)
 let dbConnected = false;
 let connectionAttempts = 0;
-const MAX_RETRIES = 2; // 재시도 횟수 감소 (3 -> 2)
-const RETRY_DELAY = 500; // 재시도 간격 감소 (1초 -> 0.5초)
-const CONNECTION_TIMEOUT = 8000; // 전체 연결 타임아웃 8초
+const MAX_RETRIES = 1; // 재시도 횟수 최소화 (빠른 실패)
+const RETRY_DELAY = 300; // 재시도 간격 최소화
+const CONNECTION_TIMEOUT = 5000; // 전체 연결 타임아웃 5초로 단축
 
 const initDB = async (forceReconnect = false) => {
   // 타임아웃 래퍼 함수
@@ -1038,18 +1038,35 @@ const handleGetProjects = async (req, res) => {
   // 요청 타임아웃 설정 (전체 요청 처리 시간 제한)
   const requestTimeout = setTimeout(() => {
     if (!res.headersSent) {
-      console.error('❌ 요청 타임아웃 (10초 초과)');
+      console.error('❌ 요청 타임아웃 (8초 초과)');
       res.status(504).json({
         success: false,
         error: '요청 처리 시간이 초과되었습니다. MongoDB 연결을 확인해주세요.',
-        timeout: true
+        timeout: true,
+        details: {
+          message: 'MongoDB 연결이 8초 내에 완료되지 않았습니다.',
+          troubleshooting: 'Vercel 환경 변수 MONGODB_URI와 MongoDB Atlas Network Access를 확인하세요.'
+        }
       });
     }
-  }, 10000); // 10초 타임아웃
+  }, 8000); // 8초 타임아웃 (Vercel 서버리스 함수 제한 고려)
 
   try {
-    // MongoDB 연결 시도 (강제 재연결 포함)
-    const connected = await initDB(true);
+    // MongoDB 연결 시도 (강제 재연결 포함, 하지만 타임아웃 적용)
+    console.log('🔄 MongoDB 연결 시작...');
+    const connectionStartTime = Date.now();
+    const connected = await Promise.race([
+      initDB(true),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('MongoDB 연결 타임아웃 (5초)')), 5000)
+      )
+    ]).catch(error => {
+      console.error('❌ MongoDB 연결 타임아웃:', error.message);
+      return false;
+    });
+    
+    const connectionTime = Date.now() - connectionStartTime;
+    console.log(`⏱️ MongoDB 연결 시도 시간: ${connectionTime}ms`);
     
     clearTimeout(requestTimeout); // 성공 시 타임아웃 제거
     
