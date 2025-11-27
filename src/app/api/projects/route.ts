@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import type { Project } from '@/types/portfolio';
 
 // 이 라우트는 동적이므로 정적 생성하지 않음
 export const dynamic = 'force-dynamic';
@@ -187,16 +188,17 @@ export async function GET(request: NextRequest) {
     }
 
     const result = await response.json();
-    
+    const rawProjects = Array.isArray(result.data) ? result.data : [];
+
     console.log('📦 백엔드 프로젝트 응답:', {
       success: result.success,
-      dataLength: result.data?.length || 0,
-      featuredCount: result.data?.filter((p: any) => p.featured).length || 0
+      dataLength: rawProjects.length,
+      featuredCount: rawProjects.filter((p: { featured?: boolean }) => !!p?.featured).length
     });
     
     if (result.success && Array.isArray(result.data)) {
       // MongoDB에서 가져온 데이터를 Project 타입에 맞게 변환
-      const projects = result.data.map((project: any) => ({
+      const projects: Project[] = result.data.map((project: any): Project => ({
         id: project.id || project._id?.toString() || '',
         title: project.title || '',
         subtitle: project.subtitle || '',

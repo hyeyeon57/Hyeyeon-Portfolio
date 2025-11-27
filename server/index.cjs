@@ -264,6 +264,7 @@ app.post('/api/visitors', async (req, res) => {
     res.json({ success: false, error: '방문자 로그 저장 실패' });
   }
 });
+// /bo-api/* 경로 매핑
 
 // 일일 방문자 수 조회 API
 app.get('/api/visitors/stats', async (req, res) => {
@@ -325,6 +326,11 @@ app.get('/api/visitors/stats', async (req, res) => {
 app.get('/api/visitors', async (req, res) => {
   try {
     if (mongoose.connection.readyState !== 1) {
+      console.error('🚨 /api/visitors: MongoDB not ready', {
+        readyState: mongoose.connection.readyState,
+        host: mongoose.connection.host,
+        name: mongoose.connection.name
+      });
       return res.json({ 
         success: false, 
         error: 'MongoDB에 연결되지 않았습니다.' 
@@ -366,6 +372,12 @@ app.get('/api/projects', async (req, res) => {
   try {
     // MongoDB 연결 확인
     if (mongoose.connection.readyState !== 1) {
+      console.error('🚨 /api/projects: MongoDB not ready', {
+        readyState: mongoose.connection.readyState,
+        connected: mongoose.connection.readyState === 1,
+        host: mongoose.connection.host,
+        name: mongoose.connection.name
+      });
       return res.status(503).json({ 
         success: false, 
         error: 'MongoDB가 연결되지 않았습니다. MongoDB를 실행하거나 .env 파일에 MONGODB_URI를 설정하세요.' 
@@ -415,6 +427,11 @@ app.post('/api/projects', upload.array('images', 9), async (req, res) => {
   try {
     // MongoDB 연결 확인
     if (mongoose.connection.readyState !== 1) {
+      console.error('🚨 POST /api/projects: MongoDB not ready', {
+        readyState: mongoose.connection.readyState,
+        host: mongoose.connection.host,
+        name: mongoose.connection.name
+      });
       return res.status(503).json({ 
         success: false, 
         error: 'MongoDB가 연결되지 않았습니다. MongoDB를 실행하거나 .env 파일에 MONGODB_URI를 설정하세요.' 
@@ -447,6 +464,11 @@ app.put('/api/projects/:id', upload.array('images', 9), async (req, res) => {
   try {
     // MongoDB 연결 확인
     if (mongoose.connection.readyState !== 1) {
+      console.error('🚨 PUT /api/projects/:id: MongoDB not ready', {
+        readyState: mongoose.connection.readyState,
+        host: mongoose.connection.host,
+        name: mongoose.connection.name
+      });
       return res.status(503).json({ 
         success: false, 
         error: 'MongoDB가 연결되지 않았습니다. MongoDB를 실행하거나 .env 파일에 MONGODB_URI를 설정하세요.' 
@@ -494,6 +516,11 @@ app.delete('/api/projects/:id', async (req, res) => {
   try {
     // MongoDB 연결 확인
     if (mongoose.connection.readyState !== 1) {
+      console.error('🚨 DELETE /api/projects/:id: MongoDB not ready', {
+        readyState: mongoose.connection.readyState,
+        host: mongoose.connection.host,
+        name: mongoose.connection.name
+      });
       return res.status(503).json({ 
         success: false, 
         error: 'MongoDB가 연결되지 않았습니다. MongoDB를 실행하거나 .env 파일에 MONGODB_URI를 설정하세요.' 
@@ -633,6 +660,12 @@ app.delete('/api/contacts/:id', async (req, res) => {
     console.error('연락 삭제 오류:', error);
     res.status(500).json({ success: false, error: '삭제에 실패했습니다.' });
   }
+});
+
+// /bo-api/* 경로를 동일한 /api/* 엔드포인트로 307 리다이렉트
+app.use('/bo-api', (req, res) => {
+  const targetUrl = '/api' + req.url; // req.url은 /bo-api 이후 하위 경로만 포함
+  return res.redirect(307, targetUrl);
 });
 
 // 프로젝트 파일 다운로드 API

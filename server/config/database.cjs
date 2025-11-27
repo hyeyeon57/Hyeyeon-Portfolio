@@ -17,7 +17,6 @@ const connectDB = async () => {
     console.log(`   - 연결 문자열: ${mongoURIPreview}`);
     
     // MongoDB 연결 옵션 (서버리스 환경 최적화)
-    const isVercel = process.env.VERCEL === '1';
     const options = {
       serverSelectionTimeoutMS: 4000, // 4초로 단축 (빠른 실패)
       connectTimeoutMS: 4000, // 4초로 단축
@@ -34,6 +33,8 @@ const connectDB = async () => {
     
     const conn = await mongoose.connect(mongoURI, options);
     console.log(`✅ MongoDB 연결 성공: ${conn.connection.host}`);
+    console.log('   - DB 이름:', conn.connection.name);
+    console.log('   - readyState:', conn.connection.readyState);
     return true;
   } catch (error) {
     // 상세한 에러 정보 로깅

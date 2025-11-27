@@ -32,8 +32,9 @@ export default function CreateProject() {
       // 텍스트 필드 추가
       Object.entries(formData).forEach(([key, value]) => {
         if (key === 'tags') {
-          // 태그를 배열로 변환
-          const tagsArray = value.split(',').map((tag: string) => tag.trim()).filter(Boolean);
+          // 태그를 배열로 변환 (타입 안전하게 문자열로 변환 후 처리)
+          const tagsValue = typeof value === 'string' ? value : '';
+          const tagsArray = tagsValue.split(',').map((tag: string) => tag.trim()).filter(Boolean);
           formDataToSend.append('tags', JSON.stringify(tagsArray));
         } else {
           formDataToSend.append(key, String(value));

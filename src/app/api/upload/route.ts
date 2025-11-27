@@ -8,12 +8,12 @@ export async function POST(request: NextRequest) {
     const data = await request.formData();
     const files: File[] = [];
     
-    // FormData에서 모든 파일 수집
-    for (const [key, value] of data.entries()) {
+    // FormData에서 모든 파일 수집 (downlevel iteration 회피)
+    data.forEach((value) => {
       if (value instanceof File) {
         files.push(value);
       }
-    }
+    });
 
     if (files.length === 0) {
       return NextResponse.json(
