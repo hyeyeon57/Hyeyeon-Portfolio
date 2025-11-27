@@ -16,10 +16,12 @@ const connectDB = async () => {
     console.log(`   - MONGODB_URI 설정: ${hasMongoURI ? '예' : '아니오'}`);
     console.log(`   - 연결 문자열: ${mongoURIPreview}`);
     
-    // MongoDB 연결 옵션
+    // MongoDB 연결 옵션 (타임아웃 단축)
     const options = {
-      serverSelectionTimeoutMS: 10000, // 10초로 증가
-      connectTimeoutMS: 10000,
+      serverSelectionTimeoutMS: 5000, // 5초로 단축 (빠른 실패)
+      connectTimeoutMS: 5000, // 5초로 단축
+      socketTimeoutMS: 5000, // 소켓 타임아웃 추가
+      maxPoolSize: 1, // 서버리스 환경에서는 연결 풀 크기 최소화
     };
     
     const conn = await mongoose.connect(mongoURI, options);

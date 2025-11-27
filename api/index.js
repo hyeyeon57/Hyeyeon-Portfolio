@@ -1054,18 +1054,48 @@ const handleGetProjects = async (req, res) => {
     clearTimeout(requestTimeout); // 성공 시 타임아웃 제거
     
     if (!connected || mongoose.connection.readyState !== 1) {
+      const mongoURI = process.env.MONGODB_URI || '';
+      const hasMongoURI = !!mongoURI;
+      const mongoURIPreview = hasMongoURI 
+        ? mongoURI.replace(/:[^:@]+@/, ':****@').substring(0, 100) + '...'
+        : '없음';
+      
       console.error('❌ MongoDB 연결 실패:', {
         connected,
         readyState: mongoose.connection.readyState,
-        hasMongoURI: !!process.env.MONGODB_URI,
-        vercel: process.env.VERCEL === '1'
+        readyStateText: {
+          0: 'disconnected',
+          1: 'connected',
+          2: 'connecting',
+          3: 'disconnecting'
+        }[mongoose.connection.readyState] || 'unknown',
+        hasMongoURI: hasMongoURI,
+        mongoURIPreview: mongoURIPreview,
+        vercel: process.env.VERCEL === '1',
+        nodeEnv: process.env.NODE_ENV
       });
+      
+      // 더 자세한 에러 메시지 제공
+      let errorMessage = 'MongoDB가 연결되지 않았습니다.';
+      if (!hasMongoURI) {
+        errorMessage += ' Vercel 환경 변수에 MONGODB_URI를 설정하세요.';
+      } else {
+        errorMessage += ' MongoDB Atlas Network Access 설정을 확인하세요.';
+      }
+      
       return res.status(503).json({
         success: false,
-        error: 'MongoDB가 연결되지 않았습니다. MongoDB를 실행하거나 .env 파일에 MONGODB_URI를 설정하세요.',
+        error: errorMessage,
         details: {
           readyState: mongoose.connection.readyState,
-          hasMongoURI: !!process.env.MONGODB_URI
+          hasMongoURI: hasMongoURI,
+          mongoURIPreview: mongoURIPreview,
+          troubleshooting: {
+            step1: 'Vercel 환경 변수에 MONGODB_URI 설정 확인',
+            step2: 'MongoDB Atlas Network Access에 0.0.0.0/0 추가 확인',
+            step3: '연결 문자열 형식 확인 (mongodb+srv://...)',
+            step4: '비밀번호에 특수문자가 있으면 URL 인코딩 확인'
+          }
         }
       });
     }
