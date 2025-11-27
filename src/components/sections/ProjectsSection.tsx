@@ -20,17 +20,47 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
 
   // BO 서버에서 프로젝트 데이터 가져오기
   useEffect(() => {
-    const fetchProjects = async (forceRefresh = false) => {
+    const fetchProjects = async (forceRefresh = false, retryCount = 0) => {
+      const MAX_RETRIES = 3; // 최대 3번 재시도
+      
       try {
         // 강제 새로고침 시 타임스탬프를 더 크게 만들어 캐시 완전 무효화
         const timestamp = forceRefresh ? Date.now() + Math.random() : Date.now();
-        const response = await fetch(`/api/projects?t=${timestamp}&_=${timestamp}`, {
-          cache: 'no-store',
-          headers: {
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache'
+        
+        // 타임아웃 설정 (10초)
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        
+        let response;
+        try {
+          response = await fetch(`/api/projects?t=${timestamp}&_=${timestamp}`, {
+            cache: 'no-store',
+            headers: {
+              'Cache-Control': 'no-cache',
+              'Pragma': 'no-cache'
+            },
+            signal: controller.signal
+          });
+          clearTimeout(timeoutId);
+        } catch (fetchError: any) {
+          clearTimeout(timeoutId);
+          
+          // 타임아웃 또는 네트워크 에러인 경우 재시도
+          if ((fetchError.name === 'AbortError' || fetchError.message?.includes('aborted')) && retryCount < MAX_RETRIES) {
+            console.warn(`⚠️ 요청 타임아웃, 재시도 중... (${retryCount + 1}/${MAX_RETRIES})`);
+            await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1))); // 지수 백오프
+            return fetchProjects(forceRefresh, retryCount + 1);
           }
-        });
+          
+          // 네트워크 에러인 경우 재시도
+          if ((fetchError.message?.includes('fetch failed') || fetchError.message?.includes('network')) && retryCount < MAX_RETRIES) {
+            console.warn(`⚠️ 네트워크 에러, 재시도 중... (${retryCount + 1}/${MAX_RETRIES})`);
+            await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)));
+            return fetchProjects(forceRefresh, retryCount + 1);
+          }
+          
+          throw fetchError; // 재시도 실패 시 에러 던지기
+        }
         if (!response.ok) {
           // 응답 본문 읽기 시도
           let errorDetails = '';
