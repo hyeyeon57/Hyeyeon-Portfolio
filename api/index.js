@@ -838,22 +838,27 @@ const migrateStaticProjects = async (forceUpdate = false) => {
         const existing = await Project.findOne({ id: projectData.id });
         
         if (existing) {
-          // 기존 프로젝트 업데이트 시 featured 필드는 보존 (사용자가 설정한 featured 상태 유지)
-          // featured 필드를 제외한 나머지 필드만 업데이트
+          // 강제 업데이트 모드이거나 기존 프로젝트 업데이트
+          // featured 필드는 보존하되, 다른 필드는 업데이트
           const updateData = { ...projectData };
-          delete updateData.featured; // featured 필드 제거하여 기존 값 유지
+          
+          // 강제 업데이트 모드가 아니면 featured 필드 보존
+          if (!forceUpdate) {
+            delete updateData.featured; // featured 필드 제거하여 기존 값 유지
+          }
           
           await Project.findOneAndUpdate(
             { id: projectData.id },
-            updateData,
+            { $set: updateData }, // $set을 사용하여 명시적 업데이트
             { new: true, runValidators: true }
           );
           updated++;
-          console.log(`✅ 프로젝트 업데이트 (featured 보존): ${projectData.title}`);
+          console.log(`✅ 프로젝트 업데이트${forceUpdate ? ' (강제)' : ' (featured 보존)'}: ${projectData.title}`);
         } else {
           // 새 프로젝트 추가
           await Project.create(projectData);
           added++;
+          console.log(`✅ 프로젝트 추가: ${projectData.title}`);
         }
       } catch (error) {
         console.error(`❌ 프로젝트 "${projectData.title}" (ID: ${projectData.id}) 처리 실패:`, error.message);
@@ -1492,32 +1497,40 @@ app.delete('/api/bo/projects/:id', handleDeleteProject);
 app.delete('/bo-api/projects/:id', handleDeleteProject);
 
 // 강제 마이그레이션 API (관리자용) - /api, /api/bo, /bo-api 모두 지원
+// 항상 강제 업데이트 모드로 실행하여 기존 프로젝트도 업데이트
 const handleMigrate = async (req, res) => {
   try {
+    console.log('🔄 강제 마이그레이션 시작...');
     await initDB();
     if (mongoose.connection.readyState !== 1) {
       return res.status(503).json({
         success: false,
-        error: 'MongoDB가 연결되지 않았습니다. MongoDB를 실행하거나 .env 파일에 MONGODB_URI를 설정하세요.'
+        error: 'MongoDB가 연결되지 않았습니다.'
       });
     }
     
-    const result = await migrateStaticProjects();
+    // 강제 업데이트 모드로 마이그레이션 실행
+    const result = await migrateStaticProjects(true);
+    
     if (result) {
       const projectCount = await Project.countDocuments();
+      console.log(`✅ 강제 마이그레이션 완료: 총 ${projectCount}개 프로젝트`);
       res.json({ 
         success: true, 
         message: '마이그레이션이 완료되었습니다.',
-        projectCount: projectCount
+        projectCount: projectCount,
+        forceUpdate: true
       });
     } else {
+      console.error('❌ 강제 마이그레이션 실패');
       res.status(500).json({ 
         success: false, 
-        error: '마이그레이션에 실패했습니다.' 
+        error: '마이그레이션에 실패했습니다. 로그를 확인하세요.' 
       });
     }
   } catch (error) {
-    console.error('마이그레이션 API 오류:', error);
+    console.error('❌ 마이그레이션 API 오류:', error);
+    console.error('❌ 마이그레이션 API 오류 상세:', error.stack);
     res.status(500).json({ 
       success: false, 
       error: '마이그레이션 중 오류가 발생했습니다: ' + error.message 
