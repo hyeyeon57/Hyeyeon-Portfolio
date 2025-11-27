@@ -788,7 +788,7 @@ app.get('/api/bo/health', handleHealthCheck);
 app.get('/bo-api/health', handleHealthCheck);
 
 // 정적 프로젝트 데이터를 MongoDB로 자동 마이그레이션
-const migrateStaticProjects = async () => {
+const migrateStaticProjects = async (forceUpdate = false) => {
   try {
     // MongoDB 연결 시도
     await initDB();
@@ -799,11 +799,16 @@ const migrateStaticProjects = async () => {
       return false;
     }
     
-    // 이미 프로젝트가 있는지 확인
+    // 강제 업데이트가 아니고 이미 프로젝트가 있으면 건너뜀
     const existingCount = await Project.countDocuments();
-    if (existingCount > 0) {
+    if (!forceUpdate && existingCount > 0) {
       console.log(`✅ MongoDB에 이미 ${existingCount}개의 프로젝트가 있습니다. 마이그레이션 건너뜀`);
       return true;
+    }
+    
+    // 강제 업데이트 모드이면 로그 출력
+    if (forceUpdate) {
+      console.log(`🔄 강제 마이그레이션 모드: 기존 ${existingCount}개 프로젝트를 업데이트합니다.`);
     }
     
     // 정적 프로젝트 데이터 로드
