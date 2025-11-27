@@ -16,12 +16,20 @@ const connectDB = async () => {
     console.log(`   - MONGODB_URI 설정: ${hasMongoURI ? '예' : '아니오'}`);
     console.log(`   - 연결 문자열: ${mongoURIPreview}`);
     
-    // MongoDB 연결 옵션 (타임아웃 단축)
+    // MongoDB 연결 옵션 (서버리스 환경 최적화)
+    const isVercel = process.env.VERCEL === '1';
     const options = {
-      serverSelectionTimeoutMS: 5000, // 5초로 단축 (빠른 실패)
-      connectTimeoutMS: 5000, // 5초로 단축
-      socketTimeoutMS: 5000, // 소켓 타임아웃 추가
-      maxPoolSize: 1, // 서버리스 환경에서는 연결 풀 크기 최소화
+      serverSelectionTimeoutMS: 4000, // 4초로 단축 (빠른 실패)
+      connectTimeoutMS: 4000, // 4초로 단축
+      socketTimeoutMS: 4000, // 소켓 타임아웃
+      maxPoolSize: isVercel ? 1 : 10, // 서버리스 환경에서는 연결 풀 크기 1
+      minPoolSize: 0, // 서버리스 환경에서는 최소 풀 크기 0
+      maxIdleTimeMS: isVercel ? 30000 : 300000, // 서버리스: 30초, 일반: 5분
+      // 서버리스 환경에서는 연결을 재사용하지 않도록 설정
+      ...(isVercel && {
+        bufferMaxEntries: 0, // 버퍼링 비활성화
+        bufferCommands: false, // 명령 버퍼링 비활성화
+      })
     };
     
     const conn = await mongoose.connect(mongoURI, options);

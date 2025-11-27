@@ -649,103 +649,98 @@ app.get('/api/auth/check', handleAuthCheck);
 app.get('/api/bo/auth/check', handleAuthCheck);
 app.get('/bo-api/auth/check', handleAuthCheck);
 
-// MongoDB 연결 초기화 (재연결 로직 포함, 타임아웃 추가)
+// MongoDB 연결 초기화 (서버리스 환경 최적화)
+// Vercel 서버리스 환경에서는 연결을 재사용하지 않고 매번 새로 연결하는 것이 안전
 let dbConnected = false;
 let connectionAttempts = 0;
-const MAX_RETRIES = 1; // 재시도 횟수 최소화 (빠른 실패)
-const RETRY_DELAY = 300; // 재시도 간격 최소화
-const CONNECTION_TIMEOUT = 5000; // 전체 연결 타임아웃 5초로 단축
+const MAX_RETRIES = 1; // 재시도 횟수 최소화
+const RETRY_DELAY = 200; // 재시도 간격 최소화
+const CONNECTION_TIMEOUT = 4000; // 전체 연결 타임아웃 4초로 단축
 
 const initDB = async (forceReconnect = false) => {
-  // 타임아웃 래퍼 함수
-  const timeoutPromise = new Promise((_, reject) => {
-    setTimeout(() => reject(new Error('MongoDB 연결 타임아웃')), CONNECTION_TIMEOUT);
-  });
-
-  const connectWithTimeout = async () => {
-    // 연결 상태 확인
-    const currentState = mongoose.connection.readyState;
-    const isConnected = currentState === 1;
-    
-    // 이미 연결되어 있으면 즉시 반환
-    if (!forceReconnect && isConnected && dbConnected) {
-      return true;
+  const currentState = mongoose.connection.readyState;
+  const isConnected = currentState === 1;
+  
+  // 서버리스 환경에서는 연결을 재사용하지 않고 매번 새로 연결
+  const isVercel = process.env.VERCEL === '1';
+  
+  // 이미 연결되어 있고 서버리스가 아니면 재사용
+  if (!forceReconnect && !isVercel && isConnected && dbConnected) {
+    return true;
+  }
+  
+  // 연결이 끊어지는 중이거나 연결 중이면 기다리지 않고 즉시 새 연결 시도
+  if (currentState === 2 || currentState === 3) {
+    console.log(`⚠️ MongoDB 연결 상태: ${currentState} (${currentState === 2 ? 'connecting' : 'disconnecting'}), 새 연결 시도`);
+    // 기다리지 않고 즉시 새 연결 시도
+    try {
+      await mongoose.connection.close().catch(() => {}); // 기존 연결 강제 종료
+    } catch (e) {
+      // 무시
     }
-    
-    // 연결이 끊어졌거나 강제 재연결이 필요한 경우
-    if (forceReconnect || !dbConnected || !isConnected) {
-      // 재시도 횟수 초기화 (새로운 연결 시도)
-      if (forceReconnect || !dbConnected) {
-        connectionAttempts = 0;
-      }
-      
-      // 최대 재시도 횟수 확인
-      if (connectionAttempts >= MAX_RETRIES) {
-        console.error(`❌ MongoDB 연결 실패: 최대 재시도 횟수(${MAX_RETRIES}) 초과`);
-        return false;
-      }
-      
-      try {
-        connectionAttempts++;
-        console.log(`🔄 MongoDB 연결 시도 (${connectionAttempts}/${MAX_RETRIES})...`);
-        
-        // 기존 연결이 있으면 먼저 닫기 (타임아웃 적용)
-        if (currentState !== 0 && currentState !== 3) {
-          try {
-            await Promise.race([
-              mongoose.connection.close(),
-              new Promise((_, reject) => setTimeout(() => reject(new Error('Close timeout')), 2000))
-            ]).catch(() => {}); // 타임아웃 무시
-            console.log('   - 기존 연결 종료');
-          } catch (closeError) {
-            console.log('   - 기존 연결 종료 실패 (무시)');
-          }
-        }
-        
-        // 새 연결 시도 (타임아웃 적용)
-        dbConnected = await Promise.race([
-          connectDB(),
-          new Promise((_, reject) => setTimeout(() => reject(new Error('Connection timeout')), 5000))
-        ]);
-        
-        if (dbConnected && mongoose.connection.readyState === 1) {
-          connectionAttempts = 0; // 성공 시 재시도 횟수 초기화
-          console.log('✅ MongoDB 연결 성공');
-          return true;
-        } else {
-          dbConnected = false;
-          if (connectionAttempts < MAX_RETRIES) {
-            console.log(`   ⏳ ${RETRY_DELAY}ms 후 재시도...`);
-            await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
-            return await connectWithTimeout(); // 재귀적으로 재시도
-          }
-          return false;
-        }
-      } catch (error) {
-        console.error(`❌ MongoDB 연결 시도 ${connectionAttempts} 실패:`, error.message);
-        dbConnected = false;
-        
-        if (connectionAttempts < MAX_RETRIES) {
-          console.log(`   ⏳ ${RETRY_DELAY}ms 후 재시도...`);
-          await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
-          return await connectWithTimeout(); // 재귀적으로 재시도
-        }
-        
-        return false;
-      }
-    }
-    
-    return isConnected;
-  };
-
-  // 타임아웃과 함께 연결 시도
+  }
+  
+  // 재시도 횟수 초기화
+  if (forceReconnect || !dbConnected) {
+    connectionAttempts = 0;
+  }
+  
+  // 최대 재시도 횟수 확인
+  if (connectionAttempts >= MAX_RETRIES) {
+    console.error(`❌ MongoDB 연결 실패: 최대 재시도 횟수(${MAX_RETRIES}) 초과`);
+    return false;
+  }
+  
   try {
-    return await Promise.race([
-      connectWithTimeout(),
-      timeoutPromise
-    ]);
+    connectionAttempts++;
+    console.log(`🔄 MongoDB 연결 시도 (${connectionAttempts}/${MAX_RETRIES})...`);
+    
+    // 기존 연결이 있으면 먼저 닫기 (타임아웃 적용)
+    if (currentState !== 0 && currentState !== 1) {
+      try {
+        await Promise.race([
+          mongoose.connection.close(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Close timeout')), 1000))
+        ]).catch(() => {}); // 타임아웃 무시
+        console.log('   - 기존 연결 종료');
+        // 연결이 완전히 닫힐 때까지 잠시 대기
+        await new Promise(resolve => setTimeout(resolve, 100));
+      } catch (closeError) {
+        console.log('   - 기존 연결 종료 실패 (무시)');
+      }
+    }
+    
+    // 새 연결 시도 (타임아웃 적용)
+    const connectPromise = connectDB();
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Connection timeout')), CONNECTION_TIMEOUT)
+    );
+    
+    dbConnected = await Promise.race([connectPromise, timeoutPromise]);
+    
+    if (dbConnected && mongoose.connection.readyState === 1) {
+      connectionAttempts = 0; // 성공 시 재시도 횟수 초기화
+      console.log('✅ MongoDB 연결 성공');
+      return true;
+    } else {
+      dbConnected = false;
+      if (connectionAttempts < MAX_RETRIES) {
+        console.log(`   ⏳ ${RETRY_DELAY}ms 후 재시도...`);
+        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+        return await initDB(true); // 재귀적으로 재시도
+      }
+      return false;
+    }
   } catch (error) {
-    console.error('❌ MongoDB 연결 타임아웃:', error.message);
+    console.error(`❌ MongoDB 연결 시도 ${connectionAttempts} 실패:`, error.message);
+    dbConnected = false;
+    
+    if (connectionAttempts < MAX_RETRIES) {
+      console.log(`   ⏳ ${RETRY_DELAY}ms 후 재시도...`);
+      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+      return await initDB(true); // 재귀적으로 재시도
+    }
+    
     return false;
   }
 };
