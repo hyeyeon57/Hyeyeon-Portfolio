@@ -1150,7 +1150,48 @@ const handleGetProjects = async (req, res) => {
       // 마이그레이션 실패해도 계속 진행
     }
     
-    const projects = await Project.find().sort({ createdAt: -1 });
+    // 프로젝트 조회 (서버리스 환경에서 세션 만료 방지)
+    const isVercel = process.env.VERCEL === '1';
+    let projects;
+    try {
+      // 연결 상태를 확인하고 필요시 재연결
+      if (mongoose.connection.readyState !== 1) {
+        console.warn('⚠️ MongoDB 연결 상태 불안정, 재연결 시도...');
+        await mongoose.connection.close().catch(() => {});
+        await new Promise(resolve => setTimeout(resolve, 100));
+        const reconnected = await initDB(true);
+        if (!reconnected) {
+          throw new Error('재연결 실패');
+        }
+      }
+      projects = await Project.find().sort({ createdAt: -1 });
+    } catch (queryError) {
+      // 세션 에러인 경우 재시도 (연결 재설정)
+      if (queryError.name === 'MongoExpiredSessionError' || 
+          queryError.name === 'MongoPoolClosedError' ||
+          queryError.message.includes('session') ||
+          queryError.message.includes('pool')) {
+        console.warn('⚠️ MongoDB 세션/풀 에러 감지, 재연결 시도...', {
+          error: queryError.name,
+          message: queryError.message
+        });
+        try {
+          await mongoose.connection.close().catch(() => {});
+          await new Promise(resolve => setTimeout(resolve, 200));
+          const reconnected = await initDB(true);
+          if (reconnected && mongoose.connection.readyState === 1) {
+            projects = await Project.find().sort({ createdAt: -1 });
+          } else {
+            throw new Error('재연결 실패');
+          }
+        } catch (retryError) {
+          console.error('❌ 재연결 실패:', retryError.message);
+          throw queryError; // 원래 에러를 다시 던짐
+        }
+      } else {
+        throw queryError;
+      }
+    }
     
     // featured 프로젝트 개수 확인 및 로깅
     const featuredProjects = projects.filter(p => p.featured === true || p.featured === 'true');
