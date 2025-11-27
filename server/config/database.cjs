@@ -28,16 +28,32 @@ const connectDB = async () => {
     console.log(`✅ MongoDB 연결 성공: ${conn.connection.host}`);
     return true;
   } catch (error) {
-    console.error('❌ MongoDB 연결 실패:', error.message);
-    console.error('⚠️  MongoDB가 실행되지 않았거나 연결 정보가 잘못되었습니다.');
+    // 상세한 에러 정보 로깅
+    console.error('❌ MongoDB 연결 실패:', {
+      message: error.message,
+      name: error.name,
+      code: error.code,
+      codeName: error.codeName,
+      hasMongoURI: !!process.env.MONGODB_URI,
+      mongoURIPreview: process.env.MONGODB_URI 
+        ? process.env.MONGODB_URI.replace(/:[^:@]+@/, ':****@').substring(0, 80) + '...'
+        : '없음'
+    });
     
     // 상세 오류 정보
     if (error.name === 'MongoServerSelectionError') {
       console.error('💡 네트워크 연결 문제일 수 있습니다. MongoDB Atlas의 Network Access 설정을 확인하세요.');
+      console.error('   - Network Access에 0.0.0.0/0 추가 확인');
+      console.error('   - 클러스터가 일시 중지되지 않았는지 확인');
     } else if (error.name === 'MongoAuthenticationError') {
       console.error('💡 인증 실패입니다. 사용자명과 비밀번호를 확인하세요.');
+      console.error('   - Database Access에서 사용자 확인');
+      console.error('   - 비밀번호에 특수문자가 있으면 URL 인코딩 확인');
     } else if (error.message.includes('ENOTFOUND') || error.message.includes('getaddrinfo')) {
       console.error('💡 DNS 조회 실패입니다. 클러스터 주소를 확인하세요.');
+      console.error('   - 연결 문자열의 클러스터 주소 확인');
+    } else if (error.message.includes('timeout')) {
+      console.error('💡 연결 타임아웃입니다. 네트워크나 클러스터 상태를 확인하세요.');
     }
     
     console.error('💡 MongoDB를 설치하고 실행하거나, MongoDB Atlas를 사용하세요.');

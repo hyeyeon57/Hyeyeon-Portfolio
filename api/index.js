@@ -1094,10 +1094,26 @@ const handleGetProjects = async (req, res) => {
       
       // 더 자세한 에러 메시지 제공
       let errorMessage = 'MongoDB가 연결되지 않았습니다.';
+      let troubleshootingSteps = [];
+      
       if (!hasMongoURI) {
         errorMessage += ' Vercel 환경 변수에 MONGODB_URI를 설정하세요.';
+        troubleshootingSteps = [
+          '1. Vercel Dashboard → hyeyeon-portfolio-admin → Settings → Environment Variables',
+          '2. MONGODB_URI 환경 변수 추가',
+          '3. MongoDB Atlas → Database → Connect → 연결 문자열 복사',
+          '4. 연결 문자열에서 <password>를 실제 비밀번호로 교체',
+          '5. 환경 변수 추가 후 반드시 Redeploy'
+        ];
       } else {
         errorMessage += ' MongoDB Atlas Network Access 설정을 확인하세요.';
+        troubleshootingSteps = [
+          '1. MongoDB Atlas → Network Access → 0.0.0.0/0 추가 확인',
+          '2. 연결 문자열 형식 확인: mongodb+srv://사용자명:비밀번호@클러스터주소/데이터베이스명?retryWrites=true&w=majority',
+          '3. 비밀번호에 특수문자(@, #, %)가 있으면 URL 인코딩 확인',
+          '4. MongoDB Atlas 클러스터가 일시 중지되지 않았는지 확인',
+          '5. Vercel 환경 변수 추가 후 Redeploy 확인'
+        ];
       }
       
       return res.status(503).json({
@@ -1105,14 +1121,16 @@ const handleGetProjects = async (req, res) => {
         error: errorMessage,
         details: {
           readyState: mongoose.connection.readyState,
+          readyStateText: {
+            0: 'disconnected',
+            1: 'connected',
+            2: 'connecting',
+            3: 'disconnecting'
+          }[mongoose.connection.readyState] || 'unknown',
           hasMongoURI: hasMongoURI,
           mongoURIPreview: mongoURIPreview,
-          troubleshooting: {
-            step1: 'Vercel 환경 변수에 MONGODB_URI 설정 확인',
-            step2: 'MongoDB Atlas Network Access에 0.0.0.0/0 추가 확인',
-            step3: '연결 문자열 형식 확인 (mongodb+srv://...)',
-            step4: '비밀번호에 특수문자가 있으면 URL 인코딩 확인'
-          }
+          vercel: process.env.VERCEL === '1',
+          troubleshooting: troubleshootingSteps
         }
       });
     }
