@@ -44,6 +44,10 @@ export async function GET(request: NextRequest) {
       hasEnvVar: !!(process.env.NEXT_PUBLIC_BACKOFFICE_URL || process.env.BACKOFFICE_API_URL)
     });
     
+    // 타임아웃 설정 (10초)
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    
     const response = await fetch(fetchUrl, {
       method: 'GET',
       headers: {
@@ -51,10 +55,13 @@ export async function GET(request: NextRequest) {
         'Cache-Control': 'no-cache, no-store, must-revalidate',
         'Pragma': 'no-cache',
       },
+      signal: controller.signal, // 타임아웃 신호
       // Next.js 서버에서 실행되므로 timeout 설정
       next: { revalidate: 0 }, // 항상 최신 데이터 가져오기
       cache: 'no-store', // 캐시 사용 안 함
     });
+    
+    clearTimeout(timeoutId); // 성공 시 타임아웃 제거
 
     if (!response.ok) {
       // 응답 본문 읽기 시도
@@ -141,6 +148,27 @@ export async function GET(request: NextRequest) {
       cause: error.cause,
       fullError: error
     });
+    
+    // 타임아웃 에러인 경우
+    if (error.name === 'AbortError' || error.message.includes('aborted')) {
+      return NextResponse.json({ 
+        success: false, 
+        error: '백엔드 서버 응답 시간 초과 (10초). MongoDB 연결을 확인하세요.',
+        data: [],
+        timeout: true
+      }, { status: 504 });
+    }
+    
+    // 네트워크 에러인 경우
+    if (error.message.includes('fetch failed') || error.message.includes('ECONNREFUSED')) {
+      return NextResponse.json({ 
+        success: false, 
+        error: '백엔드 서버에 연결할 수 없습니다. 서버 상태를 확인하세요.',
+        data: [],
+        networkError: true
+      }, { status: 503 });
+    }
+    
     // 오류 발생 시 에러 반환 (정적 데이터 사용 방지)
     return NextResponse.json({ 
       success: false, 

@@ -185,13 +185,39 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
   }
 
   if (error) {
+    // 503 에러인 경우 특별한 메시지 표시
+    const is503Error = error.includes('503') || error.includes('Service Unavailable');
+    const isMongoDBError = error.includes('MongoDB') || error.includes('연결');
+    
     return (
       <section id="projects" className="py-20 relative overflow-hidden" style={{ backgroundColor: '#F7F7FB' }}>
         <div className="container mx-auto px-4 text-center">
           <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-2xl mx-auto">
             <h3 className="text-red-800 font-semibold mb-2">⚠️ 프로젝트를 불러올 수 없습니다</h3>
             <p className="text-red-600 mb-4">{error}</p>
-            <p className="text-sm text-red-500">
+            
+            {is503Error && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mt-4 text-left">
+                <h4 className="text-yellow-800 font-semibold mb-2">🔧 503 에러 해결 방법:</h4>
+                <ol className="text-sm text-yellow-700 list-decimal list-inside space-y-1">
+                  <li>Vercel 환경 변수 확인: <code className="bg-yellow-100 px-1 rounded">MONGODB_URI</code> 설정 여부</li>
+                  <li>MongoDB Atlas Network Access: <code className="bg-yellow-100 px-1 rounded">0.0.0.0/0</code> 설정 확인</li>
+                  <li>백엔드 서버 상태 확인: <a href="https://hyeyeon-portfolio-admin.vercel.app/bo-api/health" target="_blank" className="text-blue-600 underline">Health Check</a></li>
+                  <li>Vercel 로그 확인: Deployments → Functions → /bo-api/projects</li>
+                </ol>
+              </div>
+            )}
+            
+            {isMongoDBError && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4 text-left">
+                <h4 className="text-blue-800 font-semibold mb-2">💡 MongoDB 연결 문제:</h4>
+                <p className="text-sm text-blue-700">
+                  MongoDB 연결이 실패했습니다. Vercel 환경 변수에 <code className="bg-blue-100 px-1 rounded">MONGODB_URI</code>가 올바르게 설정되어 있는지 확인하세요.
+                </p>
+              </div>
+            )}
+            
+            <p className="text-sm text-red-500 mt-4">
               브라우저 콘솔(F12)을 열어 자세한 오류를 확인하세요.
               <br />
               백엔드 서버 연결 상태를 확인해주세요.
