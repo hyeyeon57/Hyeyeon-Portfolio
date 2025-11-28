@@ -1,0 +1,14 @@
+{
+  "name": "vibe-coding-dashboard",
+  "version": "1.0.0",
+  "description": "Simple stress dashboard server (sleep, study, food, weekly pattern)",
+  "main": "server.cjs",
+  "scripts": {
+    "start": "node server.cjs"
+  },
+  "author": "",
+  "license": "MIT"
+}
+
+
+
