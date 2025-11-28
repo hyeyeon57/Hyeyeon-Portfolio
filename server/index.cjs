@@ -367,6 +367,33 @@ app.get('/api/visitors', async (req, res) => {
   }
 });
 
+// Health Check API (MongoDB 연결 상태 확인)
+app.get('/api/health', async (req, res) => {
+  try {
+    // MongoDB 연결 시도 (이미 연결되어 있으면 재사용)
+    const dbConnected = await connectDB();
+    const readyState = mongoose.connection.readyState;
+    
+    res.json({
+      success: true,
+      connected: readyState === 1,
+      readyState: readyState,
+      host: mongoose.connection.host || null,
+      database: mongoose.connection.name || null,
+      hasMongoURI: !!process.env.MONGODB_URI,
+      message: readyState === 1 ? 'MongoDB 연결됨' : 'MongoDB 연결 안됨'
+    });
+  } catch (error) {
+    console.error('Health check 오류:', error);
+    res.json({
+      success: false,
+      connected: false,
+      readyState: mongoose.connection.readyState || 0,
+      error: error.message
+    });
+  }
+});
+
 // 프로젝트 목록 조회
 app.get('/api/projects', async (req, res) => {
   try {
