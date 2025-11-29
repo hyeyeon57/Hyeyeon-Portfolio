@@ -50,20 +50,57 @@ export async function POST(request: NextRequest) {
     }
 
     // 백오피스 서버에 연락 정보 저장
+    let contactSaved = false;
     try {
       const backofficeUrl = getBackofficeUrl();
-      const fetchUrl = `${backofficeUrl}/bo-api/contacts`;
       
-      await fetch(fetchUrl, {
+      // 같은 프로젝트 내에서 실행 중인지 확인
+      const isSameProject = !process.env.NEXT_PUBLIC_BACKOFFICE_URL 
+        && !process.env.BACKOFFICE_API_URL
+        && process.env.VERCEL;
+      
+      let fetchUrl;
+      if (isSameProject) {
+        // 같은 프로젝트: 상대 경로 사용
+        fetchUrl = `/bo-api/contacts`;
+      } else {
+        // 별도 프로젝트: 절대 URL 사용
+        fetchUrl = `${backofficeUrl}/bo-api/contacts`;
+      }
+      
+      console.log('📧 백오피스 연락 정보 저장 시도:', { fetchUrl, backofficeUrl, isSameProject });
+      
+      const contactResponse = await fetch(fetchUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ name, email, message }),
       });
-    } catch (error) {
-      // 백오피스 저장 실패는 로그만 남기고 계속 진행
-      console.error('백오피스 연락 정보 저장 실패:', error);
+      
+      if (contactResponse.ok) {
+        const contactResult = await contactResponse.json();
+        if (contactResult.success) {
+          contactSaved = true;
+          console.log('✅ 백오피스 연락 정보 저장 성공');
+        } else {
+          console.warn('⚠️ 백오피스 연락 정보 저장 실패:', contactResult.error);
+        }
+      } else {
+        const errorText = await contactResponse.text();
+        console.error('❌ 백오피스 연락 정보 저장 실패:', {
+          status: contactResponse.status,
+          statusText: contactResponse.statusText,
+          error: errorText
+        });
+      }
+    } catch (error: any) {
+      // 백오피스 저장 실패는 로그만 남기고 계속 진행 (이메일 전송은 시도)
+      console.error('❌ 백오피스 연락 정보 저장 오류:', {
+        message: error.message,
+        name: error.name,
+        stack: error.stack
+      });
     }
 
     // Resend를 사용한 실제 이메일 전송
@@ -97,17 +134,37 @@ export async function POST(request: NextRequest) {
     });
 
     if (error) {
-      console.error('Resend 오류:', error);
+      console.error('❌ Resend 이메일 전송 오류:', error);
+      
+      // 백오피스에는 저장되었지만 이메일 전송이 실패한 경우
+      if (contactSaved) {
+        console.log('✅ 백오피스에는 저장되었지만 이메일 전송 실패');
+        return NextResponse.json(
+          { 
+            message: '메시지가 저장되었습니다. 이메일 전송에 실패했지만 나중에 확인하겠습니다.',
+            saved: true,
+            emailError: true
+          },
+          { status: 200 }
+        );
+      }
+      
+      // 둘 다 실패한 경우
       return NextResponse.json(
-        { error: '이메일 전송에 실패했습니다.' },
+        { error: '이메일 전송에 실패했습니다. 다시 시도해주세요.' },
         { status: 500 }
       );
     }
 
-    console.log('이메일 전송 성공:', data);
+    console.log('✅ 이메일 전송 성공:', data);
+    console.log('📊 연락 정보 저장 상태:', { contactSaved, emailSent: true });
 
     return NextResponse.json(
-      { message: '메시지가 성공적으로 전송되었습니다.' },
+      { 
+        message: '메시지가 성공적으로 전송되었습니다.',
+        saved: contactSaved,
+        emailSent: true
+      },
       { status: 200 }
     );
 
