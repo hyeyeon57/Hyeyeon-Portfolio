@@ -374,9 +374,11 @@ export const Footer: React.FC = () => {
               © 2025 Jang Haeyeon Portfolio All rights reserved.
             </p>
             <a
-              href={typeof window !== 'undefined' && window.location.hostname === 'localhost'
-                ? 'http://localhost:3005/admin/login'
-                : '/admin/login'}
+              href={
+                typeof window !== 'undefined' && window.location.hostname === 'localhost'
+                  ? 'http://localhost:3005/admin/login'
+                  : 'https://hyeyeon-portfolio-admin.vercel.app/'
+              }
               target="_blank"
               rel="noopener noreferrer"
               className="text-sm text-text-secondary hover:text-brand-main transition-colors underline"
