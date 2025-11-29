@@ -5,14 +5,15 @@ const connectDB = async () => {
     const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/vibe-coding-portfolio';
     
     // 디버깅: 환경 변수 확인 (비밀번호는 마스킹)
-    const isVercel = process.env.VERCEL === '1';
+    // isVercel은 api/index.js에서 전역으로 선언되어 있으므로 여기서는 다시 선언하지 않음
+    const isVercelEnv = process.env.VERCEL === '1';
     const hasMongoURI = !!process.env.MONGODB_URI;
     const mongoURIPreview = hasMongoURI 
       ? process.env.MONGODB_URI.replace(/:[^:@]+@/, ':****@') // 비밀번호 마스킹
       : '없음 (기본값 사용)';
     
     console.log('🔍 MongoDB 연결 시도:');
-    console.log(`   - Vercel 환경: ${isVercel ? '예' : '아니오'}`);
+    console.log(`   - Vercel 환경: ${isVercelEnv ? '예' : '아니오'}`);
     console.log(`   - MONGODB_URI 설정: ${hasMongoURI ? '예' : '아니오'}`);
     console.log(`   - 연결 문자열: ${mongoURIPreview}`);
     
@@ -21,11 +22,11 @@ const connectDB = async () => {
       serverSelectionTimeoutMS: 4000, // 4초로 단축 (빠른 실패)
       connectTimeoutMS: 4000, // 4초로 단축
       socketTimeoutMS: 4000, // 소켓 타임아웃
-      maxPoolSize: isVercel ? 1 : 10, // 서버리스 환경에서는 연결 풀 크기 1
+      maxPoolSize: isVercelEnv ? 1 : 10, // 서버리스 환경에서는 연결 풀 크기 1
       minPoolSize: 0, // 서버리스 환경에서는 최소 풀 크기 0
-      maxIdleTimeMS: isVercel ? 30000 : 300000, // 서버리스: 30초, 일반: 5분
+      maxIdleTimeMS: isVercelEnv ? 30000 : 300000, // 서버리스: 30초, 일반: 5분
       // 서버리스 환경에서는 연결을 재사용하지 않도록 설정
-      ...(isVercel && {
+      ...(isVercelEnv && {
         bufferMaxEntries: 0, // 버퍼링 비활성화
         bufferCommands: false, // 명령 버퍼링 비활성화
       })
