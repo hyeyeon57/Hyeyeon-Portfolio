@@ -930,7 +930,11 @@ const handleGetVisitorStats = async (req, res) => {
         success: true,
         today: 0,
         thisWeek: 0,
-        total: 0
+        total: 0,
+        hourly: Array(24).fill(0),
+        weekly: Array(7).fill(0),
+        daily: Array(7).fill(0),
+        dailyLabels: []
       });
     }
     const today = new Date();
@@ -979,10 +983,8 @@ const handleGetVisitorStats = async (req, res) => {
 
     const totalCount = await Visitor.countDocuments();
 
-    // 시간대별 방문자 수 (0시~23시)
+    // 오늘 시간대별 방문자 수 (0시~23시)
     const hourlyStats = Array(24).fill(0);
-    
-    // 오늘 방문자 데이터 가져오기
     const todayVisitors = await Visitor.find({
       $or: [
         { date: { $gte: today, $lt: tomorrow } },
@@ -990,7 +992,6 @@ const handleGetVisitorStats = async (req, res) => {
       ]
     }).lean();
     
-    // 시간대별로 카운트
     todayVisitors.forEach(visitor => {
       const visitDate = visitor.date || visitor.createdAt;
       if (visitDate) {
@@ -1001,12 +1002,58 @@ const handleGetVisitorStats = async (req, res) => {
       }
     });
 
+    // 이번 주 요일별 방문자 수 (월~일)
+    const weeklyStats = Array(7).fill(0);
+    const weekVisitors = await Visitor.find({
+      $or: [
+        { date: { $gte: thisWeekStart } },
+        { createdAt: { $gte: thisWeekStart } }
+      ]
+    }).lean();
+    
+    weekVisitors.forEach(visitor => {
+      const visitDate = visitor.date || visitor.createdAt;
+      if (visitDate) {
+        const visitDay = new Date(visitDate);
+        const dayOfWeek = visitDay.getDay();
+        const adjustedDay = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // 월요일=0, 일요일=6
+        if (adjustedDay >= 0 && adjustedDay < 7) {
+          weeklyStats[adjustedDay]++;
+        }
+      }
+    });
+
+    // 최근 7일 방문자 수 (날짜별)
+    const dailyStats = Array(7).fill(0);
+    const dailyLabels = [];
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      date.setHours(0, 0, 0, 0);
+      const nextDate = new Date(date);
+      nextDate.setDate(nextDate.getDate() + 1);
+      
+      const dayLabel = `${date.getMonth() + 1}/${date.getDate()}`;
+      dailyLabels.push(dayLabel);
+      
+      const dayCount = await Visitor.countDocuments({
+        $or: [
+          { date: { $gte: date, $lt: nextDate } },
+          { createdAt: { $gte: date, $lt: nextDate } }
+        ]
+      });
+      dailyStats[6 - i] = dayCount;
+    }
+
     res.json({
       success: true,
       today: finalTodayCount,
       thisWeek: thisWeekCount,
       total: totalCount,
-      hourly: hourlyStats
+      hourly: hourlyStats,
+      weekly: weeklyStats,
+      daily: dailyStats,
+      dailyLabels: dailyLabels
     });
   } catch (error) {
     console.error('❌ 방문자 통계 조회 오류:', error);
@@ -1015,7 +1062,10 @@ const handleGetVisitorStats = async (req, res) => {
       today: 0,
       thisWeek: 0,
       total: 0,
-      hourly: Array(24).fill(0)
+      hourly: Array(24).fill(0),
+      weekly: Array(7).fill(0),
+      daily: Array(7).fill(0),
+      dailyLabels: []
     });
   }
 };

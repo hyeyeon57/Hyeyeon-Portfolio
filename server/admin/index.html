@@ -151,9 +151,22 @@
           <!-- 방문자 통계는 JavaScript로 동적 생성 -->
         </div>
 
-        <!-- 시간대별 방문자 그래프 -->
-        <div class="bg-white rounded-xl shadow-sm border mb-8" id="visitor-hourly-chart">
-          <!-- 그래프는 JavaScript로 동적 생성 -->
+        <!-- 방문자 그래프 (3개) -->
+        <div class="grid grid-cols-1 gap-6 mb-8">
+          <!-- 오늘 방문자 그래프 -->
+          <div class="bg-white rounded-xl shadow-sm border" id="visitor-today-chart">
+            <!-- 그래프는 JavaScript로 동적 생성 -->
+          </div>
+          
+          <!-- 이번 주 방문자 그래프 -->
+          <div class="bg-white rounded-xl shadow-sm border" id="visitor-weekly-chart">
+            <!-- 그래프는 JavaScript로 동적 생성 -->
+          </div>
+          
+          <!-- 전체 방문자 그래프 (최근 7일) -->
+          <div class="bg-white rounded-xl shadow-sm border" id="visitor-daily-chart">
+            <!-- 그래프는 JavaScript로 동적 생성 -->
+          </div>
         </div>
 
         <!-- 방문자 목록 -->
@@ -683,18 +696,24 @@
         lucide.createIcons();
       }
       
-      // 시간대별 그래프 렌더링
+      // 그래프 렌더링
       if (stats.hourly && Array.isArray(stats.hourly)) {
-        renderHourlyChart(stats.hourly);
+        renderTodayChart(stats.hourly, stats.today || 0);
+      }
+      if (stats.weekly && Array.isArray(stats.weekly)) {
+        renderWeeklyChart(stats.weekly, stats.thisWeek || 0);
+      }
+      if (stats.daily && Array.isArray(stats.daily)) {
+        renderDailyChart(stats.daily, stats.dailyLabels || [], stats.total || 0);
       }
     }
 
-    // 시간대별 방문자 그래프 렌더링
-    function renderHourlyChart(hourlyData) {
-      const chartContainer = document.getElementById('visitor-hourly-chart');
+    // 오늘 방문자 시간대별 그래프
+    function renderTodayChart(hourlyData, total) {
+      const chartContainer = document.getElementById('visitor-today-chart');
       if (!chartContainer) return;
       
-      const maxValue = Math.max(...hourlyData, 1); // 최대값 (0이면 1로 설정)
+      const maxValue = Math.max(...hourlyData, 1);
       const chartHeight = 200;
       const barWidth = 30;
       const barGap = 8;
@@ -702,18 +721,15 @@
       
       let chartHtml = `
         <div class="px-6 py-4 border-b">
-          <h2 class="text-xl font-semibold text-gray-900">시간대별 방문자 추이</h2>
-          <p class="text-sm text-gray-500 mt-1">오늘 방문자가 시간대별로 몇 명 방문했는지 확인하세요</p>
+          <h2 class="text-xl font-semibold text-gray-900">오늘 방문자 - 시간대별 추이</h2>
+          <p class="text-sm text-gray-500 mt-1">총 ${total}명 | 시간대별 방문자 수</p>
         </div>
         <div class="p-6 overflow-x-auto">
           <svg width="${totalWidth}" height="${chartHeight + 60}" class="w-full" viewBox="0 0 ${totalWidth} ${chartHeight + 60}">
-            <!-- 그리드 라인 -->
             ${[0, 0.25, 0.5, 0.75, 1].map(ratio => {
               const y = chartHeight - (chartHeight * ratio);
               return `<line x1="0" y1="${y}" x2="${totalWidth}" y2="${y}" stroke="#e5e7eb" stroke-width="1" stroke-dasharray="4,4" />`;
             }).join('')}
-            
-            <!-- 바 차트 -->
             ${hourlyData.map((count, hour) => {
               const x = hour * (barWidth + barGap);
               const barHeight = (count / maxValue) * chartHeight;
@@ -722,39 +738,105 @@
               
               return `
                 <g>
-                  <!-- 바 -->
-                  <rect 
-                    x="${x}" 
-                    y="${y}" 
-                    width="${barWidth}" 
-                    height="${barHeight}" 
-                    fill="${isCurrentHour ? '#8b5cf6' : '#a78bfa'}" 
-                    rx="4"
-                    class="hover:opacity-80 transition-opacity cursor-pointer"
-                  />
-                  <!-- 값 표시 -->
-                  ${count > 0 ? `
-                    <text 
-                      x="${x + barWidth / 2}" 
-                      y="${y - 5}" 
-                      text-anchor="middle" 
-                      class="text-xs font-medium fill-gray-700"
-                    >${count}</text>
-                  ` : ''}
-                  <!-- 시간 라벨 -->
-                  <text 
-                    x="${x + barWidth / 2}" 
-                    y="${chartHeight + 20}" 
-                    text-anchor="middle" 
-                    class="text-xs fill-gray-500"
-                  >${hour}시</text>
+                  <rect x="${x}" y="${y}" width="${barWidth}" height="${barHeight}" 
+                    fill="${isCurrentHour ? '#8b5cf6' : '#a78bfa'}" rx="4" class="hover:opacity-80 transition-opacity cursor-pointer" />
+                  ${count > 0 ? `<text x="${x + barWidth / 2}" y="${y - 5}" text-anchor="middle" class="text-xs font-medium fill-gray-700">${count}</text>` : ''}
+                  <text x="${x + barWidth / 2}" y="${chartHeight + 20}" text-anchor="middle" class="text-xs fill-gray-500">${hour}시</text>
                 </g>
               `;
             }).join('')}
           </svg>
         </div>
       `;
+      chartContainer.innerHTML = chartHtml;
+    }
+
+    // 이번 주 방문자 요일별 그래프
+    function renderWeeklyChart(weeklyData, total) {
+      const chartContainer = document.getElementById('visitor-weekly-chart');
+      if (!chartContainer) return;
       
+      const maxValue = Math.max(...weeklyData, 1);
+      const chartHeight = 200;
+      const barWidth = 80;
+      const barGap = 12;
+      const totalWidth = (barWidth + barGap) * 7;
+      const dayLabels = ['월', '화', '수', '목', '금', '토', '일'];
+      const currentDay = new Date().getDay();
+      const adjustedCurrentDay = currentDay === 0 ? 6 : currentDay - 1;
+      
+      let chartHtml = `
+        <div class="px-6 py-4 border-b">
+          <h2 class="text-xl font-semibold text-gray-900">이번 주 방문자 - 요일별 추이</h2>
+          <p class="text-sm text-gray-500 mt-1">총 ${total}명 | 요일별 방문자 수</p>
+        </div>
+        <div class="p-6 overflow-x-auto">
+          <svg width="${totalWidth}" height="${chartHeight + 60}" class="w-full" viewBox="0 0 ${totalWidth} ${chartHeight + 60}">
+            ${[0, 0.25, 0.5, 0.75, 1].map(ratio => {
+              const y = chartHeight - (chartHeight * ratio);
+              return `<line x1="0" y1="${y}" x2="${totalWidth}" y2="${y}" stroke="#e5e7eb" stroke-width="1" stroke-dasharray="4,4" />`;
+            }).join('')}
+            ${weeklyData.map((count, day) => {
+              const x = day * (barWidth + barGap);
+              const barHeight = (count / maxValue) * chartHeight;
+              const y = chartHeight - barHeight;
+              const isCurrentDay = adjustedCurrentDay === day;
+              
+              return `
+                <g>
+                  <rect x="${x}" y="${y}" width="${barWidth}" height="${barHeight}" 
+                    fill="${isCurrentDay ? '#3b82f6' : '#60a5fa'}" rx="4" class="hover:opacity-80 transition-opacity cursor-pointer" />
+                  ${count > 0 ? `<text x="${x + barWidth / 2}" y="${y - 5}" text-anchor="middle" class="text-xs font-medium fill-gray-700">${count}</text>` : ''}
+                  <text x="${x + barWidth / 2}" y="${chartHeight + 20}" text-anchor="middle" class="text-xs fill-gray-500">${dayLabels[day]}</text>
+                </g>
+              `;
+            }).join('')}
+          </svg>
+        </div>
+      `;
+      chartContainer.innerHTML = chartHtml;
+    }
+
+    // 전체 방문자 최근 7일 그래프
+    function renderDailyChart(dailyData, labels, total) {
+      const chartContainer = document.getElementById('visitor-daily-chart');
+      if (!chartContainer) return;
+      
+      const maxValue = Math.max(...dailyData, 1);
+      const chartHeight = 200;
+      const barWidth = 80;
+      const barGap = 12;
+      const totalWidth = (barWidth + barGap) * 7;
+      
+      let chartHtml = `
+        <div class="px-6 py-4 border-b">
+          <h2 class="text-xl font-semibold text-gray-900">전체 방문자 - 최근 7일 추이</h2>
+          <p class="text-sm text-gray-500 mt-1">총 ${total}명 | 최근 7일간 일별 방문자 수</p>
+        </div>
+        <div class="p-6 overflow-x-auto">
+          <svg width="${totalWidth}" height="${chartHeight + 60}" class="w-full" viewBox="0 0 ${totalWidth} ${chartHeight + 60}">
+            ${[0, 0.25, 0.5, 0.75, 1].map(ratio => {
+              const y = chartHeight - (chartHeight * ratio);
+              return `<line x1="0" y1="${y}" x2="${totalWidth}" y2="${y}" stroke="#e5e7eb" stroke-width="1" stroke-dasharray="4,4" />`;
+            }).join('')}
+            ${dailyData.map((count, index) => {
+              const x = index * (barWidth + barGap);
+              const barHeight = (count / maxValue) * chartHeight;
+              const y = chartHeight - barHeight;
+              const isToday = index === 6;
+              
+              return `
+                <g>
+                  <rect x="${x}" y="${y}" width="${barWidth}" height="${barHeight}" 
+                    fill="${isToday ? '#10b981' : '#34d399'}" rx="4" class="hover:opacity-80 transition-opacity cursor-pointer" />
+                  ${count > 0 ? `<text x="${x + barWidth / 2}" y="${y - 5}" text-anchor="middle" class="text-xs font-medium fill-gray-700">${count}</text>` : ''}
+                  <text x="${x + barWidth / 2}" y="${chartHeight + 20}" text-anchor="middle" class="text-xs fill-gray-500">${labels[index] || ''}</text>
+                </g>
+              `;
+            }).join('')}
+          </svg>
+        </div>
+      `;
       chartContainer.innerHTML = chartHtml;
     }
 
