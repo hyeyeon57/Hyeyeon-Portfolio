@@ -279,6 +279,11 @@
       console.log('탭 전환:', tabName);
       currentTab = tabName;
       
+      // URL 해시 업데이트 (새로고침 시 현재 탭 유지)
+      if (window.location.hash !== `#${tabName}`) {
+        window.location.hash = tabName;
+      }
+      
       // 모든 탭 버튼 비활성화
       document.querySelectorAll('.tab-button').forEach(btn => {
         btn.classList.remove('border-blue-500', 'text-blue-600');
@@ -362,8 +367,13 @@
       await checkAuth();
       await checkMongoDBStatus();
       
+      // URL 해시에서 탭 정보 읽기 (새로고침 시 현재 탭 유지)
+      const hash = window.location.hash.replace('#', '');
+      const validTabs = ['projects', 'contacts', 'visitors'];
+      const initialTab = validTabs.includes(hash) ? hash : 'projects';
+      
       // 초기 탭 설정 (데이터 로드는 switchTab에서 처리)
-      await switchTab('projects');
+      await switchTab(initialTab);
       
       // 30초마다 현재 탭 데이터 자동 갱신
       setInterval(async () => {
