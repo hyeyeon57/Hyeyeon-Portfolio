@@ -20,6 +20,74 @@ export default function AllProjectsPage() {
   useEffect(() => {
     setIsMounted(true);
     
+    // 방문자 로그 저장 (중복 방지)
+    const logVisit = async () => {
+      // 세션 스토리지를 사용하여 중복 방지
+      const lastVisitTime = sessionStorage.getItem('lastVisitTime');
+      const now = Date.now();
+      
+      // 1초 이내 중복 요청 방지
+      if (lastVisitTime && (now - parseInt(lastVisitTime)) < 1000) {
+        return;
+      }
+      
+      sessionStorage.setItem('lastVisitTime', now.toString());
+      
+      try {
+        // 백오피스 서버 URL 설정 (통합 배포 지원)
+        const getApiUrl = () => {
+          if (typeof window !== 'undefined') {
+            // 클라이언트 사이드: 현재 호스트 사용 (같은 프로젝트)
+            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            if (isLocalhost) {
+              return 'http://localhost:3005';
+            }
+            // 같은 프로젝트 내에서 실행 중이면 현재 호스트 사용
+            return window.location.origin; // 예: https://hyeyeon-portfolio.vercel.app
+          }
+          
+          // 서버 사이드
+          if (process.env.NEXT_PUBLIC_BACKOFFICE_URL) {
+            return process.env.NEXT_PUBLIC_BACKOFFICE_URL;
+          }
+          
+          if (process.env.BACKOFFICE_API_URL) {
+            return process.env.BACKOFFICE_API_URL;
+          }
+          
+          // Vercel 환경: 같은 프로젝트로 간주
+          if (process.env.VERCEL) {
+            const vercelUrl = process.env.VERCEL_URL 
+              ? `https://${process.env.VERCEL_URL}`
+              : 'https://hyeyeon-portfolio.vercel.app';
+            return vercelUrl;
+          }
+          
+          return 'http://localhost:3005';
+        };
+        
+        const apiUrl = getApiUrl();
+        // 같은 프로젝트 내에서 /bo-api 경로 사용
+        const fetchUrl = `${apiUrl}/bo-api/visitors`;
+        
+        await fetch(fetchUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            path: window.location.pathname, // /projects 경로 저장
+            userAgent: navigator.userAgent,
+          }),
+        });
+      } catch (error) {
+        // 방문자 로그 저장 실패는 무시 (FO 화면에 영향 없음)
+        console.error('방문자 로그 저장 실패:', error);
+      }
+    };
+    
+    logVisit();
+    
     const fetchProjects = async (forceRefresh = false) => {
       try {
         // 강제 새로고침 시 타임스탬프를 더 크게 만들어 캐시 완전 무효화
