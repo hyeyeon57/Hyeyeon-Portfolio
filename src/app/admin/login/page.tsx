@@ -118,11 +118,20 @@ export default function AdminLoginPage() {
 
       if (result.success) {
         console.log('✅ 로그인 성공');
-        // 로그인 성공 - 같은 프로젝트 내 관리자 페이지로 리다이렉트
-        const adminUrl = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-          ? 'http://localhost:3005/admin'
-          : `${window.location.origin}/admin`; // 같은 프로젝트 내 /admin 경로
-        
+        // 로그인 성공 후 이동 경로
+        // - 로컬: 기존처럼 로컬 백오피스 HTML 대시보드로 이동
+        // - 배포: Next.js /admin 이 아니라, 백오피스 HTML 대시보드 도메인으로 직접 이동
+        let adminUrl: string;
+
+        if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+          // 로컬 개발 환경
+          adminUrl = 'http://localhost:3005/admin';
+        } else {
+          // 배포 환경: Next.js /admin 대신 백오피스 전용 도메인으로 이동
+          // 필요하면 환경 변수로 교체 가능: process.env.NEXT_PUBLIC_BACKOFFICE_URL 등
+          adminUrl = 'https://hyeyeon-portfolio-admin.vercel.app/admin';
+        }
+
         console.log('🔄 리다이렉트:', adminUrl);
         window.location.href = adminUrl;
       } else {
