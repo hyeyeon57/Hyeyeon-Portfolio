@@ -11,11 +11,10 @@ const nextConfig = {
     maxInactiveAge: 25 * 1000,
     pagesBufferLength: 2,
   },
-  // _admin 폴더를 빌드에서 완전히 제외
-  pageExtensions: ['tsx', 'ts', 'jsx', 'js'],
-  // rewrites가 작동하도록 Next.js 라우팅 우선순위 낮춤
+  // /admin 경로를 Next.js 라우팅에서 제외하고 API로 전달
   async rewrites() {
     return [
+      // /admin 경로는 Next.js가 처리하지 않고 서버리스 함수로 전달
       {
         source: '/admin/:path*',
         destination: '/api/index',

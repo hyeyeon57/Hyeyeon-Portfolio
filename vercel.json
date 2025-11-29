@@ -7,20 +7,6 @@
   "outputDirectory": ".next",
   "cleanUrls": true,
   "trailingSlash": false,
-  "rewrites": [
-    {
-      "source": "/bo-api/:path*",
-      "destination": "/api/index"
-    },
-    {
-      "source": "/admin/:path*",
-      "destination": "/api/index"
-    },
-    {
-      "source": "/",
-      "destination": "/api/index"
-    }
-  ],
   "functions": {
     "api/index.js": {
       "includeFiles": "server/**"
