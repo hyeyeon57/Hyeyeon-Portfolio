@@ -669,6 +669,18 @@
       }
     }
 
+    // 경로를 한글로 변환
+    function getPathLabel(path) {
+      const pathMap = {
+        '/': '홈',
+        '/projects': '전체 프로젝트',
+        '/admin': '관리자 대시보드',
+        '/admin/login': '관리자 로그인',
+        '/admin/create': '프로젝트 생성'
+      };
+      return pathMap[path] || path || '홈';
+    }
+
     // 방문자 목록 렌더링
     function renderVisitors(visitors) {
       const tbody = document.getElementById('visitorsTable');
@@ -704,13 +716,16 @@
           ? userAgent.substring(0, 50) + '...' 
           : userAgent;
         
+        // 경로를 한글로 변환
+        const pathLabel = getPathLabel(visitor.path);
+        
         return `
           <tr class="hover:bg-gray-50">
             <td class="px-6 py-4 whitespace-nowrap">
               <div class="text-sm font-medium text-gray-900">${formattedDate}</div>
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
-              <div class="text-sm text-gray-900">${visitor.path || '/'}</div>
+              <div class="text-sm text-gray-900">${pathLabel}</div>
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
               <div class="text-sm text-gray-500">${visitor.ip || '-'}</div>
