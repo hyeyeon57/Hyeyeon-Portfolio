@@ -240,7 +240,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                 <ol className="text-sm text-yellow-700 list-decimal list-inside space-y-1">
                   <li>Vercel 환경 변수 확인: <code className="bg-yellow-100 px-1 rounded">MONGODB_URI</code> 설정 여부</li>
                   <li>MongoDB Atlas Network Access: <code className="bg-yellow-100 px-1 rounded">0.0.0.0/0</code> 설정 확인</li>
-                  <li>백엔드 서버 상태 확인: <a href="https://hyeyeon-portfolio-admin.vercel.app/bo-api/health" target="_blank" className="text-blue-600 underline">Health Check</a></li>
+                  <li>백엔드 서버 상태 확인: <a href="/bo-api/health" target="_blank" className="text-blue-600 underline">Health Check</a></li>
                   <li>Vercel 로그 확인: Deployments → Functions → /bo-api/projects</li>
                 </ol>
               </div>

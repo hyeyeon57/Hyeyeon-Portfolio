@@ -376,7 +376,7 @@ export const Footer: React.FC = () => {
               href={
                 typeof window !== 'undefined' && window.location.hostname === 'localhost'
                   ? 'http://localhost:3005/admin/login'
-                  : 'https://hyeyeon-portfolio-admin.vercel.app/admin/login'
+                  : '/admin/login'
               }
               target="_blank"
               rel="noopener noreferrer"
