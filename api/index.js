@@ -1232,7 +1232,11 @@ const handleGetProjects = async (req, res) => {
           throw new Error('재연결 실패');
         }
       }
-      projects = await Project.find().sort({ createdAt: -1 });
+      // .lean()으로 빠른 조회, 필요한 필드만 선택
+      projects = await Project.find()
+        .sort({ createdAt: -1 })
+        .lean()
+        .select('id title subtitle description fullDescription image images tags category date role duration team achievements link featured createdAt updatedAt');
     } catch (queryError) {
       // 세션 에러인 경우 재시도 (연결 재설정)
       if (queryError.name === 'MongoExpiredSessionError' || 
@@ -1248,7 +1252,11 @@ const handleGetProjects = async (req, res) => {
           await new Promise(resolve => setTimeout(resolve, 200));
           const reconnected = await initDB(true);
           if (reconnected && mongoose.connection.readyState === 1) {
-            projects = await Project.find().sort({ createdAt: -1 });
+            // .lean()으로 빠른 조회, 필요한 필드만 선택
+      projects = await Project.find()
+        .sort({ createdAt: -1 })
+        .lean()
+        .select('id title subtitle description fullDescription image images tags category date role duration team achievements link featured createdAt updatedAt');
           } else {
             throw new Error('재연결 실패');
           }
@@ -1283,7 +1291,11 @@ const handleGetProjects = async (req, res) => {
       }
       
       // 업데이트된 프로젝트 목록 다시 가져오기
-      const updatedProjects = await Project.find().sort({ createdAt: -1 });
+      // .lean()으로 빠른 조회
+      const updatedProjects = await Project.find()
+        .sort({ createdAt: -1 })
+        .lean()
+        .select('id title subtitle description fullDescription image images tags category date role duration team achievements link featured createdAt updatedAt');
       const updatedFeatured = updatedProjects.filter(p => p.featured === true || p.featured === 'true');
       
       console.log('📊 백엔드 프로젝트 데이터 (정리 후):', {

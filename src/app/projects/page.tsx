@@ -175,10 +175,32 @@ export default function AllProjectsPage() {
 
   if (!isMounted) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{
+      <div className="min-h-screen py-20" style={{
         background: 'linear-gradient(135deg, #ECE9FF 0%, #F7F7FF 50%, #FFFFFF 100%)'
       }}>
-        <div className="text-text-sub">Loading...</div>
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h1 className="text-4xl font-bold text-text-primary mb-4">전체 프로젝트</h1>
+            <p className="text-text-secondary">프로젝트를 불러오는 중...</p>
+          </div>
+          {/* 스켈레톤 UI */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="bg-white rounded-xl shadow-sm overflow-hidden animate-pulse">
+                <div className="h-48 bg-gray-200"></div>
+                <div className="p-6">
+                  <div className="h-6 bg-gray-200 rounded mb-2"></div>
+                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+                  <div className="flex gap-2 mb-4">
+                    <div className="h-6 bg-gray-200 rounded w-16"></div>
+                    <div className="h-6 bg-gray-200 rounded w-16"></div>
+                  </div>
+                  <div className="h-4 bg-gray-200 rounded"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }

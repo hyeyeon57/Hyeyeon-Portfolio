@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { Project } from '@/types/portfolio';
 
-// 이 라우트는 동적이므로 정적 생성하지 않음
-export const dynamic = 'force-dynamic';
+// 짧은 캐시로 성능 개선 (10초)
+export const revalidate = 10;
 
 // 백오피스 서버 URL 설정
 // 같은 프로젝트 내에서 /bo-api 경로 사용 (통합 배포)
@@ -97,8 +97,8 @@ export async function GET(request: NextRequest) {
         },
         signal: controller.signal, // 타임아웃 신호
         // Next.js 서버에서 실행되므로 timeout 설정
-        next: { revalidate: 0 }, // 항상 최신 데이터 가져오기
-        cache: 'no-store', // 캐시 사용 안 함
+        next: { revalidate: 10 }, // 10초 캐시
+        cache: 'default', // 캐시 사용
       });
       
       clearTimeout(timeoutId); // 성공 시 타임아웃 제거

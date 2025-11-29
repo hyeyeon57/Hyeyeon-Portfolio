@@ -448,7 +448,11 @@ app.get('/api/projects', async (req, res) => {
       });
     }
     
-    const projects = await Project.find().sort({ createdAt: -1 });
+    // .lean()으로 빠른 조회, 필요한 필드만 선택
+    const projects = await Project.find()
+      .sort({ createdAt: -1 })
+      .lean()
+      .select('id title subtitle description fullDescription image images tags category date role duration team achievements link featured createdAt updatedAt');
     res.json({ success: true, data: projects });
   } catch (error) {
     console.error('프로젝트 조회 오류:', error);
