@@ -18,6 +18,7 @@ const connectDB = async () => {
     console.log(`   - 연결 문자열: ${mongoURIPreview}`);
     
     // MongoDB 연결 옵션 (서버리스 환경 최적화)
+    // 최신 MongoDB 드라이버에서는 bufferMaxEntries 옵션이 제거되었으므로 사용하지 않습니다.
     const options = {
       serverSelectionTimeoutMS: 4000, // 4초로 단축 (빠른 실패)
       connectTimeoutMS: 4000, // 4초로 단축
@@ -25,11 +26,6 @@ const connectDB = async () => {
       maxPoolSize: isVercelEnv ? 1 : 10, // 서버리스 환경에서는 연결 풀 크기 1
       minPoolSize: 0, // 서버리스 환경에서는 최소 풀 크기 0
       maxIdleTimeMS: isVercelEnv ? 30000 : 300000, // 서버리스: 30초, 일반: 5분
-      // 서버리스 환경에서는 연결을 재사용하지 않도록 설정
-      ...(isVercelEnv && {
-        bufferMaxEntries: 0, // 버퍼링 비활성화
-        bufferCommands: false, // 명령 버퍼링 비활성화
-      })
     };
     
     const conn = await mongoose.connect(mongoURI, options);
