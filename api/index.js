@@ -1023,9 +1023,11 @@ const handleGetVisitorStats = async (req, res) => {
       }
     });
 
-    // 최근 7일 방문자 수 (날짜별)
+    // 최근 7일 방문자 수 (날짜별) - 병렬 처리로 최적화
     const dailyStats = Array(7).fill(0);
     const dailyLabels = [];
+    const dailyQueries = [];
+    
     for (let i = 6; i >= 0; i--) {
       const date = new Date(today);
       date.setDate(date.getDate() - i);
@@ -1036,14 +1038,22 @@ const handleGetVisitorStats = async (req, res) => {
       const dayLabel = `${date.getMonth() + 1}/${date.getDate()}`;
       dailyLabels.push(dayLabel);
       
-      const dayCount = await Visitor.countDocuments({
-        $or: [
-          { date: { $gte: date, $lt: nextDate } },
-          { createdAt: { $gte: date, $lt: nextDate } }
-        ]
-      });
-      dailyStats[6 - i] = dayCount;
+      // 쿼리를 배열에 추가 (병렬 실행)
+      dailyQueries.push(
+        Visitor.countDocuments({
+          $or: [
+            { date: { $gte: date, $lt: nextDate } },
+            { createdAt: { $gte: date, $lt: nextDate } }
+          ]
+        })
+      );
     }
+    
+    // 모든 일별 쿼리를 병렬로 실행
+    const dailyResults = await Promise.all(dailyQueries);
+    dailyResults.forEach((count, index) => {
+      dailyStats[index] = count;
+    });
 
     res.json({
       success: true,
