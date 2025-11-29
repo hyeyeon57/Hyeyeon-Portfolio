@@ -35,9 +35,6 @@
               <i data-lucide="arrow-left" class="w-4 h-4"></i>
               홈으로
             </a>
-            <a href="/admin/create" id="createBtn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center justify-center w-10 h-10" style="display: none;" title="새 프로젝트 추가">
-              <i data-lucide="plus" class="w-5 h-5"></i>
-            </a>
             <button onclick="logout()" id="logoutBtn" class="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition flex items-center gap-2" style="display: none;">
               <i data-lucide="log-out" class="w-4 h-4"></i>
               로그아웃
@@ -85,8 +82,12 @@
 
       <!-- 프로젝트 목록 -->
       <div class="bg-white rounded-xl shadow-sm border">
-        <div class="px-6 py-4 border-b">
+        <div class="px-6 py-4 border-b flex justify-between items-center">
           <h2 class="text-xl font-semibold text-gray-900">프로젝트 목록</h2>
+          <a href="/admin/create" id="createBtnProjects" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2 text-sm font-medium" style="display: none;" title="새 프로젝트 추가">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            프로젝트 추가
+          </a>
         </div>
 
         <div class="overflow-x-auto">
@@ -245,10 +246,10 @@
 
     // 인증 상태에 따라 UI 업데이트
     function updateUIForAuth() {
-      // 새 프로젝트 버튼
-      const createBtn = document.getElementById('createBtn');
-      if (createBtn) {
-        createBtn.style.display = isAuthenticated ? 'flex' : 'none';
+      // 새 프로젝트 버튼 (프로젝트 목록 옆)
+      const createBtnProjects = document.getElementById('createBtnProjects');
+      if (createBtnProjects) {
+        createBtnProjects.style.display = isAuthenticated ? 'flex' : 'none';
       }
 
       // 로그아웃 버튼
