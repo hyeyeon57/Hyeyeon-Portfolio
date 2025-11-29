@@ -979,11 +979,34 @@ const handleGetVisitorStats = async (req, res) => {
 
     const totalCount = await Visitor.countDocuments();
 
+    // 시간대별 방문자 수 (0시~23시)
+    const hourlyStats = Array(24).fill(0);
+    
+    // 오늘 방문자 데이터 가져오기
+    const todayVisitors = await Visitor.find({
+      $or: [
+        { date: { $gte: today, $lt: tomorrow } },
+        { createdAt: { $gte: today, $lt: tomorrow } }
+      ]
+    }).lean();
+    
+    // 시간대별로 카운트
+    todayVisitors.forEach(visitor => {
+      const visitDate = visitor.date || visitor.createdAt;
+      if (visitDate) {
+        const hour = new Date(visitDate).getHours();
+        if (hour >= 0 && hour < 24) {
+          hourlyStats[hour]++;
+        }
+      }
+    });
+
     res.json({
       success: true,
       today: finalTodayCount,
       thisWeek: thisWeekCount,
-      total: totalCount
+      total: totalCount,
+      hourly: hourlyStats
     });
   } catch (error) {
     console.error('❌ 방문자 통계 조회 오류:', error);
@@ -991,7 +1014,8 @@ const handleGetVisitorStats = async (req, res) => {
       success: true,
       today: 0,
       thisWeek: 0,
-      total: 0
+      total: 0,
+      hourly: Array(24).fill(0)
     });
   }
 };
