@@ -1038,6 +1038,64 @@ app.get('/api/visitors', handleGetVisitors);
 app.get('/api/bo/visitors', handleGetVisitors);
 app.get('/bo-api/visitors', handleGetVisitors);
 
+// 방문자 기록 초기화 API (인증 필요)
+const handleDeleteVisitors = async (req, res) => {
+  try {
+    // 인증 확인
+    const token = req.cookies[JWT_COOKIE_NAME] || req.headers.authorization?.replace('Bearer ', '');
+    let isAuthenticated = false;
+
+    if (token) {
+      try {
+        jwt.verify(token, JWT_SECRET);
+        isAuthenticated = true;
+      } catch (error) {
+        // JWT 토큰이 유효하지 않음
+      }
+    }
+
+    if (req.session && req.session.isAuthenticated) {
+      isAuthenticated = true;
+    }
+
+    if (!isAuthenticated) {
+      return res.status(401).json({ 
+        success: false, 
+        error: '인증이 필요합니다.' 
+      });
+    }
+
+    await initDB();
+    if (mongoose.connection.readyState !== 1) {
+      return res.json({ 
+        success: false, 
+        error: 'MongoDB에 연결되지 않았습니다.' 
+      });
+    }
+    
+    // 모든 방문자 기록 삭제
+    const result = await Visitor.deleteMany({});
+    
+    console.log(`🗑️ 방문자 기록 초기화: ${result.deletedCount}개 삭제됨`);
+    
+    res.json({ 
+      success: true, 
+      message: `방문자 기록 ${result.deletedCount}개가 삭제되었습니다.`,
+      deletedCount: result.deletedCount
+    });
+  } catch (error) {
+    console.error('❌ 방문자 기록 초기화 오류:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: '방문자 기록 초기화에 실패했습니다.' 
+    });
+  }
+};
+
+app.delete('/api/visitors', handleDeleteVisitors);
+app.delete('/api/bo/visitors', handleDeleteVisitors);
+app.delete('/bo-api/visitors', handleDeleteVisitors);
+
 // 프로젝트 목록 조회 (백오피스 API)
 const handleGetProjects = async (req, res) => {
   // 요청 타임아웃 설정 (전체 요청 처리 시간 제한)

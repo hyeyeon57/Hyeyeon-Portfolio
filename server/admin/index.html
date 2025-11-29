@@ -152,9 +152,19 @@
 
         <!-- 방문자 목록 -->
         <div class="bg-white rounded-xl shadow-sm border">
-          <div class="px-6 py-4 border-b">
-            <h2 class="text-xl font-semibold text-gray-900">방문자 기록</h2>
-            <p class="text-sm text-gray-500 mt-1">최근 방문한 사용자 목록 (최신순)</p>
+          <div class="px-6 py-4 border-b flex justify-between items-center">
+            <div>
+              <h2 class="text-xl font-semibold text-gray-900">방문자 기록</h2>
+              <p class="text-sm text-gray-500 mt-1">최근 방문한 사용자 목록 (최신순)</p>
+            </div>
+            <button
+              onclick="clearVisitors()"
+              class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium flex items-center gap-2"
+              id="clearVisitorsBtn"
+            >
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+              기록 초기화
+            </button>
           </div>
           <div class="overflow-x-auto">
             <table class="w-full">
@@ -561,6 +571,43 @@
         }
       } catch (error) {
         console.error('방문자 목록 로드 오류:', error);
+      }
+    }
+
+    // 방문자 기록 초기화
+    async function clearVisitors() {
+      if (!confirm('정말로 모든 방문자 기록을 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.')) {
+        return;
+      }
+
+      const btn = document.getElementById('clearVisitorsBtn');
+      const originalText = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> 초기화 중...';
+      lucide.createIcons();
+
+      try {
+        const response = await fetch(`${API_URL}/visitors`, {
+          method: 'DELETE',
+          credentials: 'include'
+        });
+        const result = await response.json();
+
+        if (result.success) {
+          alert(`방문자 기록 ${result.deletedCount || 0}개가 삭제되었습니다.`);
+          // 방문자 목록 및 통계 새로고침
+          await loadVisitors();
+          await loadVisitorStatsForTab();
+        } else {
+          alert(result.error || '방문자 기록 초기화에 실패했습니다.');
+        }
+      } catch (error) {
+        console.error('방문자 기록 초기화 오류:', error);
+        alert('방문자 기록 초기화 중 오류가 발생했습니다.');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        lucide.createIcons();
       }
     }
 

@@ -367,6 +367,43 @@ app.get('/api/visitors', async (req, res) => {
   }
 });
 
+// 방문자 기록 초기화 API (인증 필요)
+app.delete('/api/visitors', async (req, res) => {
+  try {
+    // 인증 확인
+    if (!req.session || !req.session.isAuthenticated) {
+      return res.status(401).json({ 
+        success: false, 
+        error: '인증이 필요합니다.' 
+      });
+    }
+
+    if (mongoose.connection.readyState !== 1) {
+      return res.json({ 
+        success: false, 
+        error: 'MongoDB에 연결되지 않았습니다.' 
+      });
+    }
+    
+    // 모든 방문자 기록 삭제
+    const result = await Visitor.deleteMany({});
+    
+    console.log(`🗑️ 방문자 기록 초기화: ${result.deletedCount}개 삭제됨`);
+    
+    res.json({ 
+      success: true, 
+      message: `방문자 기록 ${result.deletedCount}개가 삭제되었습니다.`,
+      deletedCount: result.deletedCount
+    });
+  } catch (error) {
+    console.error('방문자 기록 초기화 오류:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: '방문자 기록 초기화에 실패했습니다.' 
+    });
+  }
+});
+
 // Health Check API (MongoDB 연결 상태 확인)
 app.get('/api/health', async (req, res) => {
   try {
