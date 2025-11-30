@@ -22,6 +22,7 @@ export default function AdminLoginPage() {
           // 클라이언트 사이드: 현재 호스트 사용 (같은 프로젝트)
           const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
           
+          
           if (isLocalhost) {
             return 'http://localhost:3005';
           }
