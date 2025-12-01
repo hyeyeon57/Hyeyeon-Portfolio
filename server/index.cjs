@@ -622,35 +622,32 @@ app.get('/api/visitors', async (req, res) => {
     const skip = (page - 1) * limit;
     
     // 날짜 범위 필터
-    // YYYY-MM-DD 형식을 로컬 시간대로 파싱
+    // YYYY-MM-DD 형식을 파싱하여 날짜만 비교
+    // MongoDB에 저장된 날짜는 UTC이지만, 로컬 시간대(한국 KST, UTC+9) 기준으로 검색
     let startDate = null;
     let endDate = null;
     
     if (req.query.startDate) {
       const [year, month, day] = req.query.startDate.split('-').map(Number);
-      startDate = new Date(year, month - 1, day, 0, 0, 0, 0); // 로컬 시간대 기준
+      // 한국 시간(KST) 기준 00:00:00 = UTC 15:00:00 (전날)
+      // 정확히 한국 시간 00:00:00에 해당하는 UTC 시간으로 설정
+      startDate = new Date(Date.UTC(year, month - 1, day - 1, 15, 0, 0, 0));
     }
     
     if (req.query.endDate) {
       const [year, month, day] = req.query.endDate.split('-').map(Number);
-      endDate = new Date(year, month - 1, day, 23, 59, 59, 999); // 로컬 시간대 기준
+      // 한국 시간(KST) 기준 23:59:59.999 = UTC 14:59:59.999 (당일)
+      // 정확히 한국 시간 23:59:59.999에 해당하는 UTC 시간으로 설정
+      endDate = new Date(Date.UTC(year, month - 1, day, 14, 59, 59, 999));
     }
     
     console.log('방문자 목록 조회 요청:', { 
       startDate: req.query.startDate, 
       endDate: req.query.endDate, 
       sort: req.query.sort,
-      path: req.query.path,
-      ip: req.query.ip,
-      userAgent: req.query.userAgent,
       parsedStartDate: startDate,
       parsedEndDate: endDate
     });
-    
-    // 검색 필터
-    const path = req.query.path ? req.query.path.trim() : null;
-    const ip = req.query.ip ? req.query.ip.trim() : null;
-    const userAgent = req.query.userAgent ? req.query.userAgent.trim() : null;
     
     // 쿼리 조건 생성
     const query = {};
@@ -658,6 +655,7 @@ app.get('/api/visitors', async (req, res) => {
     // 날짜 필터
     if (startDate || endDate) {
       // date 필드를 사용하여 필터링 (date 필드는 항상 존재)
+      // MongoDB는 날짜를 UTC로 저장하므로 UTC 기준으로 비교
       const dateCondition = {};
       
       if (startDate && endDate) {
@@ -670,21 +668,6 @@ app.get('/api/visitors', async (req, res) => {
       }
       
       query.date = dateCondition;
-    }
-    
-    // 경로 필터 (부분 일치)
-    if (path) {
-      query.path = { $regex: path, $options: 'i' };
-    }
-    
-    // IP 주소 필터 (부분 일치)
-    if (ip) {
-      query.ip = { $regex: ip, $options: 'i' };
-    }
-    
-    // User Agent 필터 (부분 일치)
-    if (userAgent) {
-      query.userAgent = { $regex: userAgent, $options: 'i' };
     }
     
     console.log('쿼리 조건:', JSON.stringify(query, null, 2));
