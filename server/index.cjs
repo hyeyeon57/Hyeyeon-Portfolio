@@ -54,6 +54,36 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
+// PDF 업로드 설정 (별도 스토리지)
+const pdfStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadPath = path.join(__dirname, 'public', 'projects', 'pdfs');
+    if (!existsSync(uploadPath)) {
+      mkdirSync(uploadPath, { recursive: true });
+    }
+    cb(null, uploadPath);
+  },
+  filename: (req, file, cb) => {
+    const timestamp = Date.now();
+    const originalName = file.originalname.replace(/\s+/g, '_');
+    cb(null, `${timestamp}_${originalName}`);
+  }
+});
+
+const uploadPdf = multer({ 
+  storage: pdfStorage,
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype === 'application/pdf') {
+      cb(null, true);
+    } else {
+      cb(new Error('PDF 파일만 업로드 가능합니다.'));
+    }
+  },
+  limits: {
+    fileSize: 50 * 1024 * 1024 // 50MB 제한
+  }
+});
+
 // 관리자 계정 정보 (환경 변수 또는 기본값)
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'hing0915';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'dpffla525';
@@ -424,6 +454,89 @@ app.get('/api/visitors/stats', async (req, res) => {
   }
 });
 
+// 월별 방문자 통계 조회 API
+app.get('/api/visitors/monthly', async (req, res) => {
+  // /bo-api 경로에서도 접근 가능하도록 처리
+  await handleMonthlyVisitors(req, res);
+});
+
+// /bo-api 경로로도 직접 접근 가능
+app.get('/bo-api/visitors/monthly', async (req, res) => {
+  await handleMonthlyVisitors(req, res);
+});
+
+// 월별 방문자 통계 처리 함수
+async function handleMonthlyVisitors(req, res) {
+  try {
+    if (mongoose.connection.readyState !== 1) {
+      console.log('⚠️  MongoDB 연결되지 않음, 월별 방문자 통계 0 반환');
+      return res.json({ 
+        success: true, 
+        monthly: Array(31).fill(0),
+        labels: []
+      });
+    }
+    
+    const year = parseInt(req.query.year) || new Date().getFullYear();
+    const month = parseInt(req.query.month) || new Date().getMonth() + 1;
+    
+    // 해당 월의 시작일과 종료일
+    const startDate = new Date(year, month - 1, 1);
+    startDate.setHours(0, 0, 0, 0);
+    const endDate = new Date(year, month, 0);
+    endDate.setHours(23, 59, 59, 999);
+    const daysInMonth = endDate.getDate();
+    
+    // 일별 방문자 수 계산
+    const monthlyStats = Array(daysInMonth).fill(0);
+    const monthlyLabels = [];
+    const monthlyQueries = [];
+    
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(year, month - 1, day);
+      date.setHours(0, 0, 0, 0);
+      const nextDate = new Date(date);
+      nextDate.setDate(nextDate.getDate() + 1);
+      
+      const dayLabel = `${day}`;
+      monthlyLabels.push(dayLabel);
+      
+      monthlyQueries.push(
+        Visitor.countDocuments({
+          $or: [
+            { date: { $gte: date, $lt: nextDate } },
+            { createdAt: { $gte: date, $lt: nextDate } }
+          ]
+        })
+      );
+    }
+    
+    // 모든 일별 쿼리를 병렬로 실행
+    const monthlyResults = await Promise.all(monthlyQueries);
+    monthlyResults.forEach((count, index) => {
+      monthlyStats[index] = count;
+    });
+    
+    console.log(`📊 월별 방문자 통계: ${year}년 ${month}월`);
+    
+    res.json({ 
+      success: true, 
+      monthly: monthlyStats,
+      labels: monthlyLabels,
+      year: year,
+      month: month,
+      daysInMonth: daysInMonth
+    });
+  } catch (error) {
+    console.error('월별 방문자 통계 조회 오류:', error);
+    res.json({ 
+      success: true, 
+      monthly: Array(31).fill(0),
+      labels: []
+    });
+  }
+}
+
 // 방문자 목록 조회 API
 app.get('/api/visitors', async (req, res) => {
   try {
@@ -443,15 +556,68 @@ app.get('/api/visitors', async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const skip = (page - 1) * limit;
     
-    // 방문자 목록 조회 (최신순)
-    const visitors = await Visitor.find()
-      .sort({ date: -1, createdAt: -1 })
+    // 날짜 범위 필터
+    const startDate = req.query.startDate ? new Date(req.query.startDate) : null;
+    const endDate = req.query.endDate ? new Date(req.query.endDate) : null;
+    
+    console.log('방문자 목록 조회 요청:', { 
+      startDate: req.query.startDate, 
+      endDate: req.query.endDate, 
+      sort: req.query.sort,
+      parsedStartDate: startDate,
+      parsedEndDate: endDate
+    });
+    
+    // 쿼리 조건 생성
+    const query = {};
+    if (startDate || endDate) {
+      // 시작일은 00:00:00으로 설정
+      if (startDate) {
+        startDate.setHours(0, 0, 0, 0);
+      }
+      // 종료일은 23:59:59.999로 설정
+      if (endDate) {
+        endDate.setHours(23, 59, 59, 999);
+      }
+      
+      // date 필드와 createdAt 필드 중 하나라도 조건을 만족하면 포함
+      query.$or = [];
+      if (startDate && endDate) {
+        query.$or.push(
+          { date: { $gte: startDate, $lte: endDate } },
+          { createdAt: { $gte: startDate, $lte: endDate } }
+        );
+      } else if (startDate) {
+        query.$or.push(
+          { date: { $gte: startDate } },
+          { createdAt: { $gte: startDate } }
+        );
+      } else if (endDate) {
+        query.$or.push(
+          { date: { $lte: endDate } },
+          { createdAt: { $lte: endDate } }
+        );
+      }
+    }
+    
+    console.log('쿼리 조건:', JSON.stringify(query, null, 2));
+    
+    // 정렬 옵션 (최신순: -1, 오래된순: 1)
+    const sortOrder = req.query.sort === 'oldest' ? 1 : -1;
+    // date 필드를 우선으로 정렬하고, 없으면 createdAt으로 정렬
+    const sortOptions = { date: sortOrder, createdAt: sortOrder };
+    
+    // 방문자 목록 조회
+    const visitors = await Visitor.find(query)
+      .sort(sortOptions)
       .limit(limit)
       .skip(skip)
       .lean();
     
-    // 전체 방문자 수
-    const total = await Visitor.countDocuments();
+    // 필터링된 전체 방문자 수
+    const total = await Visitor.countDocuments(query);
+    
+    console.log('조회된 방문자 수:', visitors.length, '전체:', total);
     
     res.json({ 
       success: true, 
@@ -832,10 +998,78 @@ app.delete('/api/contacts/:id', async (req, res) => {
   }
 });
 
-// /bo-api/* 경로를 동일한 /api/* 엔드포인트로 307 리다이렉트
-app.use('/bo-api', (req, res) => {
-  const targetUrl = '/api' + req.url; // req.url은 /bo-api 이후 하위 경로만 포함
+// /bo-api/* 경로를 동일한 /api/* 엔드포인트로 리다이렉트
+// 단, /bo-api/visitors/monthly는 위에서 이미 처리되므로 제외
+app.use('/bo-api', (req, res, next) => {
+  // /visitors/monthly는 이미 처리되었으므로 제외
+  if (req.path === '/visitors/monthly') {
+    return next();
+  }
+  // /upload-pdf는 직접 처리되므로 제외
+  if (req.path === '/upload-pdf') {
+    return next();
+  }
+  const targetUrl = '/api' + req.url;
   return res.redirect(307, targetUrl);
+});
+
+// PDF 업로드 API
+app.post('/api/upload-pdf', (req, res, next) => {
+  uploadPdf.single('file')(req, res, (err) => {
+    if (err) {
+      console.error('PDF 업로드 미들웨어 오류:', err);
+      console.error('에러 상세:', {
+        message: err.message,
+        code: err.code,
+        field: err.field,
+        name: err.name
+      });
+      return res.status(400).json({ 
+        success: false, 
+        error: err.message || 'PDF 파일 업로드에 실패했습니다.' 
+      });
+    }
+    next();
+  });
+}, async (req, res) => {
+  try {
+    console.log('PDF 업로드 요청 받음:', {
+      hasFile: !!req.file,
+      file: req.file ? {
+        originalname: req.file.originalname,
+        mimetype: req.file.mimetype,
+        size: req.file.size,
+        filename: req.file.filename
+      } : null,
+      body: req.body
+    });
+
+    if (!req.file) {
+      console.error('PDF 파일이 없음');
+      return res.status(400).json({ 
+        success: false, 
+        error: 'PDF 파일이 업로드되지 않았습니다.' 
+      });
+    }
+
+    const filePath = `/projects/pdfs/${req.file.filename}`;
+    
+    console.log(`📄 PDF 업로드 완료: ${filePath}`);
+    
+    res.json({ 
+      success: true, 
+      path: filePath,
+      filename: req.file.filename,
+      message: 'PDF 파일이 업로드되었습니다.' 
+    });
+  } catch (error) {
+    console.error('PDF 업로드 오류:', error);
+    console.error('에러 스택:', error.stack);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message || 'PDF 파일 업로드에 실패했습니다.' 
+    });
+  }
 });
 
 // 프로젝트 파일 다운로드 API

@@ -23,6 +23,10 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSave, onCan
     role: project?.role || '',
     duration: project?.duration || '',
     link: project?.link || '',
+    designLink: (project as any)?.designLink || (project as any)?.figmaLink || (project as any)?.designFile || '',
+    designPdf: (project as any)?.designPdf || '',
+    detailPdf: (project as any)?.detailPdf || '',
+    previewPdf: (project as any)?.previewPdf || '',
     image: project?.image || '',
     achievements: (project as any)?.achievements && Array.isArray((project as any).achievements) 
       ? (project as any).achievements.join('\n') 
@@ -35,6 +39,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSave, onCan
 
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState('');
+  const [pdfUploadProgress, setPdfUploadProgress] = useState<{ [key: string]: string }>({});
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -64,6 +69,10 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSave, onCan
       duration: formData.duration || '미정',
       achievements: formData.achievements ? formData.achievements.split('\n').map(a => a.trim()).filter(Boolean) : [],
       ...(formData.link && { link: formData.link }),
+      ...(formData.designLink && { designLink: formData.designLink }),
+      ...(formData.designPdf && { designPdf: formData.designPdf }),
+      ...(formData.detailPdf && { detailPdf: formData.detailPdf }),
+      ...(formData.previewPdf && { previewPdf: formData.previewPdf }),
       ...(formData.image && { image: formData.image }),
       ...(formData.gallery && { gallery: formData.gallery.split('\n').map(url => url.trim()).filter(Boolean) }),
       ...(formData.retrospective && { retrospective: formData.retrospective }),
@@ -103,30 +112,6 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSave, onCan
         </div>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-text-secondary mb-2">설명 (짧은 설명)</label>
-        <textarea
-          name="description"
-          value={formData.description}
-          onChange={handleChange}
-          placeholder="프로젝트 짧은 설명을 입력하세요"
-          rows={3}
-          className="w-full px-4 py-2 border border-line-medium rounded-lg focus:outline-none focus:border-brand-main"
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-text-secondary mb-2">상세 설명</label>
-        <textarea
-          name="fullDescription"
-          value={formData.fullDescription}
-          onChange={handleChange}
-          placeholder="프로젝트 상세 설명을 입력하세요"
-          rows={5}
-          className="w-full px-4 py-2 border border-line-medium rounded-lg focus:outline-none focus:border-brand-main"
-        />
-      </div>
-
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-text-secondary mb-2">카테고리</label>
@@ -154,18 +139,44 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSave, onCan
             placeholder="UX 디자인, 사용성 평가, 기획"
             className="w-full px-4 py-2 border border-line-medium rounded-lg focus:outline-none focus:border-brand-main"
           />
+          <p className="text-xs text-text-secondary mt-1">FO 모달의 태그 섹션에 표시됩니다</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div>
+        <label className="block text-sm font-medium text-text-secondary mb-2">상세 설명 (선택)</label>
+        <textarea
+          name="fullDescription"
+          value={formData.fullDescription}
+          onChange={handleChange}
+          placeholder="프로젝트 상세 설명을 입력하세요 (선택 사항)"
+          rows={5}
+          className="w-full px-4 py-2 border border-line-medium rounded-lg focus:outline-none focus:border-brand-main"
+        />
+        <p className="text-xs text-text-secondary mt-1">상세 설명은 현재 FO 모달에 표시되지 않습니다</p>
+      </div>
+
+      {/* 진행 기간, 팀 구성, 역량, 기여도 (FO 모달과 동일한 구성) */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div>
-          <label className="block text-sm font-medium text-text-secondary mb-2">날짜</label>
+          <label className="block text-sm font-medium text-text-secondary mb-2">진행 기간 - 날짜</label>
           <input
             type="text"
             name="date"
             value={formData.date}
             onChange={handleChange}
             placeholder="2024.01"
+            className="w-full px-4 py-2 border border-line-medium rounded-lg focus:outline-none focus:border-brand-main"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-text-secondary mb-2">진행 기간 - 기간</label>
+          <input
+            type="text"
+            name="duration"
+            value={formData.duration}
+            onChange={handleChange}
+            placeholder="2주"
             className="w-full px-4 py-2 border border-line-medium rounded-lg focus:outline-none focus:border-brand-main"
           />
         </div>
@@ -181,32 +192,295 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSave, onCan
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-text-secondary mb-2">기간</label>
-          <input
-            type="text"
-            name="duration"
-            value={formData.duration}
-            onChange={handleChange}
-            placeholder="2주"
-            className="w-full px-4 py-2 border border-line-medium rounded-lg focus:outline-none focus:border-brand-main"
-          />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-text-secondary mb-2">역할</label>
+          <label className="block text-sm font-medium text-text-secondary mb-2">역량 (쉼표로 구분)</label>
           <input
             type="text"
             name="role"
             value={formData.role}
             onChange={handleChange}
-            placeholder="기획자"
+            placeholder="AI 활용, Cursor, Figma MCP"
             className="w-full px-4 py-2 border border-line-medium rounded-lg focus:outline-none focus:border-brand-main"
           />
+          <p className="text-xs text-text-secondary mt-1">쉼표로 구분하면 원형 박스로 표시됩니다</p>
         </div>
+      </div>
+
+      {/* PDF 파일 첨부 (화면 설계서, 프로젝트 상세보기, 미리보기) */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold text-text-main mb-4">PDF 파일 첨부</h3>
+        
+        {/* 화면 설계서 PDF */}
         <div>
-          <label className="block text-sm font-medium text-text-secondary mb-2">링크 (선택)</label>
+          <label className="block text-sm font-medium text-text-secondary mb-2">화면 설계서 PDF</label>
+          <div className="flex gap-2">
+            <input
+              type="file"
+              accept=".pdf"
+              disabled={isUploading || !!pdfUploadProgress['design']}
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                
+                if (file.type !== 'application/pdf') {
+                  alert('PDF 파일만 업로드 가능합니다.');
+                  e.target.value = '';
+                  return;
+                }
+
+                setIsUploading(true);
+                setPdfUploadProgress(prev => ({ ...prev, design: '업로드 중...' }));
+
+                try {
+                  const uploadFormData = new FormData();
+                  uploadFormData.append('file', file);
+                  uploadFormData.append('type', 'pdf');
+
+                  console.log('PDF 업로드 시작:', file.name, file.size, file.type);
+
+                  const response = await fetch('/api/upload-pdf', {
+                    method: 'POST',
+                    body: uploadFormData,
+                  });
+
+                  console.log('PDF 업로드 응답 상태:', response.status, response.statusText);
+
+                  if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('PDF 업로드 HTTP 오류:', errorText);
+                    throw new Error(`서버 오류: ${response.status} ${response.statusText}`);
+                  }
+
+                  const result = await response.json();
+                  console.log('PDF 업로드 결과:', result);
+
+                  if (result.success) {
+                    setPdfUploadProgress(prev => ({ ...prev, design: `✓ ${result.path}` }));
+                    setFormData(prev => ({ ...prev, designPdf: result.path }));
+                    setTimeout(() => setPdfUploadProgress(prev => {
+                      const newProgress = { ...prev };
+                      delete newProgress.design;
+                      return newProgress;
+                    }), 3000);
+                  } else {
+                    throw new Error(result.error || '업로드 실패');
+                  }
+                } catch (error: any) {
+                  console.error('PDF 업로드 오류:', error);
+                  alert(`PDF 파일 업로드 중 오류가 발생했습니다: ${error.message || '알 수 없는 오류'}`);
+                  setPdfUploadProgress(prev => {
+                    const newProgress = { ...prev };
+                    delete newProgress.design;
+                    return newProgress;
+                  });
+                } finally {
+                  setIsUploading(false);
+                  e.target.value = '';
+                }
+              }}
+              className="flex-1 px-4 py-2 border border-line-medium rounded-lg focus:outline-none focus:border-brand-main file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-brand-main/10 file:text-brand-main hover:file:bg-brand-main/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            />
+            {formData.designPdf && (
+              <a
+                href={formData.designPdf}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2 bg-brand-main/10 text-brand-main rounded-lg hover:bg-brand-main/20 transition-colors text-sm font-medium whitespace-nowrap"
+              >
+                현재 파일 보기
+              </a>
+            )}
+          </div>
+          {pdfUploadProgress['design'] && (
+            <p className="text-xs text-brand-main mt-1">{pdfUploadProgress['design']}</p>
+          )}
+          {formData.designPdf && !pdfUploadProgress['design'] && (
+            <p className="text-xs text-text-secondary mt-1">업로드된 파일: {formData.designPdf.split('/').pop()}</p>
+          )}
+        </div>
+
+        {/* 프로젝트 상세보기 PDF */}
+        <div>
+          <label className="block text-sm font-medium text-text-secondary mb-2">프로젝트 상세보기 PDF</label>
+          <div className="flex gap-2">
+            <input
+              type="file"
+              accept=".pdf"
+              disabled={isUploading || !!pdfUploadProgress['detail']}
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                
+                if (file.type !== 'application/pdf') {
+                  alert('PDF 파일만 업로드 가능합니다.');
+                  e.target.value = '';
+                  return;
+                }
+
+                setIsUploading(true);
+                setPdfUploadProgress(prev => ({ ...prev, detail: '업로드 중...' }));
+
+                try {
+                  const uploadFormData = new FormData();
+                  uploadFormData.append('file', file);
+                  uploadFormData.append('type', 'pdf');
+
+                  console.log('PDF 업로드 시작:', file.name, file.size, file.type);
+
+                  const response = await fetch('/api/upload-pdf', {
+                    method: 'POST',
+                    body: uploadFormData,
+                  });
+
+                  console.log('PDF 업로드 응답 상태:', response.status, response.statusText);
+
+                  if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('PDF 업로드 HTTP 오류:', errorText);
+                    throw new Error(`서버 오류: ${response.status} ${response.statusText}`);
+                  }
+
+                  const result = await response.json();
+                  console.log('PDF 업로드 결과:', result);
+
+                  if (result.success) {
+                    setPdfUploadProgress(prev => ({ ...prev, detail: `✓ ${result.path}` }));
+                    setFormData(prev => ({ ...prev, detailPdf: result.path }));
+                    setTimeout(() => setPdfUploadProgress(prev => {
+                      const newProgress = { ...prev };
+                      delete newProgress.detail;
+                      return newProgress;
+                    }), 3000);
+                  } else {
+                    throw new Error(result.error || '업로드 실패');
+                  }
+                } catch (error: any) {
+                  console.error('PDF 업로드 오류:', error);
+                  alert(`PDF 파일 업로드 중 오류가 발생했습니다: ${error.message || '알 수 없는 오류'}`);
+                  setPdfUploadProgress(prev => {
+                    const newProgress = { ...prev };
+                    delete newProgress.detail;
+                    return newProgress;
+                  });
+                } finally {
+                  setIsUploading(false);
+                  e.target.value = '';
+                }
+              }}
+              className="flex-1 px-4 py-2 border border-line-medium rounded-lg focus:outline-none focus:border-brand-main file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-brand-main/10 file:text-brand-main hover:file:bg-brand-main/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            />
+            {formData.detailPdf && (
+              <a
+                href={formData.detailPdf}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2 bg-brand-main/10 text-brand-main rounded-lg hover:bg-brand-main/20 transition-colors text-sm font-medium whitespace-nowrap"
+              >
+                현재 파일 보기
+              </a>
+            )}
+          </div>
+          {pdfUploadProgress['detail'] && (
+            <p className="text-xs text-brand-main mt-1">{pdfUploadProgress['detail']}</p>
+          )}
+          {formData.detailPdf && !pdfUploadProgress['detail'] && (
+            <p className="text-xs text-text-secondary mt-1">업로드된 파일: {formData.detailPdf.split('/').pop()}</p>
+          )}
+        </div>
+
+        {/* 미리보기 PDF */}
+        <div>
+          <label className="block text-sm font-medium text-text-secondary mb-2">미리보기 PDF</label>
+          <div className="flex gap-2">
+            <input
+              type="file"
+              accept=".pdf"
+              disabled={isUploading || !!pdfUploadProgress['preview']}
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                
+                if (file.type !== 'application/pdf') {
+                  alert('PDF 파일만 업로드 가능합니다.');
+                  e.target.value = '';
+                  return;
+                }
+
+                setIsUploading(true);
+                setPdfUploadProgress(prev => ({ ...prev, preview: '업로드 중...' }));
+
+                try {
+                  const uploadFormData = new FormData();
+                  uploadFormData.append('file', file);
+                  uploadFormData.append('type', 'pdf');
+
+                  console.log('PDF 업로드 시작:', file.name, file.size, file.type);
+
+                  const response = await fetch('/api/upload-pdf', {
+                    method: 'POST',
+                    body: uploadFormData,
+                  });
+
+                  console.log('PDF 업로드 응답 상태:', response.status, response.statusText);
+
+                  if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('PDF 업로드 HTTP 오류:', errorText);
+                    throw new Error(`서버 오류: ${response.status} ${response.statusText}`);
+                  }
+
+                  const result = await response.json();
+                  console.log('PDF 업로드 결과:', result);
+
+                  if (result.success) {
+                    setPdfUploadProgress(prev => ({ ...prev, preview: `✓ ${result.path}` }));
+                    setFormData(prev => ({ ...prev, previewPdf: result.path }));
+                    setTimeout(() => setPdfUploadProgress(prev => {
+                      const newProgress = { ...prev };
+                      delete newProgress.preview;
+                      return newProgress;
+                    }), 3000);
+                  } else {
+                    throw new Error(result.error || '업로드 실패');
+                  }
+                } catch (error: any) {
+                  console.error('PDF 업로드 오류:', error);
+                  alert(`PDF 파일 업로드 중 오류가 발생했습니다: ${error.message || '알 수 없는 오류'}`);
+                  setPdfUploadProgress(prev => {
+                    const newProgress = { ...prev };
+                    delete newProgress.preview;
+                    return newProgress;
+                  });
+                } finally {
+                  setIsUploading(false);
+                  e.target.value = '';
+                }
+              }}
+              className="flex-1 px-4 py-2 border border-line-medium rounded-lg focus:outline-none focus:border-brand-main file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-brand-main/10 file:text-brand-main hover:file:bg-brand-main/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            />
+            {formData.previewPdf && (
+              <a
+                href={formData.previewPdf}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2 bg-brand-main/10 text-brand-main rounded-lg hover:bg-brand-main/20 transition-colors text-sm font-medium whitespace-nowrap"
+              >
+                현재 파일 보기
+              </a>
+            )}
+          </div>
+          {pdfUploadProgress['preview'] && (
+            <p className="text-xs text-brand-main mt-1">{pdfUploadProgress['preview']}</p>
+          )}
+          {formData.previewPdf && !pdfUploadProgress['preview'] && (
+            <p className="text-xs text-text-secondary mt-1">업로드된 파일: {formData.previewPdf.split('/').pop()}</p>
+          )}
+        </div>
+      </div>
+
+      {/* 프로젝트 상세보기, 화면 설계서 보기 링크 (기존 링크 입력 필드) */}
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-text-secondary mb-2">프로젝트 상세보기 링크 (선택)</label>
           <input
             type="text"
             name="link"
@@ -215,7 +489,19 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSave, onCan
             placeholder="https://..."
             className="w-full px-4 py-2 border border-line-medium rounded-lg focus:outline-none focus:border-brand-main"
           />
-          <p className="text-xs text-text-secondary mt-1">비워두면 저장되지 않습니다</p>
+          <p className="text-xs text-text-secondary mt-1">PDF 대신 외부 링크를 사용할 경우 입력</p>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-text-secondary mb-2">화면 설계서 링크 (선택)</label>
+          <input
+            type="text"
+            name="designLink"
+            value={formData.designLink}
+            onChange={handleChange}
+            placeholder="https://figma.com/..."
+            className="w-full px-4 py-2 border border-line-medium rounded-lg focus:outline-none focus:border-brand-main"
+          />
+          <p className="text-xs text-text-secondary mt-1">PDF 대신 Figma 링크를 사용할 경우 입력</p>
         </div>
       </div>
 
@@ -309,8 +595,27 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSave, onCan
         )}
       </div>
 
+      {/* 프로젝트 개요 (FO 모달과 동일한 순서) */}
       <div>
-        <label className="block text-sm font-medium text-text-secondary mb-2">주요 성과 (줄바꿈으로 구분)</label>
+        <label className="block text-sm font-medium text-text-secondary mb-2">
+          <span className="text-brand-main">📋</span> 프로젝트 개요 (짧은 설명)
+        </label>
+        <textarea
+          name="description"
+          value={formData.description}
+          onChange={handleChange}
+          placeholder="프로젝트 짧은 설명을 입력하세요"
+          rows={3}
+          className="w-full px-4 py-2 border border-line-medium rounded-lg focus:outline-none focus:border-brand-main"
+        />
+        <p className="text-xs text-text-secondary mt-1">FO 모달의 "프로젝트 개요" 섹션에 표시됩니다</p>
+      </div>
+
+      {/* 주요 성과 (FO 모달과 동일한 순서) */}
+      <div>
+        <label className="block text-sm font-medium text-text-secondary mb-2">
+          <span className="text-brand-main">🎯</span> 주요 성과 (줄바꿈으로 구분)
+        </label>
         <textarea
           name="achievements"
           value={formData.achievements}
@@ -319,11 +624,14 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSave, onCan
           rows={5}
           className="w-full px-4 py-2 border border-line-medium rounded-lg focus:outline-none focus:border-brand-main resize-y"
         />
-        <p className="text-xs text-text-secondary mt-1">각 성과를 줄바꿈으로 구분하여 입력하세요</p>
+        <p className="text-xs text-text-secondary mt-1">각 성과를 줄바꿈으로 구분하여 입력하세요. FO 모달의 "주요 성과" 섹션에 표시됩니다</p>
       </div>
 
+      {/* 회고 (FO 모달과 동일한 순서) */}
       <div>
-        <label className="block text-sm font-medium text-text-secondary mb-2">회고 (선택)</label>
+        <label className="block text-sm font-medium text-text-secondary mb-2">
+          <span className="text-brand-main">💭</span> 회고
+        </label>
         <textarea
           name="retrospective"
           value={formData.retrospective}
@@ -332,7 +640,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSave, onCan
           rows={5}
           className="w-full px-4 py-2 border border-line-medium rounded-lg focus:outline-none focus:border-brand-main resize-y"
         />
-        <p className="text-xs text-text-secondary mt-1">프로젝트 상세보기에서 💭 회고 섹션으로 표시됩니다</p>
+        <p className="text-xs text-text-secondary mt-1">FO 모달의 "회고" 섹션에 표시됩니다</p>
       </div>
 
       <div className="flex gap-3 pt-4">
@@ -355,4 +663,5 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSave, onCan
     </form>
   );
 };
+
 

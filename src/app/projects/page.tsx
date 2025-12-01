@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ExternalLink, Calendar, Users, Award, X, ArrowLeft, Download, Eye } from 'lucide-react';
+import { ExternalLink, Calendar, Users, Award, X, ArrowLeft, Download, Eye, FileText } from 'lucide-react';
 import { projects as initialProjects } from '@/data/portfolio';
 import Link from 'next/link';
 
@@ -131,8 +131,12 @@ export default function AllProjectsPage() {
             team: p.team || '',
             achievements: p.achievements || [],
             link: p.link || '#',
+            designLink: (p as any).designLink || (p as any).figmaLink || (p as any).designFile || '',
+            designPdf: (p as any).designPdf || '',
+            detailPdf: (p as any).detailPdf || '',
+            previewPdf: (p as any).previewPdf || '',
             featured: p.featured === true || p.featured === 'true', // boolean 강제 변환
-          }));
+          } as Project & { designLink?: string; designFile?: string; designPdf?: string; detailPdf?: string; previewPdf?: string }));
           
           // BO에 프로젝트가 있으면 BO 데이터 사용, 없으면 빈 배열 사용
           if (boProjects.length > 0) {
@@ -554,22 +558,47 @@ export default function AllProjectsPage() {
                 {/* Project Info Grid */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                   <div className="bg-bg-light rounded-xl p-4 border border-line-light">
-                    <p className="text-xs text-text-secondary mb-1 font-medium">역할</p>
-                    <p className="text-sm font-semibold text-text-main">{selectedProject.role}</p>
-                </div>
-                  <div className="bg-bg-light rounded-xl p-4 border border-line-light">
-                    <p className="text-xs text-text-secondary mb-1 font-medium">기간</p>
-                    <p className="text-sm font-semibold text-text-main">{selectedProject.duration}</p>
-                </div>
+                    <p className="text-xs text-text-secondary mb-1 font-medium">진행 기간</p>
+                    <p className="text-sm font-semibold text-text-main">
+                      {selectedProject.date && selectedProject.duration 
+                        ? `${selectedProject.date} (${selectedProject.duration})`
+                        : selectedProject.date || selectedProject.duration || '-'}
+                    </p>
+                  </div>
                   <div className="bg-bg-light rounded-xl p-4 border border-line-light">
                     <p className="text-xs text-text-secondary mb-1 font-medium">팀 구성</p>
-                    <p className="text-sm font-semibold text-text-main">{selectedProject.team}</p>
-                </div>
+                    <p className="text-sm font-semibold text-text-main">{selectedProject.team || '-'}</p>
+                  </div>
                   <div className="bg-bg-light rounded-xl p-4 border border-line-light">
-                    <p className="text-xs text-text-secondary mb-1 font-medium">날짜</p>
-                    <p className="text-sm font-semibold text-text-main">{selectedProject.date}</p>
+                    <p className="text-xs text-text-secondary mb-2 font-medium">역량</p>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedProject.role ? (
+                        selectedProject.role.split(/[,，、]/).map((keyword, index) => {
+                          const trimmedKeyword = keyword.trim();
+                          if (!trimmedKeyword) return null;
+                          return (
+                            <span
+                              key={index}
+                              className="px-3 py-1 bg-brand-main/5 text-brand-main text-xs font-medium rounded-full border border-brand-main/20"
+                            >
+                              {trimmedKeyword}
+                            </span>
+                          );
+                        })
+                      ) : (
+                        <span className="text-sm text-text-secondary">-</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="bg-bg-light rounded-xl p-4 border border-line-light">
+                    <p className="text-xs text-text-secondary mb-1 font-medium">기여도</p>
+                    <p className="text-sm font-semibold text-text-main">
+                      {selectedProject.achievements && selectedProject.achievements.length > 0
+                        ? `${selectedProject.achievements.length}개 성과`
+                        : selectedProject.role || '-'}
+                    </p>
+                  </div>
                 </div>
-              </div>
 
               {/* Tags */}
                 <div className="flex flex-wrap gap-2 mb-8">
@@ -613,32 +642,131 @@ export default function AllProjectsPage() {
               )}
 
               {/* Retrospective */}
-              {(selectedProject as any).retrospective && (
-                <div className="mb-8">
-                  <h3 className="text-xl font-bold text-text-main mb-4 flex items-center gap-2">
-                    <span className="text-brand-main">💭</span>
-                    회고
-                  </h3>
-                  <p className="text-text-secondary leading-relaxed whitespace-pre-line">
-                    {(selectedProject as any).retrospective}
-                  </p>
-                </div>
-              )}
+              <div className="mb-8">
+                <h3 className="text-xl font-bold text-text-main mb-4 flex items-center gap-2">
+                  <span className="text-brand-main">💭</span>
+                  회고
+                </h3>
+                <p className="text-text-secondary leading-relaxed whitespace-pre-line">
+                  {(selectedProject as any).retrospective || '회고 내용이 없습니다.'}
+                </p>
+              </div>
 
-                {/* External Link */}
-                {selectedProject.link && (
-                  <div className="mt-8 pt-8 border-t border-line-light">
-                <a
-                  href={selectedProject.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-6 py-3 bg-brand-main text-white rounded-xl hover:opacity-90 transition-all duration-300 shadow-md"
-                >
-                      <ExternalLink size={18} />
-                      <span className="font-medium">프로젝트 상세보기</span>
-                </a>
-                  </div>
-              )}
+                {/* External Links */}
+                <div className="mt-8 pt-8 border-t border-line-light flex flex-wrap gap-3">
+                  {/* 프로젝트 상세보기 - PDF 우선, 없으면 링크 */}
+                  {(() => {
+                    const detailPdf = (selectedProject as any).detailPdf;
+                    const link = selectedProject.link;
+                    
+                    if (detailPdf) {
+                      return (
+                        <a
+                          href={detailPdf}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-6 py-3 bg-brand-main text-white rounded-xl hover:opacity-90 transition-all duration-300 shadow-md"
+                        >
+                          <FileText size={18} />
+                          <span className="font-medium">프로젝트 상세보기</span>
+                        </a>
+                      );
+                    } else if (link && link !== '#') {
+                      return (
+                        <a
+                          href={link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-6 py-3 bg-brand-main text-white rounded-xl hover:opacity-90 transition-all duration-300 shadow-md"
+                        >
+                          <ExternalLink size={18} />
+                          <span className="font-medium">프로젝트 상세보기</span>
+                        </a>
+                      );
+                    } else {
+                      return (
+                        <button
+                          disabled
+                          className="inline-flex items-center gap-2 px-6 py-3 bg-gray-300 text-gray-500 rounded-xl cursor-not-allowed opacity-50"
+                        >
+                          <ExternalLink size={18} />
+                          <span className="font-medium">프로젝트 상세보기</span>
+                        </button>
+                      );
+                    }
+                  })()}
+                  
+                  {/* 화면 설계서 보기 - PDF 우선, 없으면 링크 */}
+                  {(() => {
+                    const designPdf = (selectedProject as any).designPdf;
+                    const designLink = (selectedProject as any).designLink || (selectedProject as any).figmaLink || (selectedProject as any).designFile;
+                    
+                    if (designPdf) {
+                      return (
+                        <a
+                          href={designPdf}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-xl hover:opacity-90 transition-all duration-300 shadow-md"
+                        >
+                          <FileText size={18} />
+                          <span className="font-medium">화면 설계서 보기</span>
+                        </a>
+                      );
+                    } else if (designLink) {
+                      const isFile = designLink && (designLink.startsWith('/') || designLink.startsWith('./') || designLink.match(/\.(pdf|doc|docx|ppt|pptx|xls|xlsx)$/i));
+                      
+                      if (isFile) {
+                        return (
+                          <a
+                            href={designLink.startsWith('/') ? designLink : `/${designLink}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-xl hover:opacity-90 transition-all duration-300 shadow-md"
+                          >
+                            <FileText size={18} />
+                            <span className="font-medium">화면 설계서 보기</span>
+                          </a>
+                        );
+                      } else {
+                        return (
+                          <a
+                            href={designLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-xl hover:opacity-90 transition-all duration-300 shadow-md"
+                          >
+                            <FileText size={18} />
+                            <span className="font-medium">화면 설계서 보기</span>
+                          </a>
+                        );
+                      }
+                    } else {
+                      return (
+                        <button
+                          disabled
+                          className="inline-flex items-center gap-2 px-6 py-3 bg-gray-300 text-gray-500 rounded-xl cursor-not-allowed opacity-50"
+                        >
+                          <FileText size={18} />
+                          <span className="font-medium">화면 설계서 보기</span>
+                        </button>
+                      );
+                    }
+                  })()}
+                  
+                  {/* 미리보기 PDF */}
+                  {(selectedProject as any).previewPdf && (
+                    <a
+                      href={(selectedProject as any).previewPdf}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-xl hover:opacity-90 transition-all duration-300 shadow-md"
+                    >
+                      <FileText size={18} />
+                      <span className="font-medium">미리보기</span>
+                    </a>
+                  )}
+                </div>
             </div>
           </motion.div>
         </motion.div>

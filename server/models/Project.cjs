@@ -53,6 +53,30 @@ const ProjectSchema = new Schema(
     link: {
       type: String,
     },
+    designLink: {
+      type: String,
+    },
+    figmaLink: {
+      type: String,
+    },
+    designFile: {
+      type: String,
+    },
+    designPdf: {
+      type: String,
+    },
+    detailPdf: {
+      type: String,
+    },
+    previewPdf: {
+      type: String,
+    },
+    retrospective: {
+      type: String,
+    },
+    gallery: [{
+      type: String,
+    }],
     featured: {
       type: Boolean,
       default: false,
