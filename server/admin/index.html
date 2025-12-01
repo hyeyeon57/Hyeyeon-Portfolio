@@ -389,33 +389,79 @@
     // 전역 함수로 등록 (HTML에서 호출 가능하도록)
     window.switchTab = switchTab;
 
-    // MongoDB 연결 상태 확인
-    async function checkMongoDBStatus() {
+    // MongoDB 연결 상태 확인 (재시도 로직 포함)
+    async function checkMongoDBStatus(retryCount = 0) {
+      const maxRetries = 3;
+      const statusEl = document.getElementById('mongodbStatus');
+      
       try {
-        const response = await fetch(`${API_URL}/health`);
-        const result = await response.json();
-        const statusEl = document.getElementById('mongodbStatus');
+        const response = await fetch(`${API_URL}/health`, {
+          cache: 'no-cache',
+          headers: {
+            'Cache-Control': 'no-cache'
+          }
+        });
         
-        if (result.success && result.mongodb && result.mongodb.connected) {
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        
+        const result = await response.json();
+        
+        // MongoDB 연결 상태 확인 (여러 경로 확인)
+        const isConnected = result.success && (
+          (result.mongodb && result.mongodb.connected) ||
+          (result.connected === true) ||
+          (result.readyState === 1)
+        );
+        
+        if (isConnected) {
           statusEl.innerHTML = `
             <span class="w-2 h-2 rounded-full bg-green-500"></span>
             <span class="text-green-700 font-medium">MongoDB 연결됨</span>
           `;
           statusEl.className = 'flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm bg-green-50';
         } else {
+          // 연결 안됨 - 재시도
+          if (retryCount < maxRetries) {
+            statusEl.innerHTML = `
+              <span class="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></span>
+              <span class="text-yellow-700 font-medium">MongoDB 연결 중...</span>
+            `;
+            statusEl.className = 'flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm bg-yellow-50';
+            
+            // 1초 후 재시도
+            setTimeout(() => {
+              checkMongoDBStatus(retryCount + 1);
+            }, 1000);
+          } else {
+            statusEl.innerHTML = `
+              <span class="w-2 h-2 rounded-full bg-red-500"></span>
+              <span class="text-red-700 font-medium">MongoDB 연결 안됨</span>
+            `;
+            statusEl.className = 'flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm bg-red-50';
+          }
+        }
+      } catch (error) {
+        // 에러 발생 시 재시도
+        if (retryCount < maxRetries) {
+          statusEl.innerHTML = `
+            <span class="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></span>
+            <span class="text-yellow-700 font-medium">MongoDB 확인 중...</span>
+          `;
+          statusEl.className = 'flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm bg-yellow-50';
+          
+          // 1초 후 재시도
+          setTimeout(() => {
+            checkMongoDBStatus(retryCount + 1);
+          }, 1000);
+        } else {
           statusEl.innerHTML = `
             <span class="w-2 h-2 rounded-full bg-red-500"></span>
-            <span class="text-red-700 font-medium">MongoDB 연결 안됨</span>
+            <span class="text-red-700 font-medium">MongoDB 확인 실패</span>
           `;
           statusEl.className = 'flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm bg-red-50';
         }
-      } catch (error) {
-        const statusEl = document.getElementById('mongodbStatus');
-        statusEl.innerHTML = `
-          <span class="w-2 h-2 rounded-full bg-red-500"></span>
-          <span class="text-red-700 font-medium">MongoDB 확인 실패</span>
-        `;
-        statusEl.className = 'flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm bg-red-50';
       }
     }
 
@@ -429,11 +475,11 @@
       // 탭 UI 즉시 표시 (데이터는 비동기로 로드)
       switchTab(initialTab);
       
-      // 인증 및 MongoDB 상태 확인은 백그라운드에서 처리 (블로킹 없음)
-      Promise.all([
-        checkAuth().catch(() => {}),
-        checkMongoDBStatus().catch(() => {})
-      ]).catch(() => {});
+      // MongoDB 상태 확인을 즉시 시작 (재시도 로직 포함)
+      checkMongoDBStatus();
+      
+      // 인증 확인은 백그라운드에서 처리
+      checkAuth().catch(() => {});
       
       // 30초마다 현재 탭 데이터 자동 갱신
       setInterval(async () => {

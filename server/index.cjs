@@ -672,28 +672,69 @@ app.delete('/api/visitors', async (req, res) => {
   }
 });
 
-// Health Check API (MongoDB 연결 상태 확인)
+// Health Check API (MongoDB 연결 상태 확인) - 개선된 버전
 app.get('/api/health', async (req, res) => {
   try {
-    // MongoDB 연결 시도 (이미 연결되어 있으면 재사용)
-    const dbConnected = await connectDB();
     const readyState = mongoose.connection.readyState;
     
-    res.json({
-      success: true,
-      connected: readyState === 1,
-      readyState: readyState,
-      host: mongoose.connection.host || null,
-      database: mongoose.connection.name || null,
-      hasMongoURI: !!process.env.MONGODB_URI,
-      message: readyState === 1 ? 'MongoDB 연결됨' : 'MongoDB 연결 안됨'
-    });
+    // 이미 연결되어 있으면 즉시 반환
+    if (readyState === 1) {
+      return res.json({
+        success: true,
+        connected: true,
+        readyState: readyState,
+        mongodb: {
+          connected: true,
+          host: mongoose.connection.host || null,
+          database: mongoose.connection.name || null
+        },
+        host: mongoose.connection.host || null,
+        database: mongoose.connection.name || null,
+        hasMongoURI: !!process.env.MONGODB_URI,
+        message: 'MongoDB 연결됨'
+      });
+    }
+    
+    // 연결되지 않았으면 연결 시도
+    try {
+      await connectDB();
+      const newReadyState = mongoose.connection.readyState;
+      
+      res.json({
+        success: true,
+        connected: newReadyState === 1,
+        readyState: newReadyState,
+        mongodb: {
+          connected: newReadyState === 1,
+          host: mongoose.connection.host || null,
+          database: mongoose.connection.name || null
+        },
+        host: mongoose.connection.host || null,
+        database: mongoose.connection.name || null,
+        hasMongoURI: !!process.env.MONGODB_URI,
+        message: newReadyState === 1 ? 'MongoDB 연결됨' : 'MongoDB 연결 안됨'
+      });
+    } catch (connectError) {
+      res.json({
+        success: false,
+        connected: false,
+        readyState: mongoose.connection.readyState || 0,
+        mongodb: {
+          connected: false
+        },
+        error: connectError.message,
+        message: 'MongoDB 연결 실패'
+      });
+    }
   } catch (error) {
     console.error('Health check 오류:', error);
     res.json({
       success: false,
       connected: false,
       readyState: mongoose.connection.readyState || 0,
+      mongodb: {
+        connected: false
+      },
       error: error.message
     });
   }
