@@ -431,21 +431,21 @@
       }
     }
 
-    // 페이지 로드 시 실행
-    window.addEventListener('DOMContentLoaded', async () => {
-      // 병렬로 인증 및 MongoDB 상태 확인 (성능 개선)
-      const [authResult, mongoResult] = await Promise.all([
-        checkAuth().catch(() => {}),
-        checkMongoDBStatus().catch(() => {})
-      ]);
-      
-      // URL 해시에서 탭 정보 읽기 (새로고침 시 현재 탭 유지)
+    // 페이지 로드 시 실행 (초고속 로딩 최적화)
+    window.addEventListener('DOMContentLoaded', () => {
+      // 즉시 UI 표시 (await 제거로 블로킹 없음)
       const hash = window.location.hash.replace('#', '');
       const validTabs = ['projects', 'contacts', 'visitors'];
       const initialTab = validTabs.includes(hash) ? hash : 'projects';
       
-      // 초기 탭 설정 (데이터 로드는 switchTab에서 처리)
-      await switchTab(initialTab);
+      // 탭 UI 즉시 표시 (데이터는 비동기로 로드)
+      switchTab(initialTab).catch(() => {});
+      
+      // 인증 및 MongoDB 상태 확인은 백그라운드에서 처리 (블로킹 없음)
+      Promise.all([
+        checkAuth().catch(() => {}),
+        checkMongoDBStatus().catch(() => {})
+      ]).catch(() => {});
       
       // 30초마다 현재 탭 데이터 자동 갱신
       setInterval(async () => {
@@ -454,8 +454,10 @@
         } else if (currentTab === 'contacts') {
           await loadContacts();
         } else if (currentTab === 'visitors') {
-          await loadVisitors(null, null, 'newest');
-          await loadVisitorStatsForTab();
+          await Promise.all([
+            loadVisitors(null, null, 'newest'),
+            loadVisitorStatsForTab()
+          ]);
         }
       }, 30000);
     });
@@ -521,7 +523,8 @@
       const statsContainer = document.getElementById('contact-stats');
       if (statsContainer) {
         statsContainer.innerHTML = statsHtml;
-        lucide.createIcons();
+        // 아이콘 비동기 처리 (렌더링 블로킹 방지)
+        setTimeout(() => lucide.createIcons(), 0);
       }
     }
 
@@ -818,9 +821,9 @@
       }
     }
 
-    // 방문자 통계 렌더링 (방문자 관리 탭용) - 최적화된 버전
+    // 방문자 통계 렌더링 (방문자 관리 탭용) - 초고속 최적화
     async function renderVisitorStats(stats) {
-      // 통계 카드 먼저 렌더링 (즉시 표시)
+      // 통계 카드 즉시 렌더링 (동기 처리)
       const statsHtml = `
         <div class="bg-white p-6 rounded-xl shadow-sm border">
           <div class="flex items-center justify-between">
@@ -859,24 +862,19 @@
       const statsContainer = document.getElementById('visitor-stats');
       if (statsContainer) {
         statsContainer.innerHTML = statsHtml;
-        lucide.createIcons();
+        // 아이콘은 비동기로 처리 (렌더링 블로킹 방지)
+        setTimeout(() => lucide.createIcons(), 0);
       }
       
-      // 그래프 렌더링을 requestAnimationFrame으로 최적화 (비동기 처리)
-      requestAnimationFrame(() => {
-        if (stats.hourly && Array.isArray(stats.hourly)) {
-          renderTodayChart(stats.hourly, stats.today || 0);
-        }
-        requestAnimationFrame(() => {
-          if (stats.weekly && Array.isArray(stats.weekly)) {
-            renderWeeklyChart(stats.weekly, stats.thisWeek || 0);
-          }
-          // 월별 데이터 로드 (기본값: 현재 월) - 마지막에 로드
-          requestAnimationFrame(() => {
-            loadMonthlyData(currentMonthlyYear, currentMonthlyMonth);
-          });
-        });
-      });
+      // 그래프 렌더링을 즉시 시작하되 병렬 처리
+      if (stats.hourly && Array.isArray(stats.hourly)) {
+        renderTodayChart(stats.hourly, stats.today || 0);
+      }
+      if (stats.weekly && Array.isArray(stats.weekly)) {
+        renderWeeklyChart(stats.weekly, stats.thisWeek || 0);
+      }
+      // 월별 데이터는 별도로 로드 (블로킹 없음)
+      loadMonthlyData(currentMonthlyYear, currentMonthlyMonth).catch(() => {});
     }
 
     // 오늘 방문자 시간대별 그래프 (최적화된 버전)
@@ -1464,7 +1462,8 @@
       const statsContainer = document.getElementById('project-stats');
       if (statsContainer) {
         statsContainer.innerHTML = statsHtml;
-        lucide.createIcons();
+        // 아이콘 비동기 처리
+        setTimeout(() => lucide.createIcons(), 0);
       }
     }
 
@@ -1544,7 +1543,8 @@
         </tr>
       `;
       }).join('');
-      lucide.createIcons();
+      // 아이콘 비동기 처리
+      setTimeout(() => lucide.createIcons(), 0);
       
       // UI 업데이트 (버튼 표시/숨김)
       updateUIForAuth();
