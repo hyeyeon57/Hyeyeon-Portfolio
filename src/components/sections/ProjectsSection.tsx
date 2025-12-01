@@ -1,211 +1,24 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ExternalLink, Calendar, Users, Award, Eye, FileText } from 'lucide-react';
-import { projects as initialProjects } from '@/data/portfolio';
 import Link from 'next/link';
-
-// 카테고리 정의
-const categories = [
-  { id: 'new', label: '신규' },
-  { id: 'renewal', label: '리뉴얼' },
-  { id: 'app', label: '앱' },
-  { id: 'web', label: '웹' },
-  { id: 'proposal', label: '기획안' },
-  { id: 'usability', label: '사용성평가' },
-];
+import { PROJECT_CATEGORIES } from '@/constants/categories';
+import { useProjects } from '@/hooks/useProjects';
 
 interface ProjectsSectionProps {
   theme?: 'light' | 'dark';
 }
 
 export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
-  const [projects, setProjects] = useState<typeof initialProjects>([]); // 초기값을 빈 배열로 변경 (정적 데이터 사용 안 함)
+  // 커스텀 훅으로 데이터 페칭 로직 분리
+  const { projects, loading, error } = useProjects();
+
+  // UI 상태만 관리
   const [selectedProject, setSelectedProject] = useState<typeof projects[0] | null>(null);
   const [showGalleryModal, setShowGalleryModal] = useState(false);
   const [galleryProject, setGalleryProject] = useState<typeof projects[0] | null>(null);
-  const [error, setError] = useState<string | null>(null); // 에러 상태 추가
-  const [loading, setLoading] = useState(true); // 로딩 상태 추가
-
-  // BO 서버에서 프로젝트 데이터 가져오기
-  useEffect(() => {
-    const fetchProjects = async (forceRefresh = false, retryCount = 0) => {
-      const MAX_RETRIES = 3; // 최대 3번 재시도
-      
-      try {
-        // 강제 새로고침 시 타임스탬프를 더 크게 만들어 캐시 완전 무효화
-        const timestamp = forceRefresh ? Date.now() + Math.random() : Date.now();
-        
-        // 타임아웃 설정 (10초)
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000);
-        
-        let response;
-        try {
-          response = await fetch(`/api/projects?t=${timestamp}&_=${timestamp}`, {
-            cache: 'no-store',
-            headers: {
-              'Cache-Control': 'no-cache',
-              'Pragma': 'no-cache'
-            },
-            signal: controller.signal
-          });
-          clearTimeout(timeoutId);
-        } catch (fetchError: any) {
-          clearTimeout(timeoutId);
-          
-          // 타임아웃 또는 네트워크 에러인 경우 재시도
-          if ((fetchError.name === 'AbortError' || fetchError.message?.includes('aborted')) && retryCount < MAX_RETRIES) {
-            console.warn(`⚠️ 요청 타임아웃, 재시도 중... (${retryCount + 1}/${MAX_RETRIES})`);
-            await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1))); // 지수 백오프
-            return fetchProjects(forceRefresh, retryCount + 1);
-          }
-          
-          // 네트워크 에러인 경우 재시도
-          if ((fetchError.message?.includes('fetch failed') || fetchError.message?.includes('network')) && retryCount < MAX_RETRIES) {
-            console.warn(`⚠️ 네트워크 에러, 재시도 중... (${retryCount + 1}/${MAX_RETRIES})`);
-            await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)));
-            return fetchProjects(forceRefresh, retryCount + 1);
-          }
-          
-          throw fetchError; // 재시도 실패 시 에러 던지기
-        }
-        if (!response.ok) {
-          // 503 또는 504 에러인 경우 재시도
-          if ((response.status === 503 || response.status === 504) && retryCount < MAX_RETRIES) {
-            console.warn(`⚠️ 백엔드 서버 오류 (${response.status}), 재시도 중... (${retryCount + 1}/${MAX_RETRIES})`);
-            await new Promise(resolve => setTimeout(resolve, 2000 * (retryCount + 1))); // 지수 백오프
-            return fetchProjects(forceRefresh, retryCount + 1);
-          }
-          
-          // 응답 본문 읽기 시도
-          let errorDetails = '';
-          try {
-            const errorData = await response.clone().json().catch(() => null);
-            if (errorData) {
-              errorDetails = errorData.error || JSON.stringify(errorData);
-            }
-          } catch (e) {
-            errorDetails = await response.text().catch(() => '응답 본문을 읽을 수 없습니다.');
-          }
-          
-          const errorMsg = `백엔드 API 호출 실패 (${response.status}: ${response.statusText})${errorDetails ? ` - ${errorDetails}` : ''}`;
-          
-          console.error('❌ 백엔드 API 호출 실패:', {
-            status: response.status,
-            statusText: response.statusText,
-            url: response.url,
-            error: errorDetails,
-            retryCount,
-            headers: Object.fromEntries(response.headers.entries())
-          });
-          
-          // API 호출 실패 시 에러 메시지 표시
-          console.warn('⚠️ 백엔드 연결 실패 - 빈 배열 사용 (정적 데이터 사용 안 함)');
-          setError(errorMsg);
-          setProjects([]);
-          setLoading(false);
-          return;
-        }
-        
-        const result = await response.json();
-        console.log('📡 백엔드 API 응답:', {
-          success: result.success,
-          dataLength: result.data?.length || 0,
-          hasData: !!result.data
-        });
-        
-        if (result.success && Array.isArray(result.data)) {
-          // BO 데이터를 우선으로 사용
-          const boProjects = result.data.map((p: any) => ({
-            id: p.id || p._id?.toString() || '',
-            title: p.title || '',
-            subtitle: p.subtitle || '',
-            description: p.description || '',
-            fullDescription: p.fullDescription || '',
-            image: p.image || p.images?.[0] || '',
-            tags: p.tags || [],
-            category: p.category || 'new',
-            date: p.date || '',
-            role: p.role || '',
-            duration: p.duration || '',
-            team: p.team || '',
-            achievements: p.achievements || [],
-            link: p.link || '#',
-            designLink: (p as any).designLink || (p as any).figmaLink || (p as any).designFile || '',
-            designPdf: (p as any).designPdf || '',
-            detailPdf: (p as any).detailPdf || '',
-            previewPdf: (p as any).previewPdf || '',
-            featured: p.featured === true || p.featured === 'true', // boolean 강제 변환
-          })) as typeof initialProjects & { designPdf?: string; detailPdf?: string; previewPdf?: string };
-          
-          // BO에 프로젝트가 있으면 BO 데이터 사용
-          if (boProjects.length > 0) {
-            const featuredCount = boProjects.filter(p => p.featured).length;
-            console.log('✅ 백엔드 프로젝트 데이터 로드 성공:', {
-              total: boProjects.length,
-              featured: featuredCount,
-              featuredProjects: boProjects.filter(p => p.featured).map(p => p.title)
-            });
-            setProjects(boProjects);
-            setError(null); // 성공 시 에러 초기화
-          } else {
-            // BO에 데이터가 없으면 빈 배열 사용 (정적 데이터 사용 안 함)
-            console.warn('⚠️ 백엔드에 프로젝트가 없음 - 빈 배열 사용');
-            setProjects([]);
-            setError('백엔드에 프로젝트 데이터가 없습니다.');
-          }
-        } else {
-          // 응답 형식 오류 시 빈 배열 사용
-          const errorMsg = result.error || '백엔드 응답 형식 오류';
-          console.error('❌ 백엔드 응답 형식 오류:', result);
-          setProjects([]);
-          setError(errorMsg);
-        }
-        setLoading(false);
-      } catch (error: any) {
-        const errorMsg = error.message || '프로젝트 로드 중 오류가 발생했습니다.';
-        console.error('❌ 프로젝트 로드 오류:', {
-          message: error.message,
-          name: error.name,
-          stack: error.stack,
-          cause: error.cause,
-          fullError: error
-        });
-        // 오류 시 빈 배열 사용 (정적 데이터 사용 안 함)
-        console.warn('⚠️ 백엔드 연결 실패 - 빈 배열 사용 (정적 데이터 사용 안 함)');
-        setProjects([]);
-        setError(`${errorMsg} (자세한 내용은 콘솔 확인)`);
-        setLoading(false);
-      }
-    };
-
-    fetchProjects(true); // 초기 로드 시 강제 새로고침
-    
-    // 페이지 포커스를 받을 때마다 데이터 새로고침 (즐겨찾기 변경 즉시 반영)
-    const handleFocus = () => {
-      fetchProjects(true); // 강제 새로고침
-    };
-    window.addEventListener('focus', handleFocus);
-    
-    // visibilitychange 이벤트도 감지 (탭 전환 시)
-    const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        fetchProjects(true); // 강제 새로고침
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    
-    // 주기적으로 새로고침 (5초마다 - 더 자주 체크)
-    const interval = setInterval(() => fetchProjects(true), 5000);
-    
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener('focus', handleFocus);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, []);
 
   // BO에서 featured=true로 설정된 프로젝트를 대표 프로젝트로 표시
   // featured 프로젝트만 표시 (개수 제한 없음 - 백엔드에서 설정한 대로)
