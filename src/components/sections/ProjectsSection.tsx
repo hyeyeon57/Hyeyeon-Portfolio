@@ -195,7 +195,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                   )}
                   
                   <div className="absolute bottom-4 left-4 px-3 py-1.5 bg-white/90 backdrop-blur-sm text-brand-main rounded-lg text-xs font-semibold border border-brand-main/20">
-                    {categories.find(c => c.id === project.category)?.label || project.category}
+                    {PROJECT_CATEGORIES.find(c => c.id === project.category)?.label || project.category}
                   </div>
                 </div>
 
