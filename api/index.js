@@ -12,7 +12,7 @@ const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 
 // 상대 경로로 모듈 import
-const { connectDB } = require('../server/config/database.cjs');
+const { initDB } = require('../server/config/database.cjs');
 const Project = require('../server/models/Project.cjs');
 const Visitor = require('../server/models/Visitor.cjs');
 const Contact = require('../server/models/Contact.cjs');
@@ -648,102 +648,6 @@ app.post('/bo-api/auth/logout', handleLogout);
 app.get('/api/auth/check', handleAuthCheck);
 app.get('/api/bo/auth/check', handleAuthCheck);
 app.get('/bo-api/auth/check', handleAuthCheck);
-
-// MongoDB 연결 초기화 (서버리스 환경 최적화)
-// Vercel 서버리스 환경에서는 연결을 재사용하지 않고 매번 새로 연결하는 것이 안전
-let dbConnected = false;
-let connectionAttempts = 0;
-const MAX_RETRIES = 1; // 재시도 횟수 최소화
-const RETRY_DELAY = 200; // 재시도 간격 최소화
-const CONNECTION_TIMEOUT = 4000; // 전체 연결 타임아웃 4초로 단축
-
-const initDB = async (forceReconnect = false) => {
-  const currentState = mongoose.connection.readyState;
-  const isConnected = currentState === 1;
-  
-  // 서버리스 환경에서는 연결을 재사용하지 않고 매번 새로 연결
-  const isVercel = process.env.VERCEL === '1';
-  
-  // 이미 연결되어 있고 서버리스가 아니면 재사용
-  if (!forceReconnect && !isVercel && isConnected && dbConnected) {
-    return true;
-  }
-  
-  // 연결이 끊어지는 중이거나 연결 중이면 기다리지 않고 즉시 새 연결 시도
-  if (currentState === 2 || currentState === 3) {
-    console.log(`⚠️ MongoDB 연결 상태: ${currentState} (${currentState === 2 ? 'connecting' : 'disconnecting'}), 새 연결 시도`);
-    // 기다리지 않고 즉시 새 연결 시도
-    try {
-      await mongoose.connection.close().catch(() => {}); // 기존 연결 강제 종료
-    } catch (e) {
-      // 무시
-    }
-  }
-  
-  // 재시도 횟수 초기화
-  if (forceReconnect || !dbConnected) {
-    connectionAttempts = 0;
-  }
-  
-  // 최대 재시도 횟수 확인
-  if (connectionAttempts >= MAX_RETRIES) {
-    console.error(`❌ MongoDB 연결 실패: 최대 재시도 횟수(${MAX_RETRIES}) 초과`);
-    return false;
-  }
-  
-  try {
-    connectionAttempts++;
-    console.log(`🔄 MongoDB 연결 시도 (${connectionAttempts}/${MAX_RETRIES})...`);
-    
-    // 기존 연결이 있으면 먼저 닫기 (타임아웃 적용)
-    if (currentState !== 0 && currentState !== 1) {
-      try {
-        await Promise.race([
-          mongoose.connection.close(),
-          new Promise((_, reject) => setTimeout(() => reject(new Error('Close timeout')), 1000))
-        ]).catch(() => {}); // 타임아웃 무시
-        console.log('   - 기존 연결 종료');
-        // 연결이 완전히 닫힐 때까지 잠시 대기
-        await new Promise(resolve => setTimeout(resolve, 100));
-      } catch (closeError) {
-        console.log('   - 기존 연결 종료 실패 (무시)');
-      }
-    }
-    
-    // 새 연결 시도 (타임아웃 적용)
-    const connectPromise = connectDB();
-    const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Connection timeout')), CONNECTION_TIMEOUT)
-    );
-    
-    dbConnected = await Promise.race([connectPromise, timeoutPromise]);
-    
-    if (dbConnected && mongoose.connection.readyState === 1) {
-      connectionAttempts = 0; // 성공 시 재시도 횟수 초기화
-      console.log('✅ MongoDB 연결 성공');
-      return true;
-    } else {
-      dbConnected = false;
-      if (connectionAttempts < MAX_RETRIES) {
-        console.log(`   ⏳ ${RETRY_DELAY}ms 후 재시도...`);
-        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
-        return await initDB(true); // 재귀적으로 재시도
-      }
-      return false;
-    }
-  } catch (error) {
-    console.error(`❌ MongoDB 연결 시도 ${connectionAttempts} 실패:`, error.message);
-    dbConnected = false;
-    
-    if (connectionAttempts < MAX_RETRIES) {
-      console.log(`   ⏳ ${RETRY_DELAY}ms 후 재시도...`);
-      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
-      return await initDB(true); // 재귀적으로 재시도
-    }
-    
-    return false;
-  }
-};
 
 // MongoDB 연결 상태 확인 헬스체크
 const handleHealthCheck = async (req, res) => {
