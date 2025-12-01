@@ -1,63 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { Project } from '@/types/portfolio';
+import { getBackofficeBaseUrl, isSameProjectDeployment } from '@/lib/api-config';
 
 // 짧은 캐시로 성능 개선 (10초)
 export const revalidate = 10;
 
-// 백오피스 서버 URL 설정
-// 같은 프로젝트 내에서 /bo-api 경로 사용 (통합 배포)
-const getBackofficeUrl = () => {
-  // 환경 변수가 설정되어 있으면 우선 사용 (별도 배포 시)
-  const backofficeUrl = process.env.NEXT_PUBLIC_BACKOFFICE_URL 
-    || process.env.BACKOFFICE_API_URL;
-  
-  if (backofficeUrl) {
-    console.log('🔗 백엔드 URL (환경 변수):', backofficeUrl);
-    return backofficeUrl;
-  }
-  
-  // 같은 프로젝트 내에서 실행 중인 경우 (통합 배포)
-  // 서버 사이드에서는 상대 경로를 사용할 수 없으므로
-  // Vercel 환경에서는 현재 호스트를 사용하거나 빈 문자열 반환
-  if (process.env.VERCEL) {
-    // Vercel 환경: 같은 프로젝트 내에서 실행
-    // request 객체에서 호스트 정보를 가져와야 하지만, 여기서는 빈 문자열 반환
-    // 실제로는 상대 경로를 사용하거나 현재 호스트를 사용
-    const vercelUrl = process.env.VERCEL_URL 
-      ? `https://${process.env.VERCEL_URL}`
-      : '';
-    
-    // 같은 프로젝트 내에서 실행 중이면 빈 문자열 반환 (상대 경로 사용)
-    // 또는 현재 호스트 사용
-    if (vercelUrl) {
-      console.log('🔗 백엔드 URL (같은 프로젝트):', vercelUrl);
-      return vercelUrl;
-    }
-    
-    // 프로덕션 도메인이 있으면 사용
-    const productionUrl = 'https://hyeyeon-portfolio.vercel.app';
-    console.log('🔗 백엔드 URL (프로덕션):', productionUrl);
-    return productionUrl;
-  }
-  
-  // 개발 환경: 로컬 서버
-  console.log('🔗 백엔드 URL (로컬):', 'http://localhost:3005');
-  return 'http://localhost:3005';
-};
-
 export async function GET(request: NextRequest) {
   try {
-    const backofficeUrl = getBackofficeUrl();
-    // 같은 프로젝트 내에서 실행 중이면 상대 경로 사용
-    // 별도 프로젝트로 배포된 경우에만 절대 URL 사용
+    const backofficeUrl = getBackofficeBaseUrl();
     const timestamp = Date.now();
-    
-    // 같은 프로젝트 내에서 실행 중인지 확인
-    // 환경 변수가 없고 Vercel 환경이면 같은 프로젝트로 간주
-    const isSameProject = !process.env.NEXT_PUBLIC_BACKOFFICE_URL 
-      && !process.env.BACKOFFICE_API_URL
-      && process.env.VERCEL;
-    
+    const isSameProject = isSameProjectDeployment();
+
+    // 백오피스 API URL 생성
     let fetchUrl;
     if (isSameProject && backofficeUrl) {
       // 같은 프로젝트: 절대 URL 사용 (같은 도메인)
