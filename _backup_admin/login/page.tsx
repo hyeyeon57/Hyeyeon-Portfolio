@@ -42,6 +42,8 @@ export default function AdminLoginPage() {
           return process.env.BACKOFFICE_API_URL;
         }
         
+
+        
         // Vercel 환경: 같은 프로젝트로 간주
         if (process.env.VERCEL) {
           const vercelUrl = process.env.VERCEL_URL 
