@@ -300,7 +300,6 @@ app.post('/api/visitors', async (req, res) => {
 app.get('/api/visitors/stats', async (req, res) => {
   try {
     if (mongoose.connection.readyState !== 1) {
-      console.log('⚠️  MongoDB 연결되지 않음, 방문자 통계 0 반환');
       return res.json({ 
         success: true, 
         today: 0, 
@@ -318,25 +317,6 @@ app.get('/api/visitors/stats', async (req, res) => {
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
     
-    // 오늘 방문자 수 (date 필드 기준)
-    const todayCount = await Visitor.countDocuments({
-      date: {
-        $gte: today,
-        $lt: tomorrow
-      }
-    });
-    
-    // createdAt 필드로도 확인 (백업)
-    const todayCountByCreated = await Visitor.countDocuments({
-      createdAt: {
-        $gte: today,
-        $lt: tomorrow
-      }
-    });
-    
-    // 더 큰 값을 사용
-    const finalTodayCount = Math.max(todayCount, todayCountByCreated);
-    
     // 이번 주 시작일 (월요일)
     const thisWeekStart = new Date(today);
     const dayOfWeek = today.getDay();
@@ -344,94 +324,169 @@ app.get('/api/visitors/stats', async (req, res) => {
     thisWeekStart.setDate(today.getDate() - daysToMonday);
     thisWeekStart.setHours(0, 0, 0, 0);
     
-    // 이번 주 방문자 수
-    const thisWeekCount = await Visitor.countDocuments({
-      $or: [
-        { date: { $gte: thisWeekStart } },
-        { createdAt: { $gte: thisWeekStart } }
-      ]
-    });
-    
-    // 전체 방문자 수
-    const totalCount = await Visitor.countDocuments();
-    
-    // 오늘 시간대별 방문자 수 (0시~23시)
-    const hourlyStats = Array(24).fill(0);
-    const todayVisitors = await Visitor.find({
-      $or: [
-        { date: { $gte: today, $lt: tomorrow } },
-        { createdAt: { $gte: today, $lt: tomorrow } }
-      ]
-    }).lean();
-    
-    todayVisitors.forEach(visitor => {
-      const visitDate = visitor.date || visitor.createdAt;
-      if (visitDate) {
-        const hour = new Date(visitDate).getHours();
-        if (hour >= 0 && hour < 24) {
-          hourlyStats[hour]++;
-        }
-      }
-    });
-    
-    // 이번 주 요일별 방문자 수 (월~일) - 병렬 처리로 최적화
-    const weeklyStats = Array(7).fill(0);
-    const weekVisitors = await Visitor.find({
-      $or: [
-        { date: { $gte: thisWeekStart } },
-        { createdAt: { $gte: thisWeekStart } }
-      ]
-    }).lean();
-    
-    weekVisitors.forEach(visitor => {
-      const visitDate = visitor.date || visitor.createdAt;
-      if (visitDate) {
-        const visitDay = new Date(visitDate);
-        const dayOfWeek = visitDay.getDay();
-        const adjustedDay = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // 월요일=0, 일요일=6
-        if (adjustedDay >= 0 && adjustedDay < 7) {
-          weeklyStats[adjustedDay]++;
-        }
-      }
-    });
-    
-    // 최근 7일 방문자 수 (날짜별) - 병렬 처리로 최적화
-    const dailyStats = Array(7).fill(0);
+    // 최근 7일 날짜 계산
     const dailyLabels = [];
-    const dailyQueries = [];
-    
     for (let i = 6; i >= 0; i--) {
       const date = new Date(today);
       date.setDate(date.getDate() - i);
-      date.setHours(0, 0, 0, 0);
-      const nextDate = new Date(date);
-      nextDate.setDate(nextDate.getDate() + 1);
-      
-      const dayLabel = `${date.getMonth() + 1}/${date.getDate()}`;
-      dailyLabels.push(dayLabel);
-      
-      // 쿼리를 배열에 추가 (병렬 실행)
-      dailyQueries.push(
-        Visitor.countDocuments({
-          $or: [
-            { date: { $gte: date, $lt: nextDate } },
-            { createdAt: { $gte: date, $lt: nextDate } }
-          ]
-        })
-      );
+      dailyLabels.push(`${date.getMonth() + 1}/${date.getDate()}`);
     }
     
-    // 모든 일별 쿼리를 병렬로 실행
-    const dailyResults = await Promise.all(dailyQueries);
-    dailyResults.forEach((count, index) => {
-      dailyStats[index] = count;
+    // 집계 파이프라인으로 모든 통계를 한 번에 계산 (최적화)
+    const statsPipeline = [
+      {
+        $facet: {
+          // 전체 방문자 수
+          total: [{ $count: 'count' }],
+          
+          // 오늘 방문자 (date 또는 createdAt 기준)
+          today: [
+            {
+              $match: {
+                $or: [
+                  { date: { $gte: today, $lt: tomorrow } },
+                  { createdAt: { $gte: today, $lt: tomorrow } }
+                ]
+              }
+            },
+            { $count: 'count' }
+          ],
+          
+          // 이번 주 방문자
+          thisWeek: [
+            {
+              $match: {
+                $or: [
+                  { date: { $gte: thisWeekStart } },
+                  { createdAt: { $gte: thisWeekStart } }
+                ]
+              }
+            },
+            { $count: 'count' }
+          ],
+          
+          // 오늘 시간대별 방문자 (0~23시)
+          hourly: [
+            {
+              $match: {
+                $or: [
+                  { date: { $gte: today, $lt: tomorrow } },
+                  { createdAt: { $gte: today, $lt: tomorrow } }
+                ]
+              }
+            },
+            {
+              $group: {
+                _id: {
+                  $hour: {
+                    $ifNull: ['$date', '$createdAt']
+                  }
+                },
+                count: { $sum: 1 }
+              }
+            }
+          ],
+          
+          // 이번 주 요일별 방문자 (월~일)
+          weekly: [
+            {
+              $match: {
+                $or: [
+                  { date: { $gte: thisWeekStart } },
+                  { createdAt: { $gte: thisWeekStart } }
+                ]
+              }
+            },
+            {
+              $group: {
+                _id: {
+                  $let: {
+                    vars: {
+                      dayOfWeek: {
+                        $dayOfWeek: {
+                          $ifNull: ['$date', '$createdAt']
+                        }
+                      }
+                    },
+                    in: {
+                      $cond: [
+                        { $eq: ['$$dayOfWeek', 1] }, // 일요일
+                        6, // 월요일=0 기준으로 6
+                        { $subtract: ['$$dayOfWeek', 2] } // 월요일=0
+                      ]
+                    }
+                  }
+                },
+                count: { $sum: 1 }
+              }
+            }
+          ],
+          
+          // 최근 7일 일별 방문자
+          daily: [
+            {
+              $match: {
+                $or: [
+                  { date: { $gte: new Date(today.getTime() - 6 * 24 * 60 * 60 * 1000) } },
+                  { createdAt: { $gte: new Date(today.getTime() - 6 * 24 * 60 * 60 * 1000) } }
+                ]
+              }
+            },
+            {
+              $group: {
+                _id: {
+                  $dateToString: {
+                    format: '%Y-%m-%d',
+                    date: { $ifNull: ['$date', '$createdAt'] }
+                  }
+                },
+                count: { $sum: 1 }
+              }
+            }
+          ]
+        }
+      }
+    ];
+    
+    const [statsResult] = await Visitor.aggregate(statsPipeline);
+    
+    // 결과 파싱
+    const totalCount = statsResult.total[0]?.count || 0;
+    const todayCount = statsResult.today[0]?.count || 0;
+    const thisWeekCount = statsResult.thisWeek[0]?.count || 0;
+    
+    // 시간대별 통계 (0~23시)
+    const hourlyStats = Array(24).fill(0);
+    statsResult.hourly.forEach(item => {
+      if (item._id >= 0 && item._id < 24) {
+        hourlyStats[item._id] = item.count;
+      }
     });
     
-    console.log(`📊 방문자 통계: 오늘 ${finalTodayCount}명, 이번 주 ${thisWeekCount}명, 전체 ${totalCount}명`);
+    // 요일별 통계 (월~일, 0~6)
+    const weeklyStats = Array(7).fill(0);
+    statsResult.weekly.forEach(item => {
+      if (item._id >= 0 && item._id < 7) {
+        weeklyStats[item._id] = item.count;
+      }
+    });
+    
+    // 일별 통계 (최근 7일)
+    const dailyStats = Array(7).fill(0);
+    const sevenDaysAgo = new Date(today);
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+    
+    statsResult.daily.forEach(item => {
+      const itemDate = new Date(item._id);
+      const dayIndex = Math.floor((itemDate - sevenDaysAgo) / (24 * 60 * 60 * 1000));
+      if (dayIndex >= 0 && dayIndex < 7) {
+        dailyStats[dayIndex] = item.count;
+      }
+    });
     
     res.json({ 
       success: true, 
-      today: finalTodayCount,
+      today: todayCount,
       thisWeek: thisWeekCount,
       total: totalCount,
       hourly: hourlyStats,
@@ -465,11 +520,10 @@ app.get('/bo-api/visitors/monthly', async (req, res) => {
   await handleMonthlyVisitors(req, res);
 });
 
-// 월별 방문자 통계 처리 함수
+// 월별 방문자 통계 처리 함수 (집계 파이프라인 최적화)
 async function handleMonthlyVisitors(req, res) {
   try {
     if (mongoose.connection.readyState !== 1) {
-      console.log('⚠️  MongoDB 연결되지 않음, 월별 방문자 통계 0 반환');
       return res.json({ 
         success: true, 
         monthly: Array(31).fill(0),
@@ -487,37 +541,45 @@ async function handleMonthlyVisitors(req, res) {
     endDate.setHours(23, 59, 59, 999);
     const daysInMonth = endDate.getDate();
     
-    // 일별 방문자 수 계산
+    // 집계 파이프라인으로 한 번에 일별 통계 계산 (최적화: 31개 쿼리 → 1개 쿼리)
+    const monthlyPipeline = [
+      {
+        $match: {
+          $or: [
+            { date: { $gte: startDate, $lte: endDate } },
+            { createdAt: { $gte: startDate, $lte: endDate } }
+          ]
+        }
+      },
+      {
+        $group: {
+          _id: {
+            $dayOfMonth: {
+              $ifNull: ['$date', '$createdAt']
+            }
+          },
+          count: { $sum: 1 }
+        }
+      }
+    ];
+    
+    const monthlyResults = await Visitor.aggregate(monthlyPipeline);
+    
+    // 일별 통계 배열 생성
     const monthlyStats = Array(daysInMonth).fill(0);
     const monthlyLabels = [];
-    const monthlyQueries = [];
     
-    for (let day = 1; day <= daysInMonth; day++) {
-      const date = new Date(year, month - 1, day);
-      date.setHours(0, 0, 0, 0);
-      const nextDate = new Date(date);
-      nextDate.setDate(nextDate.getDate() + 1);
-      
-      const dayLabel = `${day}`;
-      monthlyLabels.push(dayLabel);
-      
-      monthlyQueries.push(
-        Visitor.countDocuments({
-          $or: [
-            { date: { $gte: date, $lt: nextDate } },
-            { createdAt: { $gte: date, $lt: nextDate } }
-          ]
-        })
-      );
-    }
-    
-    // 모든 일별 쿼리를 병렬로 실행
-    const monthlyResults = await Promise.all(monthlyQueries);
-    monthlyResults.forEach((count, index) => {
-      monthlyStats[index] = count;
+    monthlyResults.forEach(item => {
+      const day = item._id;
+      if (day >= 1 && day <= daysInMonth) {
+        monthlyStats[day - 1] = item.count; // 인덱스는 0부터 시작
+      }
     });
     
-    console.log(`📊 월별 방문자 통계: ${year}년 ${month}월`);
+    // 레이블 생성
+    for (let day = 1; day <= daysInMonth; day++) {
+      monthlyLabels.push(`${day}`);
+    }
     
     res.json({ 
       success: true, 
@@ -529,10 +591,13 @@ async function handleMonthlyVisitors(req, res) {
     });
   } catch (error) {
     console.error('월별 방문자 통계 조회 오류:', error);
+    const year = parseInt(req.query.year) || new Date().getFullYear();
+    const month = parseInt(req.query.month) || new Date().getMonth() + 1;
+    const daysInMonth = new Date(year, month, 0).getDate();
     res.json({ 
       success: true, 
-      monthly: Array(31).fill(0),
-      labels: []
+      monthly: Array(daysInMonth).fill(0),
+      labels: Array.from({ length: daysInMonth }, (_, i) => `${i + 1}`)
     });
   }
 }

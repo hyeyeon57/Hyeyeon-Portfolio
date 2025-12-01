@@ -376,9 +376,11 @@
         } else if (tabName === 'contacts') {
           await loadContacts();
         } else if (tabName === 'visitors') {
+          // 3개 API를 동시에 병렬 호출 (최적화)
           await Promise.all([
             loadVisitors(null, null, 'newest'),
-            loadVisitorStatsForTab()
+            loadVisitorStatsForTab(),
+            loadMonthlyData(currentMonthlyYear, currentMonthlyMonth)
           ]);
         }
       } catch (error) {
@@ -844,7 +846,7 @@
           renderVisitorStats(result);
         }
       } catch (error) {
-        console.error('방문자 통계 로드 오류:', error);
+        // 에러는 조용히 처리
       }
     }
 
@@ -893,15 +895,14 @@
         setTimeout(() => lucide.createIcons(), 0);
       }
       
-      // 그래프 렌더링을 즉시 시작하되 병렬 처리
+      // 그래프 렌더링을 즉시 시작
       if (stats.hourly && Array.isArray(stats.hourly)) {
         renderTodayChart(stats.hourly, stats.today || 0);
       }
       if (stats.weekly && Array.isArray(stats.weekly)) {
         renderWeeklyChart(stats.weekly, stats.thisWeek || 0);
       }
-      // 월별 데이터는 별도로 로드 (블로킹 없음)
-      loadMonthlyData(currentMonthlyYear, currentMonthlyMonth).catch(() => {});
+      // 월별 데이터는 이미 병렬로 로드되었으므로 여기서는 처리하지 않음
     }
 
     // 오늘 방문자 시간대별 그래프 (최적화된 버전)
