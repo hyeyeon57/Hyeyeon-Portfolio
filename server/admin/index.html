@@ -250,14 +250,7 @@
       ? 'http://localhost:3005/api'
       : '/bo-api';
     
-    // 디버깅: 환경 정보 로그
-    console.log('🔧 환경 설정:', {
-      hostname: window.location.hostname,
-      isLocalhost: isLocalhost,
-      API_URL: API_URL,
-      origin: window.location.origin,
-      port: window.location.port
-    });
+    // 디버깅 로그 제거 (성능 최적화)
     const categoryLabels = {
       'new': '신규',
       'renewal': '리뉴얼',
@@ -295,16 +288,9 @@
         const result = await response.json();
         isAuthenticated = result.authenticated || false;
         
-        console.log('🔍 인증 상태:', {
-          authenticated: isAuthenticated,
-          username: result.username,
-          url: authCheckUrl
-        });
-        
         // 로그인 상태에 따라 UI 업데이트
         updateUIForAuth();
       } catch (error) {
-        console.error('인증 확인 오류:', error);
         isAuthenticated = false;
         updateUIForAuth();
       }
@@ -341,13 +327,15 @@
     }
 
     // 탭 전환 함수
-    async function switchTab(tabName) {
-      console.log('탭 전환:', tabName);
+    // 탭 전환 함수 (초고속 - 완전 비동기, 블로킹 없음)
+    function switchTab(tabName) {
       currentTab = tabName;
       
-      // URL 해시 업데이트 (새로고침 시 현재 탭 유지)
+      // URL 해시 업데이트 (비동기)
       if (window.location.hash !== `#${tabName}`) {
-        window.location.hash = tabName;
+        requestAnimationFrame(() => {
+          window.location.hash = tabName;
+        });
       }
       
       // 모든 탭 버튼 비활성화
@@ -361,12 +349,9 @@
         content.classList.add('hidden');
       });
       
-      // 선택한 탭 활성화
+      // 선택한 탭 활성화 (즉시)
       const activeTab = document.getElementById(`tab-${tabName}`);
       const activeContent = document.getElementById(`content-${tabName}`);
-      
-      console.log('활성 탭 버튼:', activeTab);
-      console.log('활성 콘텐츠:', activeContent);
       
       if (activeTab) {
         activeTab.classList.remove('border-transparent', 'text-gray-500');
@@ -375,26 +360,29 @@
       
       if (activeContent) {
         activeContent.classList.remove('hidden');
-        console.log('콘텐츠 표시됨:', tabName);
-      } else {
-        console.error('콘텐츠를 찾을 수 없음:', `content-${tabName}`);
       }
       
-      // 탭별 데이터 로드 (병렬 처리로 성능 개선)
+      // 데이터 로드는 완전히 비동기로 처리 (UI 블로킹 없음)
+      setTimeout(() => {
+        loadTabData(tabName).catch(() => {});
+      }, 0);
+    }
+    
+    // 탭 데이터 로드 함수 (완전 비동기)
+    async function loadTabData(tabName) {
       try {
         if (tabName === 'projects') {
           await loadProjects();
         } else if (tabName === 'contacts') {
           await loadContacts();
         } else if (tabName === 'visitors') {
-          // 방문자 목록과 통계를 병렬로 로드
           await Promise.all([
             loadVisitors(null, null, 'newest'),
             loadVisitorStatsForTab()
           ]);
         }
       } catch (error) {
-        console.error('탭 데이터 로드 오류:', error);
+        // 에러는 조용히 처리
       }
     }
     
@@ -439,7 +427,7 @@
       const initialTab = validTabs.includes(hash) ? hash : 'projects';
       
       // 탭 UI 즉시 표시 (데이터는 비동기로 로드)
-      switchTab(initialTab).catch(() => {});
+      switchTab(initialTab);
       
       // 인증 및 MongoDB 상태 확인은 백그라운드에서 처리 (블로킹 없음)
       Promise.all([
@@ -671,8 +659,6 @@
         }
         
         const url = `${API_URL}/visitors?${params.toString()}`;
-        console.log('API 요청 URL:', url);
-        console.log('요청 파라미터:', { startDate, endDate, sort });
         
         const response = await fetch(url, {
           method: 'GET',
@@ -682,22 +668,17 @@
         });
         
         if (!response.ok) {
-          console.error('API 응답 오류:', response.status, response.statusText);
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
         
         const result = await response.json();
-        console.log('API 응답:', result);
-        console.log('조회된 방문자 수:', result.data?.length || 0, '전체:', result.total || 0);
         
         if (result.success && Array.isArray(result.data)) {
           renderVisitors(result.data, result.total || 0);
         } else {
-          console.error('API 응답 오류:', result);
           renderVisitors([], 0);
         }
       } catch (error) {
-        console.error('방문자 목록 로드 오류:', error);
         renderVisitors([], 0);
       }
     }
