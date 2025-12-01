@@ -205,6 +205,33 @@
                 />
               </div>
               <div class="flex items-center gap-2">
+                <label class="text-sm font-medium text-gray-700 whitespace-nowrap">경로:</label>
+                <input
+                  type="text"
+                  id="visitor-path"
+                  placeholder="경로 검색"
+                  class="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-32"
+                />
+              </div>
+              <div class="flex items-center gap-2">
+                <label class="text-sm font-medium text-gray-700 whitespace-nowrap">IP 주소:</label>
+                <input
+                  type="text"
+                  id="visitor-ip"
+                  placeholder="IP 주소 검색"
+                  class="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-32"
+                />
+              </div>
+              <div class="flex items-center gap-2">
+                <label class="text-sm font-medium text-gray-700 whitespace-nowrap">User Agent:</label>
+                <input
+                  type="text"
+                  id="visitor-useragent"
+                  placeholder="User Agent 검색"
+                  class="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-48"
+                />
+              </div>
+              <div class="flex items-center gap-2">
                 <label class="text-sm font-medium text-gray-700 whitespace-nowrap">정렬:</label>
                 <select
                   id="visitor-sort"
@@ -690,7 +717,7 @@
     }
 
     // 방문자 목록 로드
-    async function loadVisitors(startDate = null, endDate = null, sort = 'newest') {
+    async function loadVisitors(startDate = null, endDate = null, sort = 'newest', path = null, ip = null, userAgent = null) {
       try {
         // 필터 파라미터 구성
         const params = new URLSearchParams();
@@ -704,6 +731,15 @@
         }
         if (sort) {
           params.append('sort', sort);
+        }
+        if (path) {
+          params.append('path', path);
+        }
+        if (ip) {
+          params.append('ip', ip);
+        }
+        if (userAgent) {
+          params.append('userAgent', userAgent);
         }
         
         const url = `${API_URL}/visitors?${params.toString()}`;
@@ -758,6 +794,9 @@
       const startDateInput = document.getElementById('visitor-start-date');
       const endDateInput = document.getElementById('visitor-end-date');
       const sortSelect = document.getElementById('visitor-sort');
+      const pathInput = document.getElementById('visitor-path');
+      const ipInput = document.getElementById('visitor-ip');
+      const userAgentInput = document.getElementById('visitor-useragent');
       
       if (!startDateInput || !endDateInput || !sortSelect) {
         console.error('검색 필드 요소를 찾을 수 없습니다.');
@@ -768,8 +807,11 @@
       const startDate = startDateInput.value || null;
       const endDate = endDateInput.value || null;
       const sort = sortSelect.value || 'newest';
+      const path = pathInput ? pathInput.value.trim() || null : null;
+      const ip = ipInput ? ipInput.value.trim() || null : null;
+      const userAgent = userAgentInput ? userAgentInput.value.trim() || null : null;
       
-      console.log('검색 조건:', { startDate, endDate, sort });
+      console.log('검색 조건:', { startDate, endDate, sort, path, ip, userAgent });
       
       // 검색 버튼 비활성화 및 로딩 표시
       const searchBtn = document.querySelector('button[onclick*="searchVisitors"]');
@@ -782,7 +824,7 @@
       }
       
       try {
-        await loadVisitors(startDate, endDate, sort);
+        await loadVisitors(startDate, endDate, sort, path, ip, userAgent);
         console.log('검색 완료');
       } catch (error) {
         console.error('검색 오류:', error);

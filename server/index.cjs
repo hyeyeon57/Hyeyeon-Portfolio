@@ -622,47 +622,69 @@ app.get('/api/visitors', async (req, res) => {
     const skip = (page - 1) * limit;
     
     // 날짜 범위 필터
-    const startDate = req.query.startDate ? new Date(req.query.startDate) : null;
-    const endDate = req.query.endDate ? new Date(req.query.endDate) : null;
+    // YYYY-MM-DD 형식을 로컬 시간대로 파싱
+    let startDate = null;
+    let endDate = null;
+    
+    if (req.query.startDate) {
+      const [year, month, day] = req.query.startDate.split('-').map(Number);
+      startDate = new Date(year, month - 1, day, 0, 0, 0, 0); // 로컬 시간대 기준
+    }
+    
+    if (req.query.endDate) {
+      const [year, month, day] = req.query.endDate.split('-').map(Number);
+      endDate = new Date(year, month - 1, day, 23, 59, 59, 999); // 로컬 시간대 기준
+    }
     
     console.log('방문자 목록 조회 요청:', { 
       startDate: req.query.startDate, 
       endDate: req.query.endDate, 
       sort: req.query.sort,
+      path: req.query.path,
+      ip: req.query.ip,
+      userAgent: req.query.userAgent,
       parsedStartDate: startDate,
       parsedEndDate: endDate
     });
     
+    // 검색 필터
+    const path = req.query.path ? req.query.path.trim() : null;
+    const ip = req.query.ip ? req.query.ip.trim() : null;
+    const userAgent = req.query.userAgent ? req.query.userAgent.trim() : null;
+    
     // 쿼리 조건 생성
     const query = {};
+    
+    // 날짜 필터
     if (startDate || endDate) {
-      // 시작일은 00:00:00으로 설정
-      if (startDate) {
-        startDate.setHours(0, 0, 0, 0);
-      }
-      // 종료일은 23:59:59.999로 설정
-      if (endDate) {
-        endDate.setHours(23, 59, 59, 999);
+      // date 필드를 사용하여 필터링 (date 필드는 항상 존재)
+      const dateCondition = {};
+      
+      if (startDate && endDate) {
+        dateCondition.$gte = startDate;
+        dateCondition.$lte = endDate;
+      } else if (startDate) {
+        dateCondition.$gte = startDate;
+      } else if (endDate) {
+        dateCondition.$lte = endDate;
       }
       
-      // date 필드와 createdAt 필드 중 하나라도 조건을 만족하면 포함
-      query.$or = [];
-      if (startDate && endDate) {
-        query.$or.push(
-          { date: { $gte: startDate, $lte: endDate } },
-          { createdAt: { $gte: startDate, $lte: endDate } }
-        );
-      } else if (startDate) {
-        query.$or.push(
-          { date: { $gte: startDate } },
-          { createdAt: { $gte: startDate } }
-        );
-      } else if (endDate) {
-        query.$or.push(
-          { date: { $lte: endDate } },
-          { createdAt: { $lte: endDate } }
-        );
-      }
+      query.date = dateCondition;
+    }
+    
+    // 경로 필터 (부분 일치)
+    if (path) {
+      query.path = { $regex: path, $options: 'i' };
+    }
+    
+    // IP 주소 필터 (부분 일치)
+    if (ip) {
+      query.ip = { $regex: ip, $options: 'i' };
+    }
+    
+    // User Agent 필터 (부분 일치)
+    if (userAgent) {
+      query.userAgent = { $regex: userAgent, $options: 'i' };
     }
     
     console.log('쿼리 조건:', JSON.stringify(query, null, 2));
