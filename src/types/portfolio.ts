@@ -1,19 +1,48 @@
+import type { CategoryId } from '@/constants/categories';
+
+/**
+ * 프로젝트 인터페이스
+ * - MongoDB 스키마(server/models/Project.cjs)와 완전히 일치
+ */
 export interface Project {
+  // 기본 정보
   id: string;
   title: string;
-  subtitle: string;
+  subtitle?: string;
   description: string;
-  fullDescription: string;
-  image: string;
-  category: string;
+  fullDescription?: string;
+
+  // 미디어
+  image?: string;
+  gallery?: string[];
+
+  // 메타데이터
+  category: CategoryId;
   tags: string[];
-  date: string;
-  role: string;
-  duration: string;
-  team: string;
-  featured: boolean;
+  date?: string;
+  role?: string;
+  duration?: string;
+  team?: string;
+
+  // 성과 및 회고
   achievements: string[];
+  retrospective?: string;
+
+  // 링크 및 파일
   link?: string;
+  designLink?: string;
+  figmaLink?: string;
+  designFile?: string;
+  designPdf?: string;
+  detailPdf?: string;
+  previewPdf?: string;
+
+  // 대표 프로젝트 여부
+  featured: boolean;
+
+  // 시스템 필드 (MongoDB timestamps)
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface Education {
