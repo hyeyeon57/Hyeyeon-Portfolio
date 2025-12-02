@@ -15,6 +15,10 @@ export default function AllProjectsPage() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [showGalleryModal, setShowGalleryModal] = useState(false);
   const [galleryProject, setGalleryProject] = useState<Project | null>(null);
+  const [galleryIndex, setGalleryIndex] = useState(0);
+  const [detailImageIndex, setDetailImageIndex] = useState(0);
+  const [detailDirection, setDetailDirection] = useState(0); // 슬라이드 방향 (애니메이션)
+  const [galleryDirection, setGalleryDirection] = useState(0); // 갤러리 모달 슬라이드 방향
 
   // 클라이언트 마운트 시 BO 서버에서 데이터 로드
   useEffect(() => {
@@ -269,6 +273,18 @@ export default function AllProjectsPage() {
       return newCategories.length === 0 ? ['all'] : newCategories;
     });
   };
+
+  useEffect(() => {
+    // 갤러리 대상 프로젝트가 변경될 때마다 첫 이미지로 초기화
+    setGalleryIndex(0);
+    setGalleryDirection(0);
+  }, [galleryProject]);
+
+  useEffect(() => {
+    // 상세 모달 열릴 때 이미지 슬라이더 초기화
+    setDetailImageIndex(0);
+    setDetailDirection(0);
+  }, [selectedProject]);
 
 
   // 프로젝트 전체 다운로드
@@ -572,28 +588,81 @@ export default function AllProjectsPage() {
             {/* Modal Content */}
               <div className="p-8">
               {/* Project Image with Gallery Button */}
-                {selectedProject.image && (
-                  <div className="mb-8 rounded-2xl overflow-hidden border border-line-light relative group">
-                    <img 
-                      src={selectedProject.image} 
-                      alt={selectedProject.title}
-                      className="w-full h-auto"
-                    />
-                    {/* Gallery Button - show only if gallery exists */}
-                    {(selectedProject as any).gallery && Array.isArray((selectedProject as any).gallery) && (selectedProject as any).gallery.length > 0 && (
-                      <button
-                        onClick={() => {
-                          setGalleryProject(selectedProject);
-                          setShowGalleryModal(true);
-                        }}
-                        className="absolute top-4 right-4 w-12 h-12 rounded-full bg-white/90 hover:bg-white backdrop-blur-sm text-brand-main transition-all duration-300 border border-brand-main/30 hover:border-brand-main/50 shadow-lg opacity-0 group-hover:opacity-100 flex items-center justify-center"
-                        title="프로젝트 미리보기"
-                      >
-                        <Eye size={20} />
-                      </button>
-                    )}
-                  </div>
-                )}
+                {(() => {
+                  const detailImages: string[] = [];
+                  if ((selectedProject as any).image) detailImages.push((selectedProject as any).image);
+                  if ((selectedProject as any).gallery && Array.isArray((selectedProject as any).gallery)) {
+                    detailImages.push(...(selectedProject as any).gallery.filter(Boolean));
+                  }
+
+                  if (!detailImages.length) return null;
+                  const safeIndex = ((detailImageIndex % detailImages.length) + detailImages.length) % detailImages.length;
+                  const go = (dir: number) => {
+                    setDetailDirection(dir);
+                    setDetailImageIndex((prev) => (prev + dir + detailImages.length) % detailImages.length);
+                  };
+
+                  return (
+                    <div className="mb-8 rounded-2xl overflow-hidden border border-line-light relative group bg-bg-light">
+                      <AnimatePresence initial={false} mode="wait">
+                        <motion.img
+                          key={detailImages[safeIndex]}
+                          src={detailImages[safeIndex]}
+                          alt={`${selectedProject.title} ${safeIndex + 1}`}
+                          className="w-full h-auto max-h-[540px] object-contain bg-white"
+                          initial={{ opacity: 0, x: detailDirection >= 0 ? 60 : -60 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: detailDirection >= 0 ? -60 : 60 }}
+                          transition={{ duration: 0.35, ease: 'easeInOut' }}
+                        />
+                      </AnimatePresence>
+                      {detailImages.length > 1 && (
+                        <>
+                          <button
+                            onClick={() => go(-1)}
+                            className="absolute left-3 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/90 hover:bg-white shadow border border-line-light flex items-center justify-center text-text-main opacity-0 group-hover:opacity-100 transition"
+                            aria-label="이전 이미지"
+                          >
+                            ‹
+                          </button>
+                          <button
+                            onClick={() => go(1)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/90 hover:bg-white shadow border border-line-light flex items-center justify-center text-text-main opacity-0 group-hover:opacity-100 transition"
+                            aria-label="다음 이미지"
+                          >
+                            ›
+                          </button>
+                        </>
+                      )}
+                      {detailImages.length > 1 && (
+                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 px-3 py-2 rounded-full bg-black/40 backdrop-blur text-white">
+                          {detailImages.map((_, idx) => (
+                            <button
+                              key={idx}
+                              onClick={() => setDetailImageIndex(idx)}
+                              className={`w-2.5 h-2.5 rounded-full transition ${idx === safeIndex ? 'bg-white' : 'bg-white/40'}`}
+                              aria-label={`${idx + 1}번째 이미지 보기`}
+                            />
+                          ))}
+                        </div>
+                      )}
+                      {/* Gallery Button - show only if gallery exists */}
+                      {(selectedProject as any).gallery && Array.isArray((selectedProject as any).gallery) && (selectedProject as any).gallery.length > 0 && (
+                        <button
+                          onClick={() => {
+                            setGalleryProject(selectedProject);
+                            setGalleryIndex(safeIndex);
+                            setShowGalleryModal(true);
+                          }}
+                          className="absolute top-4 right-4 w-12 h-12 rounded-full bg-white/90 hover:bg-white backdrop-blur-sm text-brand-main transition-all duration-300 border border-brand-main/30 hover:border-brand-main/50 shadow-lg opacity-0 group-hover:opacity-100 flex items-center justify-center"
+                          title="프로젝트 미리보기"
+                        >
+                          <Eye size={20} />
+                        </button>
+                      )}
+                    </div>
+                  );
+                })()}
 
                 {/* Project Info Grid */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
@@ -855,32 +924,78 @@ export default function AllProjectsPage() {
 
               {/* Gallery Content */}
               <div className="p-6 overflow-y-auto custom-scrollbar max-h-[calc(90vh-80px)]">
-                <div className="space-y-2">
-                  {/* Main Image */}
-                  {galleryProject.image && (
-                    <div className="rounded-2xl overflow-hidden border border-line-light">
-                      <img 
-                        src={galleryProject.image} 
-                        alt={galleryProject.title}
-                        className="w-full h-auto"
-                      />
-                    </div>
-                  )}
-                  
-                  {/* Additional Gallery Images */}
-                  {(galleryProject as any).gallery && Array.isArray((galleryProject as any).gallery) && (
-                    (galleryProject as any).gallery.slice(0, 9).map((imgSrc: string, index: number) => (
-                      <div key={index} className="rounded-2xl overflow-hidden border border-line-light">
-                        <img 
-                          src={imgSrc} 
-                          alt={`${galleryProject.title} - ${index + 2}`}
-                          className="w-full h-auto"
-                        />
+                {(() => {
+                  const galleryImages: string[] = [];
+                  if ((galleryProject as any).image) galleryImages.push((galleryProject as any).image);
+                  if ((galleryProject as any).gallery && Array.isArray((galleryProject as any).gallery)) {
+                    galleryImages.push(...(galleryProject as any).gallery.filter(Boolean));
+                  }
+                  if (!galleryImages.length) {
+                    return (
+                      <div className="text-center text-text-secondary py-12">
+                        표시할 이미지가 없습니다.
                       </div>
-                    ))
-                  )}
+                    );
+                  }
+
+                  const safeIndex = ((galleryIndex % galleryImages.length) + galleryImages.length) % galleryImages.length;
+                  const currentImg = galleryImages[safeIndex];
+                  const go = (dir: number) => {
+                    setGalleryDirection(dir);
+                    setGalleryIndex((prev) => (prev + dir + galleryImages.length) % galleryImages.length);
+                  };
+
+                  return (
+                    <div className="space-y-4">
+                      <div className="relative rounded-2xl overflow-hidden border border-line-light bg-bg-light">
+                        <AnimatePresence initial={false} mode="wait">
+                          <motion.img
+                            key={currentImg}
+                            src={currentImg}
+                            alt={`${galleryProject.title} ${safeIndex + 1}`}
+                            className="w-full max-h-[540px] object-contain bg-white"
+                            initial={{ opacity: 0, x: galleryDirection >= 0 ? 60 : -60 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: galleryDirection >= 0 ? -60 : 60 }}
+                            transition={{ duration: 0.35, ease: 'easeInOut' }}
+                          />
+                        </AnimatePresence>
+                        {galleryImages.length > 1 && (
+                          <>
+                            <button
+                              onClick={() => go(-1)}
+                              className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 hover:bg-white shadow border border-line-light flex items-center justify-center text-text-main"
+                              aria-label="이전 이미지"
+                            >
+                              ‹
+                            </button>
+                            <button
+                              onClick={() => go(1)}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 hover:bg-white shadow border border-line-light flex items-center justify-center text-text-main"
+                              aria-label="다음 이미지"
+                            >
+                              ›
+                            </button>
+                          </>
+                        )}
+                      </div>
+                      {galleryImages.length > 1 && (
+                        <div className="flex flex-wrap justify-center gap-2">
+                          {galleryImages.map((img, idx) => (
+                            <button
+                              key={idx}
+                              onClick={() => setGalleryIndex(idx)}
+                              className={`w-3 h-3 rounded-full border transition ${idx === safeIndex ? 'bg-brand-main border-brand-main' : 'bg-gray-200 border-gray-300'}`}
+                              aria-label={`${idx + 1}번째 이미지 보기`}
+                              title={`${idx + 1}번째 이미지`}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
-            </div>
             </motion.div>
           </motion.div>
         )}

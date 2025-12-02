@@ -487,6 +487,7 @@
       setActive(`images-${projectId}`);
     }
 
+
     async function loadMonthlyData(year, month) {
       const res = await fetch(`${API_URL}/visitors/monthly?year=${year}&month=${month}`);
       const result = await res.json();

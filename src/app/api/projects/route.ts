@@ -52,7 +52,6 @@ export async function GET(request: NextRequest) {
         signal: controller.signal, // 타임아웃 신호
         // Next.js 서버에서 실행되므로 timeout 설정
         next: { revalidate: 10 }, // 10초 캐시
-        cache: 'default', // 캐시 사용
       });
       
       clearTimeout(timeoutId); // 성공 시 타임아웃 제거
