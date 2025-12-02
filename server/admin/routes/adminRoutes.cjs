@@ -9,7 +9,7 @@ const router = express.Router();
 const sendHtml = (res, filePath, errorMessage) => {
   res.sendFile(filePath, (err) => {
     if (err) {
-      console.error(errorMessage, err);
+      console.error('[adminRoutes] sendFile error', { filePath, errorMessage, err });
       res.status(500).send(errorMessage);
     }
   });
@@ -29,12 +29,19 @@ router.get('/create', requireAuth, (req, res) => {
 });
 
 router.get('/login', (req, res) => {
+  console.log('[adminRoutes] GET /login', {
+    session: {
+      hasSession: !!req.session,
+      isAuthenticated: req.session?.isAuthenticated,
+    }
+  });
   if (req.session && req.session.isAuthenticated) {
     return res.redirect('/admin');
   }
 
   const loginPath = path.join(ADMIN_DIR, 'login.html');
   if (!existsSync(loginPath)) {
+    console.error('[adminRoutes] login.html not found', { loginPath });
     return res.status(500).send('로그인 페이지를 불러올 수 없습니다.');
   }
   return res.sendFile(loginPath);

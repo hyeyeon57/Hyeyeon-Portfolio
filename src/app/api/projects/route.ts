@@ -1,42 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { Project } from '@/types/portfolio';
-import { getBackofficeBaseUrl, isSameProjectDeployment } from '@/lib/api-config';
 
 // 짧은 캐시로 성능 개선 (10초)
 export const revalidate = 10;
 
 export async function GET(request: NextRequest) {
   try {
-    const backofficeUrl = getBackofficeBaseUrl();
     const timestamp = Date.now();
-    const isSameProject = isSameProjectDeployment();
 
-    // 백오피스 API URL 생성
-    let fetchUrl;
-    if (isSameProject && backofficeUrl) {
-      // 같은 프로젝트: 절대 URL 사용 (같은 도메인)
-      fetchUrl = `${backofficeUrl}/bo-api/projects?_t=${timestamp}`;
-    } else if (isSameProject) {
-      // 같은 프로젝트: 상대 경로 사용 (서버 사이드에서는 작동하지 않을 수 있음)
-      fetchUrl = `/bo-api/projects?_t=${timestamp}`;
-    } else {
-      // 별도 프로젝트: 절대 URL 사용
-      fetchUrl = `${backofficeUrl}/bo-api/projects?_t=${timestamp}`;
-    }
-    
-    console.log('📡 백오피스 API 호출 (별도 서버):', { 
-      backofficeUrl, 
-      fetchUrl, 
-      timestamp,
-      hasEnvVar: !!(process.env.NEXT_PUBLIC_BACKOFFICE_URL || process.env.BACKOFFICE_API_URL),
-      nodeEnv: process.env.NODE_ENV,
-      vercel: process.env.VERCEL === '1'
-    });
+    // 같은 Vercel 프로젝트 내 Express(서버리스)로 직접 호출
+    const baseUrl =
+      process.env.BACKOFFICE_INTERNAL_URL ||
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+    const fetchUrl = `${baseUrl}/bo-api/projects?_t=${timestamp}`;
     
     // 타임아웃 설정 (8초 - Vercel 서버리스 함수 제한 고려)
     const controller = new AbortController();
     const timeoutId = setTimeout(() => {
-      console.error('⏱️ 백엔드 API 호출 타임아웃 (8초 초과):', { url: fetchUrl, backofficeUrl });
+      console.error('⏱️ 백엔드 API 호출 타임아웃 (8초 초과):', { url: fetchUrl, baseUrl });
       controller.abort();
     }, 8000);
     
@@ -62,7 +43,7 @@ export async function GET(request: NextRequest) {
       if (fetchError.name === 'AbortError' || fetchError.message?.includes('aborted')) {
         console.error('❌ 백엔드 API 호출 타임아웃:', {
           url: fetchUrl,
-          backofficeUrl,
+          baseUrl,
           timeout: '8초',
           error: fetchError.message
         });
@@ -73,7 +54,7 @@ export async function GET(request: NextRequest) {
           timeout: true,
           details: {
             url: fetchUrl,
-            backofficeUrl,
+            baseUrl,
             message: '백엔드 서버가 8초 내에 응답하지 않았습니다. Vercel 로그를 확인하세요.'
           }
         }, { status: 504 });
@@ -84,7 +65,7 @@ export async function GET(request: NextRequest) {
         error: fetchError.message,
         name: fetchError.name,
         url: fetchUrl,
-        backofficeUrl,
+        baseUrl,
         stack: fetchError.stack
       });
       
@@ -95,7 +76,7 @@ export async function GET(request: NextRequest) {
         networkError: true,
         details: {
           url: fetchUrl,
-          backofficeUrl,
+          baseUrl,
           errorName: fetchError.name,
           errorMessage: fetchError.message
         }
@@ -122,7 +103,7 @@ export async function GET(request: NextRequest) {
         status: response.status,
         statusText: response.statusText,
         url: fetchUrl,
-        backofficeUrl,
+        baseUrl,
         error: errorDetails,
         headers: Object.fromEntries(response.headers.entries())
       });

@@ -282,15 +282,12 @@
 
   <script>
     // 프로덕션에서는 같은 도메인의 /bo-api 경로 사용, 개발 환경에서는 별도 서버 사용
-    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const API_URL = isLocalhost 
-      ? 'http://localhost:3005/api'
-      : '/bo-api';
+    // 포트 3000(Next.js)로 통합되었으므로 항상 /bo-api 사용
+    const API_URL = '/bo-api';
     
     // 디버깅: 환경 정보 로그
     console.log('🔧 환경 설정:', {
       hostname: window.location.hostname,
-      isLocalhost: isLocalhost,
       API_URL: API_URL,
       origin: window.location.origin
     });
@@ -443,7 +440,7 @@
         const fd = new FormData();
         fd.append('file', file);
 
-        const resp = await fetch('/api/upload-pdf', {
+        const resp = await fetch(`${API_URL}/upload-pdf`, {
           method: 'POST',
           body: fd,
         });
@@ -564,10 +561,8 @@
     async function checkAuth() {
       try {
         // API URL과 일관성 유지
-        const authCheckUrl = isLocalhost 
-          ? 'http://localhost:3005/api/auth/check'
-          : '/bo-api/auth/check';
-        
+        const authCheckUrl = '/bo-api/auth/check';
+
         console.log('🔐 인증 상태 확인:', { authCheckUrl });
         
         const response = await fetch(authCheckUrl, {

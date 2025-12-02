@@ -96,8 +96,8 @@
     import { statsCardsTemplate, todayChartTemplate, weeklyChartTemplate, monthlyChartTemplate } from '/templates/statsTemplates.js';
     import { categoryLabels } from '/templates/utils.js';
 
-    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const API_URL = isLocalhost ? 'http://localhost:3005/api' : '/bo-api';
+    // 포트 3000(Next.js)로 통합되었으므로 항상 /bo-api 사용
+    const API_URL = '/bo-api';
 
     let projects = [];
     let contacts = [];
@@ -124,7 +124,7 @@
 
     async function checkAuth() {
       try {
-        const url = isLocalhost ? 'http://localhost:3005/api/auth/check' : '/bo-api/auth/check';
+        const url = '/bo-api/auth/check';
         const res = await fetch(url, { credentials: 'include' });
         const data = await res.json();
         isAuthenticated = !!data.authenticated;
@@ -339,7 +339,6 @@
           designPdf: fd.get('designPdf') || '',
           detailPdf: fd.get('detailPdf') || '',
           achievements: fd.get('achievements') ? fd.get('achievements').toString().split('\\n').map(a => a.trim()).filter(Boolean) : [],
-          featured: fd.get('featured') === 'on',
           startDate: fd.get('startDate') || '',
           endDate: fd.get('endDate') || '',
           images: galleryList,
@@ -381,7 +380,7 @@
         try {
           const fdUp = new FormData();
           fdUp.append('file', file);
-          const resp = await fetch('/api/upload-pdf', { method:'POST', body: fdUp });
+          const resp = await fetch(`${API_URL}/upload-pdf`, { method:'POST', body: fdUp });
           if (!resp.ok) throw new Error(await resp.text());
           const result = await resp.json();
           if (!result.success) throw new Error(result.error || '업로드 실패');

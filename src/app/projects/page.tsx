@@ -206,10 +206,10 @@ export default function AllProjectsPage() {
       if (!v) return null;
       const trimmed = v.trim();
       // 우선 년-월 포맷 추출
-      const m = trimmed.match(/(?<y>\d{2,4})[.\-\/](?<m>\d{1,2})/);
-      if (m?.groups) {
-        const yy = m.groups.y.slice(-2);
-        const mm = m.groups.m.padStart(2, '0');
+      const m = trimmed.match(/(\d{2,4})[.\-\/](\d{1,2})/);
+      if (m) {
+        const yy = m[1].slice(-2);
+        const mm = m[2].padStart(2, '0');
         return `${yy}-${mm}`;
       }
       const d = new Date(trimmed);

@@ -11,18 +11,19 @@ const nextConfig = {
     maxInactiveAge: 25 * 1000,
     pagesBufferLength: 2,
   },
-  // /admin 경로를 Next.js 라우팅에서 제외하고 API로 전달
+  // /admin, /bo-api 경로를 Next.js API로 라우팅
   async rewrites() {
     return [
-      // /admin 경로는 Next.js가 처리하지 않고 서버리스 함수로 전달
+      // /admin, /bo-api 요청은 Express 서버리스 함수로 전달
       {
         source: '/admin/:path*',
-        destination: '/api/index',
+        destination: '/api/bo-api/admin/:path*',
       },
       {
         source: '/bo-api/:path*',
-        destination: '/api/index',
+        destination: '/api/bo-api/:path*',
       },
+      // 템플릿 파일은 public/templates에서 자동 제공됨
     ];
   },
 };

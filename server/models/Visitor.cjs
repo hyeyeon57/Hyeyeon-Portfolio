@@ -28,5 +28,5 @@ const VisitorSchema = new Schema(
 VisitorSchema.index({ date: 1 });
 VisitorSchema.index({ createdAt: 1 });
 
-module.exports = mongoose.model('Visitor', VisitorSchema);
+module.exports = mongoose.models.Visitor || mongoose.model('Visitor', VisitorSchema);
 

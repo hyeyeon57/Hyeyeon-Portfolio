@@ -1,8 +1,8 @@
 const path = require('path');
 
-// server 폴더 기준 절대 경로
-const SERVER_ROOT = path.resolve(__dirname, '..');
-const PROJECT_ROOT = path.resolve(SERVER_ROOT, '..');
+// 프로젝트 루트 기준 절대 경로 (Next 서버리스에서도 올바르게 계산)
+const PROJECT_ROOT = process.cwd();
+const SERVER_ROOT = path.join(PROJECT_ROOT, 'server');
 
 const PUBLIC_DIR = path.join(SERVER_ROOT, 'public');
 const ADMIN_DIR = path.join(SERVER_ROOT, 'admin');
