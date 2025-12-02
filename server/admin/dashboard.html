@@ -62,8 +62,49 @@
 
     <div id="content-contacts" class="tab-content hidden">
       <div class="bg-white border rounded-xl shadow-sm">
-        <div class="px-6 py-4 border-b">
-          <h2 class="text-xl font-semibold text-gray-900">연락 목록</h2>
+        <div class="px-6 py-5 border-b">
+          <div class="flex flex-col gap-4">
+            <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+              <div>
+                <h2 class="text-xl font-semibold text-gray-900">연락 관리</h2>
+                <p class="text-sm text-gray-500 mt-1">포트폴리오를 통해 받은 연락을 확인하고 관리하세요.</p>
+              </div>
+              <div class="flex flex-wrap items-end gap-3">
+                <div class="flex items-center gap-2">
+                  <label class="text-sm font-medium text-gray-700 whitespace-nowrap" for="contact-start-date">날짜</label>
+                  <input
+                    type="date"
+                    id="contact-start-date"
+                    class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <span class="text-gray-500">~</span>
+                  <input
+                    type="date"
+                    id="contact-end-date"
+                    class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div class="flex items-center gap-2">
+                  <label class="text-sm font-medium text-gray-700 whitespace-nowrap" for="contact-sort">정렬</label>
+                  <select
+                    id="contact-sort"
+                    class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="newest" selected>최신순</option>
+                    <option value="oldest">오래된순</option>
+                  </select>
+                </div>
+                <button
+                  onclick="applyContactFilters()"
+                  class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-2"
+                >
+                  <i data-lucide="search" class="w-4 h-4"></i>
+                  검색
+                </button>
+              </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="contact-stats"></div>
+          </div>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full">
@@ -73,6 +114,8 @@
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">이름</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">이메일</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">메시지</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">상태</th>
+                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">작업</th>
               </tr>
             </thead>
             <tbody id="contactsTable" class="divide-y divide-gray-200"></tbody>
@@ -83,10 +126,82 @@
 
     <div id="content-visitors" class="tab-content hidden">
       <div class="mb-6" id="visitor-stats"></div>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         <div class="bg-white border rounded-xl shadow-sm" id="visitor-today-chart"></div>
         <div class="bg-white border rounded-xl shadow-sm" id="visitor-weekly-chart"></div>
         <div class="bg-white border rounded-xl shadow-sm" id="visitor-daily-chart"></div>
+      </div>
+
+      <!-- 방문자 기록 테이블 -->
+      <div class="bg-white rounded-xl shadow-sm border">
+        <div class="px-6 py-4 border-b">
+          <div class="flex justify-between items-center mb-4">
+            <div>
+              <h2 class="text-xl font-semibold text-gray-900">방문자 기록</h2>
+              <p class="text-sm text-gray-500 mt-1">방문한 사용자 목록</p>
+            </div>
+            <button
+              onclick="clearVisitors()"
+              class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium flex items-center gap-2"
+              id="clearVisitorsBtn"
+              style="display:none;"
+            >
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+              기록 초기화
+            </button>
+          </div>
+          <!-- 필터 UI -->
+          <div class="flex flex-wrap items-center gap-3 p-3 bg-gray-50 rounded-lg">
+            <div class="flex items-center gap-2">
+              <label class="text-sm font-medium text-gray-700 whitespace-nowrap">날짜:</label>
+              <input
+                type="date"
+                id="visitor-start-date"
+                class="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                onchange="updateDateConstraints()"
+              />
+              <span class="text-gray-500">~</span>
+              <input
+                type="date"
+                id="visitor-end-date"
+                class="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                onchange="updateDateConstraints()"
+              />
+            </div>
+            <div class="flex items-center gap-2">
+              <label class="text-sm font-medium text-gray-700 whitespace-nowrap">정렬:</label>
+              <select
+                id="visitor-sort"
+                class="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="newest">최신순</option>
+                <option value="oldest">오래된순</option>
+              </select>
+            </div>
+            <button
+              onclick="searchVisitors()"
+              class="px-4 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-2 whitespace-nowrap"
+            >
+              <i data-lucide="search" class="w-4 h-4"></i>
+              검색
+            </button>
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">방문 시간</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">경로</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">IP 주소</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User Agent</th>
+              </tr>
+            </thead>
+            <tbody id="visitorsTable" class="bg-white divide-y divide-gray-200">
+              <!-- 방문자 목록은 JavaScript로 동적 생성 -->
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
@@ -101,6 +216,7 @@
 
     let projects = [];
     let contacts = [];
+    const contactFilters = { sort: 'newest', startDate: '', endDate: '' };
     let visitorsMonthly = { monthly: [], labels: [] };
     let currentMonthlyYear = new Date().getFullYear();
     let currentMonthlyMonth = new Date().getMonth() + 1;
@@ -393,19 +509,182 @@
       };
     }
 
+    const getContactDate = (contact) => {
+      const candidate = contact?.createdAt || contact?.date || contact?.created_at || contact?.timestamp || Date.now();
+      const parsed = new Date(candidate);
+      return Number.isNaN(parsed.getTime()) ? new Date() : parsed;
+    };
+
+    const renderContactStats = (contactsList) => {
+      const statsContainer = document.getElementById('contact-stats');
+      if (!statsContainer) return;
+
+      const total = contactsList.length;
+      const unread = contactsList.filter(c => !c.read).length;
+      const read = total - unread;
+
+      statsContainer.innerHTML = `
+        <div class="p-4 rounded-xl border shadow-sm flex items-center justify-between">
+          <div>
+            <p class="text-sm text-gray-500">총 연락 수</p>
+            <p class="text-2xl font-semibold text-gray-900 mt-1">${total}</p>
+          </div>
+          <div class="p-3 bg-blue-50 text-blue-600 rounded-lg">
+            <i data-lucide="inbox" class="w-6 h-6"></i>
+          </div>
+        </div>
+        <div class="p-4 rounded-xl border shadow-sm flex items-center justify-between">
+          <div>
+            <p class="text-sm text-gray-500">읽지 않음</p>
+            <p class="text-2xl font-semibold text-blue-700 mt-1">${unread}</p>
+          </div>
+          <div class="p-3 bg-indigo-50 text-indigo-600 rounded-lg">
+            <i data-lucide="mail" class="w-6 h-6"></i>
+          </div>
+        </div>
+        <div class="p-4 rounded-xl border shadow-sm flex items-center justify-between">
+          <div>
+            <p class="text-sm text-gray-500">읽음</p>
+            <p class="text-2xl font-semibold text-green-700 mt-1">${read}</p>
+          </div>
+          <div class="p-3 bg-emerald-50 text-emerald-600 rounded-lg">
+            <i data-lucide="mail-open" class="w-6 h-6"></i>
+          </div>
+        </div>
+      `;
+      setTimeout(() => lucide.createIcons(), 0);
+    };
+
+    function renderContacts(contactsList) {
+      const tbody = document.getElementById('contactsTable');
+      renderContactStats(contactsList || []);
+      if (!tbody) return;
+
+      if (!contactsList || contactsList.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="px-6 py-10 text-center text-gray-500">
+              등록된 연락이 없습니다.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = contactsList.map(contact => {
+        const contactId = contact._id || contact.id;
+        const contactDate = getContactDate(contact);
+        const formattedDate = contactDate.toLocaleString('ko-KR', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+        const message = contact.message || '';
+        const statusLabel = contact.read ? '읽음' : '읽지 않음';
+        const statusClasses = contact.read ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700';
+
+        return `
+          <tr class="hover:bg-gray-50 ${contact.read ? '' : 'bg-blue-50/50'}">
+            <td class="px-6 py-3 text-sm text-gray-600 whitespace-nowrap">${formattedDate}</td>
+            <td class="px-6 py-3 text-sm font-medium text-gray-900">${contact.name || '-'}</td>
+            <td class="px-6 py-3 text-sm text-gray-600">${contact.email || '-'}</td>
+            <td class="px-6 py-3 text-sm text-gray-600 max-w-[320px]">
+              <div class="line-clamp-2" title="${message}">${message}</div>
+            </td>
+            <td class="px-6 py-3 text-sm">
+              <span class="px-2.5 py-1 rounded-full text-xs font-medium ${statusClasses}">${statusLabel}</span>
+            </td>
+            <td class="px-6 py-3 text-right text-sm space-x-2 whitespace-nowrap">
+              ${contact.read ? '' : `
+                <button
+                  class="inline-flex items-center gap-1 px-3 py-1.5 border border-blue-200 text-blue-700 rounded-lg hover:bg-blue-50 transition-colors text-xs"
+                  onclick="markContactRead('${contactId}')"
+                  title="읽음 처리"
+                >
+                  <i data-lucide="check" class="w-4 h-4"></i>
+                  읽음
+                </button>
+              `}
+              <button
+                class="inline-flex items-center gap-1 px-3 py-1.5 border border-red-200 text-red-700 rounded-lg hover:bg-red-50 transition-colors text-xs"
+                onclick="deleteContact('${contactId}')"
+                title="삭제"
+              >
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                삭제
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+      setTimeout(() => lucide.createIcons(), 0);
+    }
+
+    function applyContactFilters() {
+      const startInput = document.getElementById('contact-start-date');
+      const endInput = document.getElementById('contact-end-date');
+      const sortSelect = document.getElementById('contact-sort');
+
+      contactFilters.startDate = startInput?.value || '';
+      contactFilters.endDate = endInput?.value || '';
+      contactFilters.sort = sortSelect?.value || 'newest';
+
+      const startDate = contactFilters.startDate ? new Date(`${contactFilters.startDate}T00:00:00`) : null;
+      const endDate = contactFilters.endDate ? new Date(`${contactFilters.endDate}T23:59:59.999`) : null;
+
+      const filtered = contacts.filter(contact => {
+        const date = getContactDate(contact);
+        if (startDate && date < startDate) return false;
+        if (endDate && date > endDate) return false;
+        return true;
+      });
+
+      const sorted = [...filtered].sort((a, b) => {
+        const diff = getContactDate(a).getTime() - getContactDate(b).getTime();
+        return contactFilters.sort === 'oldest' ? diff : -diff;
+      });
+
+      renderContacts(sorted);
+    }
+
     async function loadContacts() {
       const res = await fetch(`${API_URL}/contacts`);
       const data = await res.json();
       contacts = Array.isArray(data.data) ? data.data : [];
-      const tbody = document.getElementById('contactsTable');
-      tbody.innerHTML = contacts.map(c => `
-        <tr class="hover:bg-gray-50">
-          <td class="px-6 py-3 text-sm text-gray-600">${new Date(c.createdAt).toLocaleString('ko-KR')}</td>
-          <td class="px-6 py-3 text-sm text-gray-900">${c.name}</td>
-          <td class="px-6 py-3 text-sm text-gray-600">${c.email}</td>
-          <td class="px-6 py-3 text-sm text-gray-600 truncate max-w-[240px]" title="${c.message}">${c.message}</td>
-        </tr>
-      `).join('');
+      const sortSelect = document.getElementById('contact-sort');
+      if (sortSelect && !sortSelect.value) {
+        sortSelect.value = contactFilters.sort;
+      }
+      applyContactFilters();
+    }
+
+    async function markContactRead(id) {
+      try {
+        const res = await fetch(`${API_URL}/contacts/${id}/read`, { method: 'PUT' });
+        const data = await res.json();
+        if (data.success) {
+          await loadContacts();
+        }
+      } catch (e) {
+        console.error('읽음 처리 오류', e);
+      }
+    }
+
+    async function deleteContact(id) {
+      if (!confirm('연락을 삭제하시겠습니까?')) return;
+      try {
+        const res = await fetch(`${API_URL}/contacts/${id}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.success) {
+          await loadContacts();
+        } else {
+          alert(data.error || '삭제에 실패했습니다.');
+        }
+      } catch (e) {
+        alert('삭제 중 오류가 발생했습니다.');
+      }
     }
 
     async function loadVisitorStatsForTab() {
@@ -638,6 +917,228 @@
       }
     }
 
+    // 경로를 한글 레이블로 변환하는 헬퍼 함수
+    function getPathLabel(path) {
+      const pathMap = {
+        '/': '홈',
+        '/projects': '전체 프로젝트',
+        '/admin': '관리자 대시보드',
+        '/admin/login': '관리자 로그인',
+        '/admin/create': '프로젝트 생성'
+      };
+      return pathMap[path] || path || '홈';
+    }
+
+    // 방문자 목록 로드
+    async function loadVisitors(startDate = null, endDate = null, sort = 'newest') {
+      try {
+        // 필터 파라미터 구성
+        const params = new URLSearchParams();
+        params.append('limit', '100'); // 더 많은 데이터 표시
+
+        if (startDate) {
+          params.append('startDate', startDate);
+        }
+        if (endDate) {
+          params.append('endDate', endDate);
+        }
+        if (sort) {
+          params.append('sort', sort);
+        }
+
+        const url = `${API_URL}/visitors?${params.toString()}`;
+
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+
+        if (result.success && Array.isArray(result.data)) {
+          renderVisitors(result.data, result.total || 0);
+        } else {
+          renderVisitors([], 0);
+        }
+      } catch (error) {
+        console.error('방문자 로드 오류:', error);
+        renderVisitors([], 0);
+      }
+    }
+
+    // 방문자 목록 렌더링
+    function renderVisitors(visitors, total = 0) {
+      const tbody = document.getElementById('visitorsTable');
+
+      if (!visitors || visitors.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="4" class="px-6 py-12 text-center">
+              <div class="text-gray-400">
+                <p class="text-4xl mb-4">👤</p>
+                <p class="text-lg">방문 기록이 없습니다</p>
+                ${total > 0 ? `<p class="text-sm mt-2">필터 조건에 맞는 기록이 없습니다</p>` : ''}
+              </div>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = visitors.map(visitor => {
+        const visitDate = new Date(visitor.date || visitor.createdAt);
+        const formattedDate = visitDate.toLocaleString('ko-KR', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false
+        });
+
+        const userAgent = visitor.userAgent || '';
+        const shortUserAgent = userAgent.length > 50
+          ? userAgent.substring(0, 50) + '...'
+          : userAgent;
+
+        // 경로를 한글로 변환
+        const pathLabel = getPathLabel(visitor.path);
+
+        return `
+          <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm font-medium text-gray-900">${formattedDate}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-900">${pathLabel}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-500">${visitor.ip || '-'}</div>
+            </td>
+            <td class="px-6 py-4">
+              <div class="text-sm text-gray-500" title="${userAgent}">${shortUserAgent}</div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+      lucide.createIcons();
+
+      // 결과 개수 업데이트
+      const countElement = document.getElementById('visitor-total');
+      if (countElement) {
+        countElement.textContent = total || visitors.length;
+      }
+    }
+
+    // 날짜 제약 조건 업데이트
+    function updateDateConstraints() {
+      const startDateInput = document.getElementById('visitor-start-date');
+      const endDateInput = document.getElementById('visitor-end-date');
+
+      if (startDateInput && endDateInput) {
+        // 시작일이 선택되면 종료일의 최소값을 시작일로 설정
+        if (startDateInput.value) {
+          endDateInput.min = startDateInput.value;
+        } else {
+          endDateInput.removeAttribute('min');
+        }
+
+        // 종료일이 선택되면 시작일의 최대값을 종료일로 설정
+        if (endDateInput.value) {
+          startDateInput.max = endDateInput.value;
+        } else {
+          startDateInput.removeAttribute('max');
+        }
+      }
+    }
+
+    // 방문자 검색
+    async function searchVisitors() {
+      const startDateInput = document.getElementById('visitor-start-date');
+      const endDateInput = document.getElementById('visitor-end-date');
+      const sortSelect = document.getElementById('visitor-sort');
+
+      if (!startDateInput || !endDateInput || !sortSelect) {
+        console.error('검색 필드 요소를 찾을 수 없습니다.');
+        alert('검색 필드를 찾을 수 없습니다.');
+        return;
+      }
+
+      const startDate = startDateInput.value || null;
+      const endDate = endDateInput.value || null;
+      const sort = sortSelect.value || 'newest';
+
+      console.log('검색 조건:', { startDate, endDate, sort });
+
+      // 검색 버튼 비활성화 및 로딩 표시
+      const searchBtn = document.querySelector('button[onclick*="searchVisitors"]');
+      let originalHTML = '';
+      if (searchBtn) {
+        originalHTML = searchBtn.innerHTML;
+        searchBtn.disabled = true;
+        searchBtn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> 검색 중...';
+        lucide.createIcons();
+      }
+
+      try {
+        await loadVisitors(startDate, endDate, sort);
+        console.log('검색 완료');
+      } catch (error) {
+        console.error('검색 오류:', error);
+        alert('검색 중 오류가 발생했습니다: ' + error.message);
+      } finally {
+        if (searchBtn) {
+          searchBtn.disabled = false;
+          searchBtn.innerHTML = originalHTML;
+          lucide.createIcons();
+        }
+      }
+    }
+
+    // 방문자 기록 초기화
+    async function clearVisitors() {
+      if (!confirm('정말로 모든 방문자 기록을 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.')) {
+        return;
+      }
+
+      const btn = document.getElementById('clearVisitorsBtn');
+      const originalText = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> 초기화 중...';
+      lucide.createIcons();
+
+      try {
+        const response = await fetch(`${API_URL}/visitors`, {
+          method: 'DELETE',
+          credentials: 'include'
+        });
+        const result = await response.json();
+
+        if (result.success) {
+          alert(`방문자 기록 ${result.deletedCount || 0}개가 삭제되었습니다.`);
+          // 방문자 목록 및 통계 새로고침
+          await loadVisitors(null, null, 'newest');
+          await loadVisitorStatsForTab();
+        } else {
+          alert(result.error || '방문자 기록 초기화에 실패했습니다.');
+        }
+      } catch (error) {
+        console.error('방문자 기록 초기화 오류:', error);
+        alert('방문자 기록 초기화 중 오류가 발생했습니다.');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        lucide.createIcons();
+      }
+    }
+
     // 전역 노출 (인라인 onclick 대응)
     window.viewDetail = viewDetail;
     window.editProject = editProject;
@@ -647,6 +1148,12 @@
     window.updateMonthlyChart = updateMonthlyChart;
     window.initDetailTabs = initDetailTabs;
     window.deleteProject = deleteProject;
+    window.applyContactFilters = applyContactFilters;
+    window.markContactRead = markContactRead;
+    window.deleteContact = deleteContact;
+    window.searchVisitors = searchVisitors;
+    window.updateDateConstraints = updateDateConstraints;
+    window.clearVisitors = clearVisitors;
 
     // 초기 실행
     (async () => {
@@ -656,6 +1163,34 @@
       await loadContacts();
       await loadVisitorStatsForTab();
       await loadMonthlyData(currentMonthlyYear, currentMonthlyMonth);
+
+      // 방문자 기록 초기화: 최근 30일 기본 설정
+      const today = new Date();
+      const thirtyDaysAgo = new Date(today);
+      thirtyDaysAgo.setDate(today.getDate() - 30);
+
+      const startDateInput = document.getElementById('visitor-start-date');
+      const endDateInput = document.getElementById('visitor-end-date');
+
+      if (startDateInput && endDateInput) {
+        // YYYY-MM-DD 형식으로 변환
+        const formatDate = (date) => {
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          return `${year}-${month}-${day}`;
+        };
+
+        startDateInput.value = formatDate(thirtyDaysAgo);
+        endDateInput.value = formatDate(today);
+
+        // 날짜 제약 조건 적용
+        updateDateConstraints();
+
+        // 기본 날짜 범위로 방문자 목록 로드
+        await loadVisitors(startDateInput.value, endDateInput.value, 'newest');
+      }
+
       lucide.createIcons();
     })();
   </script>
