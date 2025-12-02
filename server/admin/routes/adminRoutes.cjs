@@ -15,6 +15,9 @@ const sendHtml = (res, filePath, errorMessage) => {
   });
 };
 
+// 정적 리소스 (템플릿/모듈) 서빙
+router.use('/templates', express.static(path.join(ADMIN_DIR, 'templates')));
+
 router.get('/', requireAuth, (req, res) => {
   const adminPath = path.join(ADMIN_DIR, 'dashboard.html');
   sendHtml(res, adminPath, '관리자 페이지를 불러올 수 없습니다.');

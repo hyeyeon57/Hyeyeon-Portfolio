@@ -38,6 +38,12 @@ const ProjectSchema = new Schema(
     date: {
       type: String,
     },
+    startDate: {
+      type: String,
+    },
+    endDate: {
+      type: String,
+    },
     role: {
       type: String,
     },
@@ -48,6 +54,9 @@ const ProjectSchema = new Schema(
       type: String,
     },
     achievements: [{
+      type: String,
+    }],
+    images: [{
       type: String,
     }],
     link: {

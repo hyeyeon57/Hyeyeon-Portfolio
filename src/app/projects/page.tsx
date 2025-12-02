@@ -126,6 +126,8 @@ export default function AllProjectsPage() {
             tags: p.tags || [],
             category: p.category || 'new',
             date: p.date || '',
+            startDate: (p as any).startDate || '',
+            endDate: (p as any).endDate || '',
             role: p.role || '',
             duration: p.duration || '',
             team: p.team || '',
@@ -194,6 +196,42 @@ export default function AllProjectsPage() {
   }, []);
 
   // 프로젝트 데이터는 BO 서버에서 관리하므로 localStorage 저장 제거
+
+  const formatRange = (project: any) => {
+    const toYM = (v?: string | null) => {
+      if (!v) return null;
+      const trimmed = v.trim();
+      // 우선 년-월 포맷 추출
+      const m = trimmed.match(/(?<y>\d{2,4})[.\-\/](?<m>\d{1,2})/);
+      if (m?.groups) {
+        const yy = m.groups.y.slice(-2);
+        const mm = m.groups.m.padStart(2, '0');
+        return `${yy}-${mm}`;
+      }
+      const d = new Date(trimmed);
+      if (Number.isNaN(d.getTime())) return null;
+      const yy = d.getFullYear().toString().slice(-2);
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      return `${yy}-${mm}`;
+    };
+
+    const s = project.startDate;
+    const e = project.endDate;
+    const fs = toYM(s);
+    const fe = toYM(e);
+    if (fs && fe) return `${fs} ~ ${fe}`;
+    if (fs) return fs;
+
+    if (project.date && typeof project.date === 'string') {
+      const parts = project.date.split('~').map((p: string) => toYM(p));
+      if (parts.length === 2 && parts[0] && parts[1]) return `${parts[0]} ~ ${parts[1]}`;
+      if (parts[0]) return parts[0];
+      const single = toYM(project.date);
+      if (single) return single;
+      return project.date;
+    }
+    return '';
+  };
 
   const categories = [
     { id: 'all', label: '전체', count: projects.length },
@@ -468,8 +506,8 @@ export default function AllProjectsPage() {
                     <div className="flex items-center gap-4 text-xs text-text-secondary pt-3 border-t border-line-light mt-auto">
                       <span className="flex items-center gap-1.5">
                         <Calendar size={14} className="text-brand-main" />
-                      {project.date}
-                    </span>
+                        {formatRange(project)}
+                      </span>
                       <span className="flex items-center gap-1.5">
                         <Users size={14} className="text-brand-main" />
                       {project.team}
@@ -562,9 +600,9 @@ export default function AllProjectsPage() {
                   <div className="bg-bg-light rounded-xl p-4 border border-line-light">
                     <p className="text-xs text-text-secondary mb-1 font-medium">진행 기간</p>
                     <p className="text-sm font-semibold text-text-main">
-                      {selectedProject.date && selectedProject.duration 
-                        ? `${selectedProject.date} (${selectedProject.duration})`
-                        : selectedProject.date || selectedProject.duration || '-'}
+                      {formatRange(selectedProject) && selectedProject.duration 
+                        ? `${formatRange(selectedProject)} (${selectedProject.duration})`
+                        : formatRange(selectedProject) || selectedProject.duration || '-'}
                     </p>
                   </div>
                   <div className="bg-bg-light rounded-xl p-4 border border-line-light">

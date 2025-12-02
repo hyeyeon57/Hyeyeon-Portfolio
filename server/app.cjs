@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const session = require('express-session');
+const path = require('path');
 const { ALLOWED_ORIGINS, SESSION_CONFIG, ADMIN_CONFIG } = require('./config/constants');
 const adminRoutes = require('./admin/routes/adminRoutes.cjs');
 const authRoutes = require('./admin/routes/authRoutes.cjs');
@@ -56,6 +57,8 @@ const createApp = ({ withDbMiddleware = false } = {}) => {
 
   // 관리자/정적 페이지
   app.use('/admin', adminRoutes);
+  // 관리자 템플릿/모듈 (대시보드 JS import용)
+  app.use('/templates', express.static(path.join(__dirname, 'admin', 'templates')));
 
   // 인증 API (/api와 /api/bo 공용)
   app.use('/api/auth', authRoutes);

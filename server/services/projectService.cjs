@@ -8,7 +8,10 @@ const { saveFiles, isS3Enabled } = require('./storageService.cjs');
 const isConnected = () => mongoose.connection.readyState === 1;
 
 const findProjectById = async (id) => {
-  let project = await Project.findById(id);
+  let project = null;
+  if (mongoose.isValidObjectId(id)) {
+    project = await Project.findById(id);
+  }
   if (!project) {
     project = await Project.findOne({ id });
   }
@@ -23,9 +26,14 @@ const listProjects = async () => {
   const projects = await Project.find()
     .sort({ createdAt: -1 })
     .lean()
-    .select('id title subtitle description fullDescription image images tags category date role duration team achievements link featured designPdf detailPdf previewPdf designLink figmaLink designFile gallery retrospective createdAt updatedAt');
+    .select('id title subtitle description fullDescription image images tags category date startDate endDate role duration team achievements link featured designPdf detailPdf previewPdf designLink figmaLink designFile gallery retrospective createdAt updatedAt');
 
-  return { ok: true, data: projects };
+  const normalized = projects.map((p) => ({
+    ...p,
+    images: (p.images && p.images.length ? p.images : (p.gallery || [])),
+  }));
+
+  return { ok: true, data: normalized };
 };
 
 const getProject = async (id) => {
@@ -37,7 +45,50 @@ const getProject = async (id) => {
   if (!project) {
     return { ok: false, status: 404, message: '프로젝트를 찾을 수 없습니다.' };
   }
-  return { ok: true, data: project };
+  const normalized = {
+    ...project.toObject ? project.toObject() : project,
+    images: (project.images && project.images.length ? project.images : (project.gallery || [])),
+  };
+  return { ok: true, data: normalized };
+};
+
+const computeDuration = (start, end) => {
+  if (!start || !end) return '';
+  const s = new Date(start);
+  const e = new Date(end);
+  if (Number.isNaN(s.getTime()) || Number.isNaN(e.getTime()) || e < s) return '';
+  const diffDays = Math.floor((e - s) / (1000 * 60 * 60 * 24));
+  let days = diffDays;
+  const years = Math.floor(days / 365);
+  days %= 365;
+  let months = Math.floor(days / 30);
+  days %= 30;
+  let weeks = Math.floor(days / 7);
+  days %= 7;
+  // 12주 이상이면 개월로 올리기 (주→개월 환산)
+  if (weeks >= 12) {
+    months += Math.floor(weeks / 4);
+    weeks = weeks % 4;
+  }
+  const parts = [];
+  if (years > 0) {
+    parts.push(`${years}년`);
+    if (months > 0) parts.push(`${months}개월`);
+  } else if (months > 0) {
+    parts.push(`${months}개월`);
+    if (weeks > 0) parts.push(`${weeks}주`);
+  } else if (weeks > 0) {
+    parts.push(`${weeks}주`);
+    if (days > 0) parts.push(`${days}일`);
+  } else if (days > 0) {
+    parts.push(`${days}일`);
+  }
+  return parts.join(' ');
+};
+
+const formatDateRange = (start, end) => {
+  if (!start || !end) return '';
+  return `${start} ~ ${end}`;
 };
 
 const createProject = async ({ payload, files }) => {
@@ -46,14 +97,38 @@ const createProject = async ({ payload, files }) => {
   }
 
   const projectData = payload.project ? JSON.parse(payload.project) : payload;
+  if (projectData.startDate && projectData.endDate) {
+    projectData.duration = computeDuration(projectData.startDate, projectData.endDate) || projectData.duration;
+    projectData.date = formatDateRange(projectData.startDate, projectData.endDate) || projectData.date;
+  }
+  if (projectData.startDate && projectData.endDate) {
+    projectData.duration = computeDuration(projectData.startDate, projectData.endDate) || projectData.duration;
+    projectData.date = formatDateRange(projectData.startDate, projectData.endDate) || projectData.date;
+  }
+  const normalizeImages = (arr) => Array.isArray(arr) ? arr.filter(Boolean) : null;
+  if (projectData.removeMainImage === true || projectData.removeMainImage === 'true') {
+    projectData.image = '';
+  }
+  if (projectData.removeDesignPdf === true || projectData.removeDesignPdf === 'true') {
+    projectData.designPdf = '';
+  }
+  if (projectData.removeDetailPdf === true || projectData.removeDetailPdf === 'true') {
+    projectData.detailPdf = '';
+  }
+  const initialImages = normalizeImages(projectData.images) || normalizeImages(projectData.gallery);
+  if (initialImages) {
+    projectData.images = initialImages;
+    projectData.gallery = initialImages;
+  }
   if (files) {
     if (files.mainImage && files.mainImage.length > 0) {
-      const [mainImagePath] = await saveFiles(files.mainImage, 'projects');
+      const [mainImagePath] = await saveFiles(files.mainImage, 'img');
       projectData.image = mainImagePath;
     }
     if (files.images && Array.isArray(files.images) && files.images.length > 0) {
-      const galleryPaths = await saveFiles(files.images, 'projects');
+      const galleryPaths = await saveFiles(files.images, 'img');
       projectData.images = galleryPaths;
+      projectData.gallery = galleryPaths;
     }
   }
   if (!projectData.id) {
@@ -77,12 +152,17 @@ const updateProject = async ({ id, payload, files }) => {
   const projectData = payload.project ? JSON.parse(payload.project) : payload;
   if (files) {
     if (files.mainImage && files.mainImage.length > 0) {
-      const [mainImagePath] = await saveFiles(files.mainImage, 'projects');
+      const [mainImagePath] = await saveFiles(files.mainImage, 'img');
       projectData.image = mainImagePath;
     }
     if (files.images && Array.isArray(files.images) && files.images.length > 0) {
-      const galleryPaths = await saveFiles(files.images, 'projects');
-      projectData.images = [...(project.images || []), ...galleryPaths];
+      const existingGallery = projectData.images && projectData.images.length
+        ? projectData.images
+        : (project.images && project.images.length ? project.images : project.gallery || []);
+      const galleryPaths = await saveFiles(files.images, 'img');
+      const merged = [...(existingGallery || []), ...galleryPaths];
+      projectData.images = merged;
+      projectData.gallery = merged;
     }
   }
   projectData.id = project.id || id;
@@ -129,8 +209,12 @@ const getProjectFiles = async ({ id, baseUrl }) => {
     });
   }
 
-  if (project.images && Array.isArray(project.images)) {
-    project.images.forEach((img) => {
+  const galleryImages = project.images && Array.isArray(project.images) && project.images.length
+    ? project.images
+    : (project.gallery || []);
+
+  if (galleryImages && Array.isArray(galleryImages)) {
+    galleryImages.forEach((img) => {
       if (img && !files.find((f) => f.path === img)) {
         files.push({
           name: img.split('/').pop() || 'image.jpg',
@@ -170,6 +254,9 @@ const resolveProjectFilePath = async ({ id, filename }) => {
   const project = projectResult.data;
   let filePath = null;
   let remoteUrl = null;
+  const galleryImages = project.images && Array.isArray(project.images) && project.images.length
+    ? project.images
+    : (project.gallery || []);
 
   if (project.image && project.image.includes(filename)) {
     if (/^https?:\/\//.test(project.image)) {
@@ -179,8 +266,8 @@ const resolveProjectFilePath = async ({ id, filename }) => {
     }
   }
 
-  if (!filePath && project.images && Array.isArray(project.images)) {
-    const matchedImage = project.images.find((img) => img && img.includes(filename));
+  if (!filePath && galleryImages && Array.isArray(galleryImages)) {
+    const matchedImage = galleryImages.find((img) => img && img.includes(filename));
     if (matchedImage) {
       if (/^https?:\/\//.test(matchedImage)) {
         remoteUrl = matchedImage;
@@ -191,9 +278,16 @@ const resolveProjectFilePath = async ({ id, filename }) => {
   }
 
   if (!filePath) {
-    const foImagePath = path.join(PUBLIC_DIR, '..', '..', 'public', 'projects', filename);
-    if (existsSync(foImagePath)) {
-      filePath = foImagePath;
+    const foImgPath = path.join(PUBLIC_DIR, '..', '..', 'public', 'img', filename);
+    if (existsSync(foImgPath)) {
+      filePath = foImgPath;
+    }
+  }
+
+  if (!filePath) {
+    const foProjectPath = path.join(PUBLIC_DIR, '..', '..', 'public', 'projects', filename);
+    if (existsSync(foProjectPath)) {
+      filePath = foProjectPath;
     }
   }
 

@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
-const { PROJECT_UPLOAD_DIR, PROJECT_PDF_DIR } = require('../utils/pathHelpers.cjs');
+const { PROJECT_UPLOAD_DIR, PROJECT_PDF_DIR, IMAGE_UPLOAD_DIR } = require('../utils/pathHelpers.cjs');
 
 const bucket = process.env.S3_BUCKET;
 const region = process.env.AWS_REGION || 'ap-northeast-2';
@@ -62,12 +62,14 @@ const uploadToS3 = async (file, folder = 'projects') => {
 };
 
 const saveLocally = async (file, folder = 'projects') => {
-  const dir = folder.includes('pdf') ? PROJECT_PDF_DIR : PROJECT_UPLOAD_DIR;
+  const dir = folder.includes('pdf') ? PROJECT_PDF_DIR : (folder.startsWith('img') ? IMAGE_UPLOAD_DIR : PROJECT_UPLOAD_DIR);
   ensureDir(dir);
   const filename = `${Date.now()}_${toSafeName(file.originalname || 'file')}`;
   const filepath = path.join(dir, filename);
   await fs.promises.writeFile(filepath, file.buffer);
-  const relativePath = `/projects${folder.includes('pdf') ? '/pdfs' : ''}/${filename}`;
+  const relativePath = folder.startsWith('img')
+    ? `/img/${filename}`
+    : `/projects${folder.includes('pdf') ? '/pdfs' : ''}/${filename}`;
   return localBaseUrl ? `${localBaseUrl}${relativePath}` : relativePath;
 };
 
