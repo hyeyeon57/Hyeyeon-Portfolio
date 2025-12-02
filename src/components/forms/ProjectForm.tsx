@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { X } from 'lucide-react';
 import { Project } from '@/types/portfolio';
 
@@ -11,6 +11,17 @@ interface ProjectFormProps {
 }
 
 export const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSave, onCancel }) => {
+  const parseDateToMonthValue = (dateString?: string) => {
+    if (!dateString) return '';
+    // Named capturing groups 대신 일반 capturing groups 사용 (ES2018 미만 호환)
+    const match = dateString.match(/(\d{2,4})[.\-\/](\d{1,2})/);
+    if (!match) return '';
+    const rawYear = match[1];
+    const year = rawYear.length === 2 ? `20${rawYear}` : rawYear;
+    const month = match[2].padStart(2, '0');
+    return `${year}-${month}`;
+  };
+
   const [formData, setFormData] = useState({
     title: project?.title || '',
     subtitle: project?.subtitle || '',
@@ -36,6 +47,11 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSave, onCan
       : '',
     retrospective: (project as any)?.retrospective || '',
   });
+
+  const monthInputValue = useMemo(
+    () => parseDateToMonthValue(formData.date),
+    [formData.date]
+  );
 
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState('');
@@ -67,14 +83,14 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSave, onCan
       team: formData.team || '미정',
       role: formData.role || '미정',
       duration: formData.duration || '미정',
-      achievements: formData.achievements ? formData.achievements.split('\n').map(a => a.trim()).filter(Boolean) : [],
+      achievements: formData.achievements ? formData.achievements.split('\n').map((a: string) => a.trim()).filter(Boolean) : [],
       ...(formData.link && { link: formData.link }),
       ...(formData.designLink && { designLink: formData.designLink }),
       ...(formData.designPdf && { designPdf: formData.designPdf }),
       ...(formData.detailPdf && { detailPdf: formData.detailPdf }),
       ...(formData.previewPdf && { previewPdf: formData.previewPdf }),
       ...(formData.image && { image: formData.image }),
-      ...(formData.gallery && { gallery: formData.gallery.split('\n').map(url => url.trim()).filter(Boolean) }),
+      ...(formData.gallery && { gallery: formData.gallery.split('\n').map((url: string) => url.trim()).filter(Boolean) }),
       ...(formData.retrospective && { retrospective: formData.retrospective }),
     };
 
@@ -159,15 +175,22 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSave, onCan
       {/* 진행 기간, 팀 구성, 역량, 기여도 (FO 모달과 동일한 구성) */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div>
-          <label className="block text-sm font-medium text-text-secondary mb-2">진행 기간 - 날짜</label>
+          <label className="block text-sm font-medium text-text-secondary mb-2">진행 기간 - 시작 월</label>
           <input
-            type="text"
+            type="month"
             name="date"
-            value={formData.date}
-            onChange={handleChange}
-            placeholder="2024.01"
+            value={monthInputValue}
+            onChange={(e) => {
+              const value = e.target.value;
+              setFormData(prev => ({
+                ...prev,
+                date: value ? value.replace('-', '.') : '',
+              }));
+            }}
+            placeholder="2024-01"
             className="w-full px-4 py-2 border border-line-medium rounded-lg focus:outline-none focus:border-brand-main"
           />
+          <p className="text-xs text-text-secondary mt-1">달력에서 선택하거나 YYYY-MM 입력 시 자동 변환되어 저장됩니다.</p>
         </div>
         <div>
           <label className="block text-sm font-medium text-text-secondary mb-2">진행 기간 - 기간</label>
@@ -584,7 +607,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSave, onCan
           <div className="mt-2 text-xs text-text-secondary">
             <p className="font-medium mb-1">업로드된 이미지:</p>
             <div className="space-y-1">
-              {formData.gallery.split('\n').filter(Boolean).map((path, index) => (
+              {formData.gallery.split('\n').filter(Boolean).map((path: string, index: number) => (
                 <div key={index} className="flex items-center gap-2">
                   <span className="text-brand-main">✓</span>
                   <span>{path.split('/').pop()}</span>

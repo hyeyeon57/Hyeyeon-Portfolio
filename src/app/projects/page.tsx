@@ -135,6 +135,8 @@ export default function AllProjectsPage() {
             designPdf: (p as any).designPdf || '',
             detailPdf: (p as any).detailPdf || '',
             previewPdf: (p as any).previewPdf || '',
+            retrospective: (p as any).retrospective || '',
+            gallery: (p as any).gallery || [],
             featured: p.featured === true || p.featured === 'true', // boolean 강제 변환
           } as Project & { designLink?: string; designFile?: string; designPdf?: string; detailPdf?: string; previewPdf?: string }));
           

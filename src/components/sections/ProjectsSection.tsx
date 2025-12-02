@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ExternalLink, Calendar, Users, Award, Eye, FileText } from 'lucide-react';
+import { X, ExternalLink, Calendar, Users, Award, FileText, ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { PROJECT_CATEGORIES } from '@/constants/categories';
 import { useProjects } from '@/hooks/useProjects';
@@ -17,16 +17,12 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
 
   // UI 상태만 관리
   const [selectedProject, setSelectedProject] = useState<typeof projects[0] | null>(null);
-  const [showGalleryModal, setShowGalleryModal] = useState(false);
-  const [galleryProject, setGalleryProject] = useState<typeof projects[0] | null>(null);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   // BO에서 featured=true로 설정된 프로젝트를 대표 프로젝트로 표시
   // featured 프로젝트만 표시 (개수 제한 없음 - 백엔드에서 설정한 대로)
-  // featured 필드를 명시적으로 boolean으로 변환하여 필터링
-  const displayedProjects = projects.filter(project => {
-    const isFeatured = project.featured === true || project.featured === 'true';
-    return isFeatured;
-  });
+  // API route에서 이미 boolean으로 변환되어 전달됨
+  const displayedProjects = projects.filter(project => project.featured);
   
   // 디버깅: featured 프로젝트 개수 확인 (항상 로그 출력)
   if (typeof window !== 'undefined') {
@@ -161,7 +157,10 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
               className="group cursor-pointer"
-              onClick={() => setSelectedProject(project)}
+              onClick={() => {
+                setSelectedProject(project);
+                setCurrentImageIndex(0);
+              }}
             >
               <div className="bg-white rounded-2xl overflow-hidden border border-line-light hover:border-brand-main/50 transition-all duration-300 hover:shadow-xl h-full flex flex-col">
                 {/* Project Image */}
@@ -178,21 +177,6 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                     />
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  
-                  {/* Gallery Preview Button */}
-                  {(project as any).gallery && Array.isArray((project as any).gallery) && (project as any).gallery.length > 0 && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setGalleryProject(project);
-                        setShowGalleryModal(true);
-                      }}
-                      className="absolute top-16 right-4 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 backdrop-blur-sm bg-white/90 hover:bg-white text-brand-main border border-brand-main/30 hover:border-brand-main/50 shadow-lg opacity-0 group-hover:opacity-100"
-                      title="프로젝트 미리보기"
-                    >
-                      <Eye size={18} />
-                    </button>
-                  )}
                   
                   <div className="absolute bottom-4 left-4 px-3 py-1.5 bg-white/90 backdrop-blur-sm text-brand-main rounded-lg text-xs font-semibold border border-brand-main/20">
                     {PROJECT_CATEGORIES.find(c => c.id === project.category)?.label || project.category}
@@ -302,29 +286,45 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
 
               {/* Modal Content */}
               <div className="p-8">
-                {/* Project Image with Gallery Button */}
-                {selectedProject.image && (
-                  <div className="mb-8 rounded-2xl overflow-hidden border border-line-light relative group">
-                    <img 
-                      src={selectedProject.image} 
-                      alt={selectedProject.title}
-                      className="w-full h-auto"
-                    />
-                    {/* Gallery Button - show only if gallery exists */}
-                    {(selectedProject as any).gallery && Array.isArray((selectedProject as any).gallery) && (selectedProject as any).gallery.length > 0 && (
+                {/* 이미지 슬라이더 */}
+                {(() => {
+                  const images: string[] = [];
+                  if (selectedProject?.image) images.push(selectedProject.image as string);
+                  if ((selectedProject as any)?.gallery && Array.isArray((selectedProject as any).gallery)) {
+                    images.push(...((selectedProject as any).gallery as string[]));
+                  }
+                  const total = images.length;
+                  if (total === 0) return null;
+                  const current = Math.min(currentImageIndex, Math.max(total - 1, 0));
+                  const goPrev = () => setCurrentImageIndex((idx) => Math.max(idx - 1, 0));
+                  const goNext = () => setCurrentImageIndex((idx) => Math.min(idx + 1, total - 1));
+                  return (
+                    <div className="mb-8 rounded-2xl overflow-hidden border border-line-light relative">
+                      <img
+                        src={images[current]}
+                        alt={selectedProject?.title || ''}
+                        className="w-full h-80 object-cover"
+                      />
                       <button
-                        onClick={() => {
-                          setGalleryProject(selectedProject);
-                          setShowGalleryModal(true);
-                        }}
-                        className="absolute top-4 right-4 w-12 h-12 rounded-full bg-white/90 hover:bg-white backdrop-blur-sm text-brand-main transition-all duration-300 border border-brand-main/30 hover:border-brand-main/50 shadow-lg opacity-0 group-hover:opacity-100 flex items-center justify-center"
-                        title="프로젝트 미리보기"
+                        onClick={goPrev}
+                        disabled={current === 0}
+                        className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur px-3 py-2 rounded-full shadow disabled:opacity-40"
                       >
-                        <Eye size={20} />
+                        <ChevronLeft size={18} />
                       </button>
-                    )}
-                  </div>
-                )}
+                      <button
+                        onClick={goNext}
+                        disabled={current === total - 1}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur px-3 py-2 rounded-full shadow disabled:opacity-40"
+                      >
+                        <ChevronRight size={18} />
+                      </button>
+                      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/50 text-white text-xs px-3 py-1 rounded-full">
+                        {current + 1} / {total}
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {/* Project Info Grid */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
@@ -525,95 +525,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                     }
                   })()}
                   
-                  {/* 미리보기 PDF */}
-                  {(selectedProject as any).previewPdf && (
-                    <a
-                      href={(selectedProject as any).previewPdf}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-xl hover:opacity-90 transition-all duration-300 shadow-md"
-                    >
-                      <FileText size={18} />
-                      <span className="font-medium">미리보기</span>
-                    </a>
-                  )}
                 </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-              </AnimatePresence>
-
-      {/* Gallery Modal */}
-      <AnimatePresence>
-        {showGalleryModal && galleryProject && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
-            onMouseDown={(e) => {
-              if (e.target === e.currentTarget) {
-                setShowGalleryModal(false);
-                setGalleryProject(null);
-              }
-            }}
-          >
-            <motion.div
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-3xl max-w-6xl w-full max-h-[90vh] overflow-hidden shadow-2xl"
-            >
-              {/* Modal Header */}
-              <div className="sticky top-0 bg-white border-b border-line-medium px-6 py-4 flex items-center justify-between z-10">
-                <h3 className="text-2xl font-bold text-text-main">
-                  프로젝트 미리보기
-                </h3>
-                <button
-                  onClick={() => {
-                    setShowGalleryModal(false);
-                    setGalleryProject(null);
-                  }}
-                  className="w-10 h-10 flex items-center justify-center text-text-secondary hover:text-text-main transition-colors"
-                >
-                  <X size={24} />
-                </button>
-              </div>
-
-              {/* Modal Content - Image Gallery */}
-              <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)] space-y-4">
-                {/* Main Image */}
-                {galleryProject.image && (
-                  <div className="relative w-full rounded-2xl overflow-hidden bg-gradient-to-br from-brand-main/5 to-brand-sub-1/5">
-                    <img 
-                      src={galleryProject.image} 
-                      alt={`${galleryProject.title} - 메인`}
-                      className="w-full h-auto object-contain"
-                      style={{ maxHeight: '500px' }}
-                    />
-                  </div>
-                )}
-
-                {/* Gallery Images */}
-                {(galleryProject as any).gallery && Array.isArray((galleryProject as any).gallery) && (galleryProject as any).gallery.length > 0 && (
-                  <div className="space-y-4">
-                    {(galleryProject as any).gallery.map((imagePath: string, index: number) => (
-                      <div 
-                        key={index} 
-                        className="relative w-full rounded-2xl overflow-hidden bg-gradient-to-br from-brand-main/5 to-brand-sub-1/5"
-                      >
-                        <img 
-                          src={imagePath} 
-                          alt={`${galleryProject.title} - ${index + 1}`}
-                          className="w-full h-auto object-contain"
-                          style={{ maxHeight: '500px' }}
-                        />
-                </div>
-                    ))}
-                </div>
-                )}
               </div>
             </motion.div>
           </motion.div>

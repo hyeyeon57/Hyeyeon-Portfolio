@@ -167,6 +167,12 @@ export async function GET(request: NextRequest) {
         team: project.team || '',
         achievements: project.achievements || [],
         link: project.link || '#',
+        designLink: project.designLink || project.figmaLink || project.designFile || '',
+        designPdf: project.designPdf || '',
+        detailPdf: project.detailPdf || '',
+        previewPdf: project.previewPdf || '',
+        retrospective: project.retrospective || '',
+        gallery: project.gallery || [],
         featured: project.featured === true || project.featured === 'true', // boolean 강제 변환
       }));
 
