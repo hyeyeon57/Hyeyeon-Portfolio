@@ -8,7 +8,9 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "functions": {
-    "api/index.js": {
+    "api/**/*.js": {
+      "memory": 1024,
+      "maxDuration": 10,
       "includeFiles": "server/**"
     }
   }
