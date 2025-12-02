@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { Project } from '@/types/portfolio';
 
-// 짧은 캐시로 성능 개선 (10초)
-export const revalidate = 10;
+// 빌드 시 정적 생성하지 않고 항상 서버에서 렌더링 (Deployment Protection 우회)
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export async function GET(request: NextRequest) {
   try {
