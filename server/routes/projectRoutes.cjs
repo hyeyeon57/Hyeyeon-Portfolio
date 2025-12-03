@@ -21,7 +21,7 @@ router.post(
   requireAuth,
   uploadImages.fields([
     { name: 'mainImage', maxCount: 1 },
-    { name: 'images', maxCount: 9 }
+    { name: 'images', maxCount: 30 }
   ]),
   asyncHandler(postProject)
 );
@@ -30,7 +30,7 @@ router.put(
   requireAuth,
   uploadImages.fields([
     { name: 'mainImage', maxCount: 1 },
-    { name: 'images', maxCount: 9 }
+    { name: 'images', maxCount: 30 }
   ]),
   asyncHandler(putProject)
 );

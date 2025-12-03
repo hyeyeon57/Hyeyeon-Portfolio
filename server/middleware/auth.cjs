@@ -17,7 +17,7 @@ const requireAuth = (req, res, next) => {
   console.log('[Auth] 인증 실패');
 
   // API 요청인 경우 JSON 응답 반환 (AJAX/fetch)
-  if (req.xhr || req.headers.accept?.includes('application/json') || req.path.startsWith('/api') || req.path.startsWith('/bo-api')) {
+  if (req.xhr || req.headers.accept?.includes('application/json') || req.originalUrl.startsWith('/api') || req.originalUrl.startsWith('/bo-api')) {
     return res.status(401).json({
       success: false,
       error: '인증이 필요합니다.',
