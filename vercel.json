@@ -6,13 +6,6 @@
   "framework": "nextjs",
   "outputDirectory": ".next",
   "cleanUrls": true,
-  "trailingSlash": false,
-  "functions": {
-    "api/**/*.js": {
-      "memory": 1024,
-      "maxDuration": 10,
-      "includeFiles": "server/**"
-    }
-  }
+  "trailingSlash": false
 }
 
