@@ -494,14 +494,8 @@
           removeDetailPdf,
         };
 
-        const sendFd = new FormData();
         const mainImageFile = document.getElementById('editMainImageFile').files?.[0];
-        if (mainImageFile) sendFd.append('mainImage', mainImageFile);
         const galleryFiles = document.getElementById('editGalleryImagesFile').files;
-        if (galleryFiles && galleryFiles.length > 0) {
-          Array.from(galleryFiles).forEach(f => sendFd.append('images', f));
-        }
-        sendFd.append('project', JSON.stringify(payload));
 
         // 업로드할 파일 개수 계산
         const totalFiles = (mainImageFile ? 1 : 0) + (galleryFiles ? galleryFiles.length : 0);
@@ -514,23 +508,56 @@
         const projectId = project._id || project.id;
 
         try {
-          // XMLHttpRequest로 업로드 진행률 추적
-          const data = await uploadWithProgress(`${API_URL}/projects/${projectId}`, sendFd, totalFiles);
+          // S3 직접 업로드
+          let uploadedUrls = [];
+
+          if (totalFiles > 0) {
+            const filesToUpload = [];
+            if (mainImageFile) filesToUpload.push(mainImageFile);
+            if (galleryFiles && galleryFiles.length > 0) {
+              filesToUpload.push(...Array.from(galleryFiles));
+            }
+
+            uploadedUrls = await uploadFilesToS3WithProgress(filesToUpload, 'projects');
+
+            // 업로드된 URL을 payload에 추가
+            if (mainImageFile) {
+              payload.image = uploadedUrls[0];
+              const newGalleryUrls = uploadedUrls.slice(1);
+              payload.images = [...galleryList, ...newGalleryUrls];
+              payload.gallery = [...galleryList, ...newGalleryUrls];
+            } else {
+              payload.images = [...galleryList, ...uploadedUrls];
+              payload.gallery = [...galleryList, ...uploadedUrls];
+            }
+          }
+
+          // 프로젝트 업데이트 (이미지 URL만 전송)
+          const res = await fetch(`${API_URL}/projects/${projectId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(payload),
+          });
+
+          const data = await res.json();
 
           if (data.success) {
-            updateUploadProgress(totalFiles, totalFiles, 100, '업로드 완료!');
+            if (totalFiles > 0) {
+              updateUploadProgress(totalFiles, totalFiles, 100, '업로드 완료!');
+            }
             setTimeout(() => {
-              hideUploadProgress();
+              if (totalFiles > 0) hideUploadProgress();
               alert('수정되었습니다');
               form.closest('.fixed').remove();
               loadProjects();
             }, 500);
           } else {
-            hideUploadProgress();
+            if (totalFiles > 0) hideUploadProgress();
             alert(data.error || '수정 실패');
           }
         } catch (e) {
-          hideUploadProgress();
+          if (totalFiles > 0) hideUploadProgress();
           alert('업로드 중 오류가 발생했습니다: ' + e.message);
         }
       });
@@ -1187,6 +1214,118 @@
         btn.innerHTML = originalText;
         lucide.createIcons();
       }
+    }
+
+    // S3 직접 업로드 함수들
+    async function uploadFilesToS3(files, folder = 'projects') {
+      if (!files || files.length === 0) return [];
+
+      // 1. Presigned URL 요청
+      const fileInfos = Array.from(files).map(file => ({
+        filename: file.name,
+        contentType: file.type
+      }));
+
+      const response = await fetch(`${API_URL}/upload/presigned-urls`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ files: fileInfos, folder }),
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        throw new Error('Presigned URL 생성 실패');
+      }
+
+      const { data: presignedData } = await response.json();
+
+      // 2. 각 파일을 S3로 업로드
+      const uploadPromises = Array.from(files).map(async (file, index) => {
+        const { uploadUrl, fileUrl } = presignedData[index];
+
+        const uploadResponse = await fetch(uploadUrl, {
+          method: 'PUT',
+          body: file,
+          headers: {
+            'Content-Type': file.type,
+          },
+        });
+
+        if (!uploadResponse.ok) {
+          throw new Error(`파일 업로드 실패: ${file.name}`);
+        }
+
+        return fileUrl;
+      });
+
+      return Promise.all(uploadPromises);
+    }
+
+    async function uploadFilesToS3WithProgress(files, folder = 'projects') {
+      if (!files || files.length === 0) return [];
+
+      const totalFiles = files.length;
+      let completedFiles = 0;
+
+      // 1. Presigned URL 요청
+      updateUploadProgress(0, totalFiles, 0, 'Presigned URL 생성 중...');
+
+      const fileInfos = Array.from(files).map(file => ({
+        filename: file.name,
+        contentType: file.type
+      }));
+
+      const response = await fetch(`${API_URL}/upload/presigned-urls`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ files: fileInfos, folder }),
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        throw new Error('Presigned URL 생성 실패');
+      }
+
+      const { data: presignedData } = await response.json();
+
+      // 2. 각 파일을 순차적으로 S3에 업로드 (진행 상황 추적을 위해)
+      const uploadedUrls = [];
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const { uploadUrl, fileUrl } = presignedData[i];
+
+        updateUploadProgress(
+          completedFiles,
+          totalFiles,
+          (completedFiles / totalFiles) * 100,
+          `${file.name} 업로드 중...`
+        );
+
+        const uploadResponse = await fetch(uploadUrl, {
+          method: 'PUT',
+          body: file,
+          headers: {
+            'Content-Type': file.type,
+          },
+        });
+
+        if (!uploadResponse.ok) {
+          throw new Error(`파일 업로드 실패: ${file.name}`);
+        }
+
+        uploadedUrls.push(fileUrl);
+        completedFiles++;
+
+        updateUploadProgress(
+          completedFiles,
+          totalFiles,
+          (completedFiles / totalFiles) * 100,
+          `${completedFiles}/${totalFiles} 파일 업로드 완료`
+        );
+      }
+
+      return uploadedUrls;
     }
 
     // 업로드 진행 상황 관리 함수들

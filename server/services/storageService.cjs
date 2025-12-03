@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
+const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 const { PROJECT_UPLOAD_DIR, PROJECT_PDF_DIR, IMAGE_UPLOAD_DIR } = require('../utils/pathHelpers.cjs');
 
 const bucket = process.env.S3_BUCKET;
@@ -81,8 +82,58 @@ const saveFiles = async (files = [], folder = 'projects') => {
   return Promise.all(files.map((file) => saveLocally(file, folder)));
 };
 
+/**
+ * S3 Presigned URL 생성
+ * @param {string} filename - 파일명
+ * @param {string} contentType - MIME 타입
+ * @param {string} folder - S3 폴더 경로
+ * @returns {Promise<{uploadUrl: string, fileUrl: string, key: string}>}
+ */
+const generatePresignedUrl = async (filename, contentType, folder = 'projects') => {
+  if (!isS3Enabled || !s3Client) {
+    throw new Error('S3가 활성화되지 않았습니다');
+  }
+
+  const key = `${folder}/${Date.now()}_${toSafeName(filename)}`;
+
+  const command = new PutObjectCommand({
+    Bucket: bucket,
+    Key: key,
+    ContentType: contentType,
+  });
+
+  // Presigned URL 생성 (5분 유효)
+  const uploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 300 });
+
+  const encodedKey = encodeKey(key);
+  const fileUrl = `${baseUrl}/${encodedKey}`;
+
+  return {
+    uploadUrl, // 클라이언트가 업로드할 URL
+    fileUrl,   // 업로드 완료 후 파일에 접근할 URL
+    key,       // S3 key
+  };
+};
+
+/**
+ * 여러 파일에 대한 Presigned URL 일괄 생성
+ */
+const generatePresignedUrls = async (files, folder = 'projects') => {
+  if (!isS3Enabled || !s3Client) {
+    throw new Error('S3가 활성화되지 않았습니다');
+  }
+
+  return Promise.all(
+    files.map((file) =>
+      generatePresignedUrl(file.filename, file.contentType, folder)
+    )
+  );
+};
+
 module.exports = {
   saveFiles,
   isS3Enabled,
   baseUrl,
+  generatePresignedUrl,
+  generatePresignedUrls,
 };

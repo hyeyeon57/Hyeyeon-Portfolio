@@ -374,18 +374,7 @@
 
       // 대표 이미지
       const mainImageFile = document.getElementById('mainImageFile').files?.[0];
-      if (mainImageFile) {
-        fd.append('mainImage', mainImageFile);
-      }
-
-      // 갤러리 이미지들
       const galleryFiles = document.getElementById('galleryImagesFile').files;
-      if (galleryFiles && galleryFiles.length > 0) {
-        Array.from(galleryFiles).forEach((file) => fd.append('images', file));
-      }
-
-      // 프로젝트 데이터(JSON 문자열)
-      fd.append('project', JSON.stringify(projectData));
 
       // 업로드할 파일 개수 계산
       const totalFiles = (mainImageFile ? 1 : 0) + (galleryFiles ? galleryFiles.length : 0);
@@ -396,32 +385,48 @@
       }
 
       try {
-        let result;
-
+        // S3 직접 업로드
         if (totalFiles > 0) {
-          // XMLHttpRequest로 업로드 진행률 추적
-          result = await uploadWithProgress(`${API_URL}/projects`, fd, totalFiles);
-        } else {
-          // 파일이 없으면 일반 fetch 사용
-          const response = await fetch(`${API_URL}/projects`, {
-            method: 'POST',
-            body: fd,
-            credentials: 'include',
-          });
-
-          if (response.status === 401) {
-            alert('인증이 필요합니다. 다시 로그인해주세요.');
-            window.location.href = '/admin/login';
-            return;
+          const filesToUpload = [];
+          if (mainImageFile) filesToUpload.push(mainImageFile);
+          if (galleryFiles && galleryFiles.length > 0) {
+            filesToUpload.push(...Array.from(galleryFiles));
           }
 
-          if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ error: '서버 오류가 발생했습니다.' }));
-            throw new Error(errorData.error || `HTTP ${response.status}`);
-          }
+          const uploadedUrls = await uploadFilesToS3WithProgress(filesToUpload, 'projects');
 
-          result = await response.json();
+          // 업로드된 URL을 projectData에 추가
+          if (mainImageFile) {
+            projectData.image = uploadedUrls[0];
+            projectData.images = uploadedUrls.slice(1);
+            projectData.gallery = uploadedUrls.slice(1);
+          } else {
+            projectData.images = uploadedUrls;
+            projectData.gallery = uploadedUrls;
+          }
         }
+
+        // 프로젝트 생성 (이미지 URL만 전송)
+        const response = await fetch(`${API_URL}/projects`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(projectData),
+        });
+
+        if (response.status === 401) {
+          if (totalFiles > 0) hideUploadProgress();
+          alert('인증이 필요합니다. 다시 로그인해주세요.');
+          window.location.href = '/admin/login';
+          return;
+        }
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ error: '서버 오류가 발생했습니다.' }));
+          throw new Error(errorData.error || `HTTP ${response.status}`);
+        }
+
+        const result = await response.json();
 
         if (result.success) {
           if (totalFiles > 0) {
@@ -620,6 +625,74 @@
         console.error('인증 확인 오류:', error);
         window.location.href = '/admin/login';
       }
+    }
+
+    // S3 직접 업로드 함수들
+    async function uploadFilesToS3WithProgress(files, folder = 'projects') {
+      if (!files || files.length === 0) return [];
+
+      const totalFiles = files.length;
+      let completedFiles = 0;
+
+      // 1. Presigned URL 요청
+      updateUploadProgress(0, totalFiles, 0, 'Presigned URL 생성 중...');
+
+      const fileInfos = Array.from(files).map(file => ({
+        filename: file.name,
+        contentType: file.type
+      }));
+
+      const response = await fetch(`${API_URL}/upload/presigned-urls`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ files: fileInfos, folder }),
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        throw new Error('Presigned URL 생성 실패');
+      }
+
+      const { data: presignedData } = await response.json();
+
+      // 2. 각 파일을 순차적으로 S3에 업로드
+      const uploadedUrls = [];
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const { uploadUrl, fileUrl } = presignedData[i];
+
+        updateUploadProgress(
+          completedFiles,
+          totalFiles,
+          (completedFiles / totalFiles) * 100,
+          `${file.name} 업로드 중...`
+        );
+
+        const uploadResponse = await fetch(uploadUrl, {
+          method: 'PUT',
+          body: file,
+          headers: {
+            'Content-Type': file.type,
+          },
+        });
+
+        if (!uploadResponse.ok) {
+          throw new Error(`파일 업로드 실패: ${file.name}`);
+        }
+
+        uploadedUrls.push(fileUrl);
+        completedFiles++;
+
+        updateUploadProgress(
+          completedFiles,
+          totalFiles,
+          (completedFiles / totalFiles) * 100,
+          `${completedFiles}/${totalFiles} 파일 업로드 완료`
+        );
+      }
+
+      return uploadedUrls;
     }
 
     // 업로드 진행 상황 관리 함수들
