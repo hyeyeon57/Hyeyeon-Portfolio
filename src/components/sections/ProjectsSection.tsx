@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ExternalLink, Calendar, Users, Award, FileText, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, ExternalLink, Calendar, Users, Award, FileText, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
 import Link from 'next/link';
 import { PROJECT_CATEGORIES } from '@/constants/categories';
 import { useProjects } from '@/hooks/useProjects';
@@ -18,6 +18,11 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
   // UI 상태만 관리
   const [selectedProject, setSelectedProject] = useState<typeof projects[0] | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [imageDirection, setImageDirection] = useState(0); // 상세 이미지 슬라이드 방향
+  const [showGalleryModal, setShowGalleryModal] = useState(false);
+  const [galleryProject, setGalleryProject] = useState<typeof projects[0] | null>(null);
+  const [galleryIndex, setGalleryIndex] = useState(0);
+  const [galleryDirection, setGalleryDirection] = useState(0); // 카드 미리보기 슬라이드 방향
 
   // BO에서 featured=true로 설정된 프로젝트를 대표 프로젝트로 표시
   // featured 프로젝트만 표시 (개수 제한 없음 - 백엔드에서 설정한 대로)
@@ -160,6 +165,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
               onClick={() => {
                 setSelectedProject(project);
                 setCurrentImageIndex(0);
+                setImageDirection(0);
               }}
             >
               <div className="bg-white rounded-2xl overflow-hidden border border-line-light hover:border-brand-main/50 transition-all duration-300 hover:shadow-xl h-full flex flex-col">
@@ -177,6 +183,23 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                     />
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  
+                  {/* Gallery Preview Button */}
+                  {(project as any).gallery && Array.isArray((project as any).gallery) && (project as any).gallery.length > 0 && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setGalleryProject(project);
+                        setGalleryIndex(0);
+                        setGalleryDirection(0);
+                        setShowGalleryModal(true);
+                      }}
+                      className="absolute top-16 right-4 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 backdrop-blur-sm bg-white/90 hover:bg-white text-brand-main border border-brand-main/30 hover:border-brand-main/50 shadow-lg opacity-0 group-hover:opacity-100"
+                      title="프로젝트 미리보기"
+                    >
+                      <Eye size={18} />
+                    </button>
+                  )}
                   
                   <div className="absolute bottom-4 left-4 px-3 py-1.5 bg-white/90 backdrop-blur-sm text-brand-main rounded-lg text-xs font-semibold border border-brand-main/20">
                     {PROJECT_CATEGORIES.find(c => c.id === project.category)?.label || project.category}
@@ -295,32 +318,39 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                   }
                   const total = images.length;
                   if (total === 0) return null;
-                  const current = Math.min(currentImageIndex, Math.max(total - 1, 0));
-                  const goPrev = () => setCurrentImageIndex((idx) => Math.max(idx - 1, 0));
-                  const goNext = () => setCurrentImageIndex((idx) => Math.min(idx + 1, total - 1));
+                  const safeIndex = ((currentImageIndex % total) + total) % total;
+                  const go = (dir: number) => {
+                    setImageDirection(dir);
+                    setCurrentImageIndex((idx) => (idx + dir + total) % total);
+                  };
                   return (
-                    <div className="mb-8 rounded-2xl overflow-hidden border border-line-light relative">
-                      <img
-                        src={images[current]}
-                        alt={selectedProject?.title || ''}
-                        className="w-full h-80 object-cover"
-                      />
+                    <div className="mb-8 rounded-2xl overflow-hidden border border-line-light relative group bg-white flex items-center justify-center">
+                      <AnimatePresence initial={false} mode="wait">
+                        <motion.img
+                          key={images[safeIndex]}
+                          src={images[safeIndex]}
+                          alt={selectedProject?.title || ''}
+                          className="w-full h-auto max-h-[540px] object-contain"
+                          initial={{ opacity: 0, x: imageDirection >= 0 ? 60 : -60 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: imageDirection >= 0 ? -60 : 60 }}
+                          transition={{ duration: 0.35, ease: 'easeInOut' }}
+                        />
+                      </AnimatePresence>
                       <button
-                        onClick={goPrev}
-                        disabled={current === 0}
-                        className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur px-3 py-2 rounded-full shadow disabled:opacity-40"
+                        onClick={() => go(-1)}
+                        className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur px-3 py-2 rounded-full shadow opacity-0 group-hover:opacity-100 transition"
                       >
                         <ChevronLeft size={18} />
                       </button>
                       <button
-                        onClick={goNext}
-                        disabled={current === total - 1}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur px-3 py-2 rounded-full shadow disabled:opacity-40"
+                        onClick={() => go(1)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur px-3 py-2 rounded-full shadow opacity-0 group-hover:opacity-100 transition"
                       >
                         <ChevronRight size={18} />
                       </button>
                       <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/50 text-white text-xs px-3 py-1 rounded-full">
-                        {current + 1} / {total}
+                        {safeIndex + 1} / {total}
                       </div>
                     </div>
                   );
@@ -526,6 +556,123 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                   })()}
                   
                 </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Image Gallery Modal */}
+      <AnimatePresence>
+        {showGalleryModal && galleryProject && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
+            onMouseDown={(e) => {
+              if (e.target === e.currentTarget) {
+                setShowGalleryModal(false);
+                setGalleryProject(null);
+              }
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="bg-white rounded-3xl overflow-hidden max-w-4xl w-full max-h-[90vh] shadow-2xl"
+            >
+              {/* Gallery Header */}
+              <div className="sticky top-0 z-10 bg-white border-b border-line-medium px-6 py-4 flex items-center justify-between">
+                <h3 className="text-xl font-bold text-text-main flex items-center gap-2">
+                  <Eye size={24} className="text-brand-main" />
+                  프로젝트 미리보기
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowGalleryModal(false);
+                    setGalleryProject(null);
+                  }}
+                  className="w-10 h-10 flex items-center justify-center text-text-secondary hover:text-text-main transition-colors"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+
+              {/* Gallery Content */}
+              <div className="p-6 overflow-y-auto custom-scrollbar max-h-[calc(90vh-80px)]">
+                {(() => {
+                  const galleryImages: string[] = [];
+                  if ((galleryProject as any).image) galleryImages.push((galleryProject as any).image);
+                  if ((galleryProject as any).gallery && Array.isArray((galleryProject as any).gallery)) {
+                    galleryImages.push(...(galleryProject as any).gallery.filter(Boolean));
+                  }
+                  if (!galleryImages.length) {
+                    return (
+                      <div className="text-center text-text-secondary py-12">
+                        표시할 이미지가 없습니다.
+                      </div>
+                    );
+                  }
+
+                  const safeIndex = ((galleryIndex % galleryImages.length) + galleryImages.length) % galleryImages.length;
+                  const currentImg = galleryImages[safeIndex];
+                  const go = (dir: number) => {
+                    setGalleryDirection(dir);
+                    setGalleryIndex((prev) => (prev + dir + galleryImages.length) % galleryImages.length);
+                  };
+
+                  return (
+                    <div className="space-y-4">
+                      <div className="relative rounded-2xl overflow-hidden border border-line-light bg-bg-light">
+                        <AnimatePresence initial={false} mode="wait">
+                          <motion.img
+                            key={currentImg}
+                            src={currentImg}
+                            alt={`${galleryProject.title} ${safeIndex + 1}`}
+                            className="w-full max-h-[540px] object-contain bg-white"
+                            initial={{ opacity: 0, x: galleryDirection >= 0 ? 60 : -60 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: galleryDirection >= 0 ? -60 : 60 }}
+                            transition={{ duration: 0.35, ease: 'easeInOut' }}
+                          />
+                        </AnimatePresence>
+                        {galleryImages.length > 1 && (
+                          <>
+                            <button
+                              onClick={() => go(-1)}
+                              className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 hover:bg-white shadow border border-line-light flex items-center justify-center text-text-main"
+                              aria-label="이전 이미지"
+                            >
+                              ‹
+                            </button>
+                            <button
+                              onClick={() => go(1)}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 hover:bg-white shadow border border-line-light flex items-center justify-center text-text-main"
+                              aria-label="다음 이미지"
+                            >
+                              ›
+                            </button>
+                          </>
+                        )}
+                      </div>
+                      {galleryImages.length > 1 && (
+                        <div className="flex flex-wrap justify-center gap-2">
+                          {galleryImages.map((img, idx) => (
+                            <button
+                              key={idx}
+                              onClick={() => setGalleryIndex(idx)}
+                              className={`w-3 h-3 rounded-full border transition ${idx === safeIndex ? 'bg-brand-main border-brand-main' : 'bg-gray-200 border-gray-300'}`}
+                              aria-label={`${idx + 1}번째 이미지 보기`}
+                              title={`${idx + 1}번째 이미지`}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
             </motion.div>
           </motion.div>

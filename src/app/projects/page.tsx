@@ -635,15 +635,8 @@ export default function AllProjectsPage() {
                         </>
                       )}
                       {detailImages.length > 1 && (
-                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 px-3 py-2 rounded-full bg-black/40 backdrop-blur text-white">
-                          {detailImages.map((_, idx) => (
-                            <button
-                              key={idx}
-                              onClick={() => setDetailImageIndex(idx)}
-                              className={`w-2.5 h-2.5 rounded-full transition ${idx === safeIndex ? 'bg-white' : 'bg-white/40'}`}
-                              aria-label={`${idx + 1}번째 이미지 보기`}
-                            />
-                          ))}
+                        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/50 text-white text-xs px-3 py-1 rounded-full">
+                          {safeIndex + 1} / {detailImages.length}
                         </div>
                       )}
                       {/* Gallery Button - show only if gallery exists */}

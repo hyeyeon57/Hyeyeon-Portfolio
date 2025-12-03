@@ -542,7 +542,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSave, onCan
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-text-secondary mb-2">갤러리 이미지 (선택, 최대 9개)</label>
+        <label className="block text-sm font-medium text-text-secondary mb-2">갤러리 이미지 (선택, 최대 30개)</label>
         <input
           type="file"
           accept="image/*"
@@ -551,9 +551,9 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSave, onCan
           onChange={async (e) => {
             const files = Array.from(e.target.files || []);
             if (files.length === 0) return;
-            
-            if (files.length > 9) {
-              alert('최대 9개의 이미지만 선택할 수 있습니다.');
+
+            if (files.length > 30) {
+              alert('최대 30개의 이미지만 선택할 수 있습니다.');
               e.target.value = '';
               return;
             }
@@ -595,7 +595,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSave, onCan
           }}
           className="w-full px-4 py-2 border border-line-medium rounded-lg focus:outline-none focus:border-brand-main file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-brand-main/10 file:text-brand-main hover:file:bg-brand-main/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         />
-        <p className="text-xs text-text-secondary mt-1">최대 9개의 이미지를 선택하세요 (JPG, PNG, etc.)</p>
+        <p className="text-xs text-text-secondary mt-1">최대 30개의 이미지를 선택하세요 (JPG, PNG, etc.)</p>
         
         {uploadProgress && (
           <div className="mt-2 text-sm text-brand-main font-medium">
