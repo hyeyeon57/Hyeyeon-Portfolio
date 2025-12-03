@@ -1226,7 +1226,7 @@
         contentType: file.type
       }));
 
-      const response = await fetch(`${API_URL}/upload/presigned-urls`, {
+      const response = await fetch(`/api/upload/presigned-urls`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ files: fileInfos, folder }),
@@ -1275,7 +1275,7 @@
         contentType: file.type
       }));
 
-      const response = await fetch(`${API_URL}/upload/presigned-urls`, {
+      const response = await fetch(`/api/upload/presigned-urls`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ files: fileInfos, folder }),
