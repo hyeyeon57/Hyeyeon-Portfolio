@@ -48,7 +48,7 @@ npm run dev
 
 Vercel에 배포하려면 `vercel.json` 설정을 확인하세요.
 
-## 구조
+## 포트폴리오 구조
 
 ```
 ├── server/
