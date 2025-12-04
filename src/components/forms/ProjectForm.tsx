@@ -56,6 +56,8 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSave, onCan
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState('');
   const [pdfUploadProgress, setPdfUploadProgress] = useState<{ [key: string]: string }>({});
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -576,10 +578,14 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSave, onCan
 
               if (result.success) {
                 setUploadProgress(`✓ ${result.message}`);
-                setFormData(prev => ({ 
-                  ...prev, 
-                  gallery: result.paths.join('\n') 
-                }));
+                setFormData(prev => {
+                  const existingGallery = prev.gallery ? prev.gallery.split('\n').filter(Boolean) : [];
+                  const newGallery = [...existingGallery, ...result.paths];
+                  return {
+                    ...prev, 
+                    gallery: newGallery.join('\n')
+                  };
+                });
                 setTimeout(() => setUploadProgress(''), 3000);
               } else {
                 throw new Error(result.error || '업로드 실패');
@@ -604,15 +610,148 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSave, onCan
         )}
         
         {formData.gallery && (
-          <div className="mt-2 text-xs text-text-secondary">
-            <p className="font-medium mb-1">업로드된 이미지:</p>
-            <div className="space-y-1">
-              {formData.gallery.split('\n').filter(Boolean).map((path: string, index: number) => (
-                <div key={index} className="flex items-center gap-2">
-                  <span className="text-brand-main">✓</span>
-                  <span>{path.split('/').pop()}</span>
-                </div>
-              ))}
+          <div className="mt-4">
+            <p className="text-xs font-medium text-text-secondary mb-2">업로드된 이미지 (드래그하여 순서 변경 가능):</p>
+            <div className="space-y-2">
+              {formData.gallery.split('\n').filter(Boolean).map((path: string, index: number, array: string[]) => {
+                const galleryArray = array.filter(Boolean);
+                
+                const moveUp = () => {
+                  if (index === 0) return;
+                  const newArray = [...galleryArray];
+                  [newArray[index - 1], newArray[index]] = [newArray[index], newArray[index - 1]];
+                  setFormData(prev => ({
+                    ...prev,
+                    gallery: newArray.join('\n')
+                  }));
+                };
+                const moveDown = () => {
+                  if (index === galleryArray.length - 1) return;
+                  const newArray = [...galleryArray];
+                  [newArray[index], newArray[index + 1]] = [newArray[index + 1], newArray[index]];
+                  setFormData(prev => ({
+                    ...prev,
+                    gallery: newArray.join('\n')
+                  }));
+                };
+                const removeImage = () => {
+                  const newArray = galleryArray.filter((_, i) => i !== index);
+                  setFormData(prev => ({
+                    ...prev,
+                    gallery: newArray.join('\n')
+                  }));
+                };
+                
+                const handleDragStart = (e: React.DragEvent) => {
+                  setDraggedIndex(index);
+                  e.dataTransfer.effectAllowed = 'move';
+                };
+                
+                const handleDragOver = (e: React.DragEvent) => {
+                  e.preventDefault();
+                  e.dataTransfer.dropEffect = 'move';
+                  setDragOverIndex(index);
+                };
+                
+                const handleDragLeave = () => {
+                  setDragOverIndex(null);
+                };
+                
+                const handleDrop = (e: React.DragEvent) => {
+                  e.preventDefault();
+                  if (draggedIndex === null || draggedIndex === index) {
+                    setDraggedIndex(null);
+                    setDragOverIndex(null);
+                    return;
+                  }
+                  
+                  const newArray = [...galleryArray];
+                  const [removed] = newArray.splice(draggedIndex, 1);
+                  newArray.splice(index, 0, removed);
+                  
+                  setFormData(prev => ({
+                    ...prev,
+                    gallery: newArray.join('\n')
+                  }));
+                  
+                  setDraggedIndex(null);
+                  setDragOverIndex(null);
+                };
+                
+                return (
+                  <div 
+                    key={`${path}-${index}`}
+                    draggable
+                    onDragStart={handleDragStart}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    className={`flex items-center gap-2 p-2 border rounded-lg transition-all group cursor-move ${
+                      draggedIndex === index 
+                        ? 'border-brand-main bg-brand-main/10 opacity-50' 
+                        : dragOverIndex === index
+                        ? 'border-brand-main bg-brand-main/5'
+                        : 'border-line-medium hover:bg-bg-secondary'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1 text-text-tertiary">
+                      <div className="cursor-grab active:cursor-grabbing">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
+                        </svg>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={moveUp}
+                        disabled={index === 0}
+                        className="p-1 hover:bg-bg-primary rounded disabled:opacity-30 disabled:cursor-not-allowed"
+                        title="위로 이동"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                        </svg>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={moveDown}
+                        disabled={index === galleryArray.length - 1}
+                        className="p-1 hover:bg-bg-primary rounded disabled:opacity-30 disabled:cursor-not-allowed"
+                        title="아래로 이동"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                    </div>
+                    <span className="text-brand-main flex-shrink-0 font-medium">#{index + 1}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        {path.startsWith('http') || path.startsWith('/') ? (
+                          <img 
+                            src={path} 
+                            alt={`Gallery ${index + 1}`}
+                            className="w-12 h-12 object-cover rounded border border-line-medium"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none';
+                            }}
+                          />
+                        ) : null}
+                        <span className="text-xs text-text-secondary truncate">{path.split('/').pop()}</span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={removeImage}
+                      className="p-1 text-red-500 hover:bg-red-50 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                      title="이미지 제거"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

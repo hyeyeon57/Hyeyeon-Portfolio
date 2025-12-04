@@ -384,6 +384,7 @@
       lucide.createIcons();
 
       let galleryList = Array.isArray(project.images) && project.images.length ? [...project.images] : [];
+      let draggedGalleryIndex = null;
       let removeMainImage = false;
       let removeDesignPdf = false;
       let removeDetailPdf = false;
@@ -391,17 +392,118 @@
       const refreshGalleryStatus = () => {
         const container = document.getElementById('editGalleryImagesStatus');
         if (!container) return;
+
+        // 갤러리 이미지 목록: 썸네일 + 파일명 + 드래그로 순서 변경 + 삭제
         container.innerHTML = galleryList.map((img, idx) => `
-          <div class="flex items-center gap-2" data-existing-gallery="${img}">
-            <span class="truncate max-w-[240px]" title="${img}">${img.split('/').pop()}</span>
-            <button type="button" class="px-2 py-1 text-xs text-red-600 border border-red-200 rounded" data-remove-gallery="${idx}">삭제</button>
+          <div
+            class="flex items-center gap-2 py-1 border border-gray-200 rounded-md px-2 bg-white"
+            data-existing-gallery="${img}"
+            data-gallery-index="${idx}"
+            draggable="true"
+          >
+            <div class="w-12 h-12 rounded border border-gray-200 overflow-hidden bg-gray-50 flex-shrink-0">
+              <img
+                src="${img}"
+                alt="Gallery ${idx + 1}"
+                class="w-full h-full object-cover"
+                onerror="this.style.display='none'"
+              />
+            </div>
+            <!-- 파일명을 줄임 없이 전체 표시 -->
+            <span class="text-sm break-all" title="${img}">${img.split('/').pop()}</span>
+            <div class="flex items-center gap-1 ml-auto">
+              <button
+                type="button"
+                class="px-2 py-1 text-xs text-red-600 border border-red-200 rounded"
+                data-remove-gallery="${idx}"
+              >
+                삭제
+              </button>
+            </div>
           </div>
         `).join('');
-        container.querySelectorAll('[data-remove-gallery]').forEach(btn => {
+
+        // 드래그로 순서 변경
+        container.querySelectorAll('[data-existing-gallery]').forEach((item) => {
+          item.addEventListener('dragstart', (e) => {
+            const idx = Number(item.getAttribute('data-gallery-index'));
+            if (!Number.isNaN(idx)) {
+              draggedGalleryIndex = idx;
+              item.classList.add('opacity-50', 'ring-2', 'ring-indigo-400');
+              if (e.dataTransfer) {
+                e.dataTransfer.effectAllowed = 'move';
+              }
+            }
+          });
+
+          item.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            if (draggedGalleryIndex === null) return;
+            item.classList.add('bg-indigo-50');
+          });
+
+          item.addEventListener('dragleave', () => {
+            item.classList.remove('bg-indigo-50');
+          });
+
+          item.addEventListener('drop', (e) => {
+            e.preventDefault();
+            item.classList.remove('bg-indigo-50');
+            const targetIdx = Number(item.getAttribute('data-gallery-index'));
+            if (
+              draggedGalleryIndex === null ||
+              Number.isNaN(targetIdx) ||
+              draggedGalleryIndex === targetIdx
+            ) {
+              draggedGalleryIndex = null;
+              return;
+            }
+
+            const newList = [...galleryList];
+            const [moved] = newList.splice(draggedGalleryIndex, 1);
+            newList.splice(targetIdx, 0, moved);
+            galleryList = newList;
+            draggedGalleryIndex = null;
+            refreshGalleryStatus();
+          });
+
+          item.addEventListener('dragend', () => {
+            draggedGalleryIndex = null;
+          });
+        });
+
+        // 삭제 버튼
+        container.querySelectorAll('[data-remove-gallery]').forEach((btn) => {
           btn.addEventListener('click', () => {
             const idx = Number(btn.getAttribute('data-remove-gallery'));
             if (!Number.isNaN(idx)) {
               galleryList.splice(idx, 1);
+              refreshGalleryStatus();
+            }
+          });
+        });
+
+        // 순서 위로 이동
+        container.querySelectorAll('[data-move-up]').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const idx = Number(btn.getAttribute('data-move-up'));
+            if (!Number.isNaN(idx) && idx > 0) {
+              const tmp = galleryList[idx - 1];
+              galleryList[idx - 1] = galleryList[idx];
+              galleryList[idx] = tmp;
+              refreshGalleryStatus();
+            }
+          });
+        });
+
+        // 순서 아래로 이동
+        container.querySelectorAll('[data-move-down]').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const idx = Number(btn.getAttribute('data-move-down'));
+            if (!Number.isNaN(idx) && idx < galleryList.length - 1) {
+              const tmp = galleryList[idx + 1];
+              galleryList[idx + 1] = galleryList[idx];
+              galleryList[idx] = tmp;
               refreshGalleryStatus();
             }
           });

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ExternalLink, Calendar, Users, Award, FileText, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
 import Link from 'next/link';
@@ -23,6 +23,86 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
   const [galleryProject, setGalleryProject] = useState<typeof projects[0] | null>(null);
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [galleryDirection, setGalleryDirection] = useState(0); // 카드 미리보기 슬라이드 방향
+  const [lightboxImage, setLightboxImage] = useState<string | null>(null); // 라이트박스 이미지
+  const [lightboxIndex, setLightboxIndex] = useState(0); // 라이트박스 이미지 인덱스
+  const [isHoveringFirstImage, setIsHoveringFirstImage] = useState(false); // 팝업 내 대표 이미지 hover 상태
+  const [showLightboxTooltip, setShowLightboxTooltip] = useState(false); // 라이트박스 자동 툴팁 (최초 1회)
+  const [hasShownLightboxTooltip, setHasShownLightboxTooltip] = useState(false); // 이 세션에서 이미 한 번 보여줬는지 여부
+  const [isHoveringLightboxImage, setIsHoveringLightboxImage] = useState(false); // 라이트박스 이미지 hover 상태 (자동 툴팁 이후에는 사용하지 않음)
+
+  // 키보드로 라이트박스 제어 (ESC: 닫기, ← →: 이미지 이동)
+  useEffect(() => {
+    if (!lightboxImage || !selectedProject) return;
+    
+    // 라이트박스용 이미지 목록 구성
+    const lightboxImages: string[] = [];
+    const backendImages = (selectedProject as any)?.images;
+    if (backendImages && Array.isArray(backendImages)) {
+      lightboxImages.push(...backendImages.filter(Boolean));
+    } else if ((selectedProject as any)?.gallery && Array.isArray((selectedProject as any).gallery)) {
+      lightboxImages.push(...((selectedProject as any).gallery as string[]).filter(Boolean));
+    }
+    if (selectedProject?.image) {
+      const main = selectedProject.image as string;
+      if (!lightboxImages.includes(main)) {
+        lightboxImages.unshift(main);
+      }
+    }
+    
+    const total = lightboxImages.length || 1;
+    
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setLightboxImage(null);
+      } else if (e.key === 'ArrowLeft' && total > 1) {
+        e.preventDefault();
+        const newIndex = (lightboxIndex - 1 + total) % total;
+        setLightboxIndex(newIndex);
+        if (lightboxImages[newIndex]) {
+          setLightboxImage(lightboxImages[newIndex]);
+        }
+      } else if (e.key === 'ArrowRight' && total > 1) {
+        e.preventDefault();
+        const newIndex = (lightboxIndex + 1) % total;
+        setLightboxIndex(newIndex);
+        if (lightboxImages[newIndex]) {
+          setLightboxImage(lightboxImages[newIndex]);
+        }
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [lightboxImage, lightboxIndex, selectedProject]);
+
+  // 라이트박스용 이미지 클릭 핸들러 (툴팁 상태도 함께 관리)
+  const handleImageClickForLightbox = (image: string, index: number) => {
+    setLightboxImage(image);
+    setLightboxIndex(index);
+  };
+
+  // 라이트박스: "이 페이지에서 최초 진입 1번만" 3초 동안 자동 툴팁 노출
+  useEffect(() => {
+    if (!lightboxImage) {
+      setShowLightboxTooltip(false);
+      setIsHoveringLightboxImage(false);
+      return;
+    }
+
+    // 이미 한 번 보여준 적이 있다면 더 이상 자동 툴팁을 표시하지 않음
+    if (hasShownLightboxTooltip) {
+      setShowLightboxTooltip(false);
+      return;
+    }
+
+    setShowLightboxTooltip(true);
+    const timer = setTimeout(() => {
+      setShowLightboxTooltip(false);
+      setHasShownLightboxTooltip(true);
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [lightboxImage, hasShownLightboxTooltip]);
 
   // BO에서 featured=true로 설정된 프로젝트를 대표 프로젝트로 표시
   // featured 프로젝트만 표시 (개수 제한 없음 - 백엔드에서 설정한 대로)
@@ -184,22 +264,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   
-                  {/* Gallery Preview Button */}
-                  {(project as any).gallery && Array.isArray((project as any).gallery) && (project as any).gallery.length > 0 && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setGalleryProject(project);
-                        setGalleryIndex(0);
-                        setGalleryDirection(0);
-                        setShowGalleryModal(true);
-                      }}
-                      className="absolute top-16 right-4 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 backdrop-blur-sm bg-white/90 hover:bg-white text-brand-main border border-brand-main/30 hover:border-brand-main/50 shadow-lg opacity-0 group-hover:opacity-100"
-                      title="프로젝트 미리보기"
-                    >
-                      <Eye size={18} />
-                    </button>
-                  )}
+                  {/* Gallery Preview Button (아이콘 제거 요청으로 비활성화) */}
                   
                   <div className="absolute bottom-4 left-4 px-3 py-1.5 bg-white/90 backdrop-blur-sm text-brand-main rounded-lg text-xs font-semibold border border-brand-main/20">
                     {PROJECT_CATEGORIES.find(c => c.id === project.category)?.label || project.category}
@@ -287,7 +352,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-3xl overflow-hidden max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+              className="bg-white rounded-3xl overflow-hidden max-w-7xl w-full max-h-[95vh] overflow-y-auto shadow-2xl"
             >
               {/* Modal Header */}
               <div className="sticky top-0 z-10 bg-white border-b border-line-medium p-6 flex items-start justify-between">
@@ -308,52 +373,76 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
               </div>
 
               {/* Modal Content */}
-              <div className="p-8">
-                {/* 이미지 슬라이더 */}
+              <div className="p-8 md:p-10">
+                {/* 이미지 세로 나열 */}
                 {(() => {
-                  const images: string[] = [];
-                  if (selectedProject?.image) images.push(selectedProject.image as string);
-                  if ((selectedProject as any)?.gallery && Array.isArray((selectedProject as any).gallery)) {
-                    images.push(...((selectedProject as any).gallery as string[]));
-                  }
-                  const total = images.length;
-                  if (total === 0) return null;
-                  const safeIndex = ((currentImageIndex % total) + total) % total;
-                  const go = (dir: number) => {
-                    setImageDirection(dir);
-                    setCurrentImageIndex((idx) => (idx + dir + total) % total);
-                  };
-                  return (
-                    <div className="mb-8 rounded-2xl overflow-hidden border border-line-light relative group bg-white flex items-center justify-center">
-                      <AnimatePresence initial={false} mode="wait">
-                        <motion.img
-                          key={images[safeIndex]}
-                          src={images[safeIndex]}
-                          alt={selectedProject?.title || ''}
-                          className="w-full h-auto max-h-[540px] object-contain"
-                          initial={{ opacity: 0, x: imageDirection >= 0 ? 60 : -60 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          exit={{ opacity: 0, x: imageDirection >= 0 ? -60 : 60 }}
-                          transition={{ duration: 0.35, ease: 'easeInOut' }}
-                        />
-                      </AnimatePresence>
-                      <button
-                        onClick={() => go(-1)}
-                        className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur px-3 py-2 rounded-full shadow opacity-0 group-hover:opacity-100 transition"
-                      >
-                        <ChevronLeft size={18} />
-                      </button>
-                      <button
-                        onClick={() => go(1)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur px-3 py-2 rounded-full shadow opacity-0 group-hover:opacity-100 transition"
-                      >
-                        <ChevronRight size={18} />
-                      </button>
-                      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/50 text-white text-xs px-3 py-1 rounded-full">
-                        {safeIndex + 1} / {total}
+                  try {
+                    const images: string[] = [];
+                    if (selectedProject?.image) images.push(selectedProject.image as string);
+                    if ((selectedProject as any)?.gallery && Array.isArray((selectedProject as any).gallery)) {
+                      images.push(...((selectedProject as any).gallery as string[]).filter(Boolean));
+                    }
+                    const total = images.length;
+                    if (total === 0) return null;
+                    
+                    return (
+                      <div className="mb-8 rounded-2xl overflow-hidden border border-line-light bg-white">
+                        <div className="max-h-[70vh] overflow-y-auto custom-scrollbar">
+                          <div className="space-y-4 p-4">
+                            {images.map((image, index) => {
+                              if (!image) return null;
+                              return (
+                                <motion.div
+                                  key={`${image}-${index}`}
+                                  initial={{ opacity: 0, y: 20 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  transition={{ duration: 0.3, delay: index * 0.05 }}
+                                  className="relative w-full rounded-lg overflow-hidden border border-line-light bg-bg-light cursor-pointer hover:opacity-90 transition-opacity"
+                                  onMouseEnter={() => {
+                                    if (index === 0) {
+                                      setIsHoveringFirstImage(true);
+                                    }
+                                  }}
+                                  onMouseLeave={() => {
+                                    if (index === 0) {
+                                      setIsHoveringFirstImage(false);
+                                    }
+                                  }}
+                                  onClick={() => handleImageClickForLightbox(image, index)}
+                                >
+                                  <img
+                                    src={image}
+                                    alt={`${selectedProject?.title || ''} - 이미지 ${index + 1}`}
+                                    className="w-full h-auto object-contain"
+                                    loading="lazy"
+                                    onError={(e) => {
+                                      console.error('이미지 로드 실패:', image);
+                                      (e.target as HTMLImageElement).style.display = 'none';
+                                    }}
+                                  />
+
+                                  {/* 1번(대표) 이미지 툴팁: hover 시에만 표시 */}
+                                  {index === 0 && isHoveringFirstImage && (
+                                    <div className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/85 text-white text-sm px-4 py-2 rounded-full shadow-lg flex items-center gap-1 opacity-90 group-hover:opacity-100 transition-opacity">
+                                      <Eye size={16} className="opacity-90" />
+                                      <span className="font-medium">이미지 클릭 시 크게 볼 수 있어요!</span>
+                                    </div>
+                                  )}
+                                </motion.div>
+                              );
+                            })}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  );
+                    );
+                  } catch (error) {
+                    console.error('이미지 렌더링 오류:', error);
+                    return (
+                      <div className="mb-8 rounded-2xl overflow-hidden border border-line-light bg-white p-4 text-center text-text-secondary">
+                        이미지를 불러오는 중 오류가 발생했습니다.
+                      </div>
+                    );
+                  }
                 })()}
 
                 {/* Project Info Grid */}
@@ -677,6 +766,145 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
             </motion.div>
           </motion.div>
         )}
+      </AnimatePresence>
+
+      {/* 라이트박스 (Lightbox) */}
+      <AnimatePresence>
+        {lightboxImage && selectedProject && (() => {
+          try {
+            // 선택된 프로젝트에서 라이트박스용 이미지 목록 구성
+            const lightboxImages: string[] = [];
+
+            // 백엔드에서 normalize된 images 배열 우선 사용
+            const backendImages = (selectedProject as any)?.images;
+            if (backendImages && Array.isArray(backendImages)) {
+              lightboxImages.push(...backendImages.filter(Boolean));
+            } else if ((selectedProject as any)?.gallery && Array.isArray((selectedProject as any).gallery)) {
+              // 구 버전 데이터용 fallback
+              lightboxImages.push(...((selectedProject as any).gallery as string[]).filter(Boolean));
+            }
+
+            // 메인 이미지가 따로 있고, 배열에 포함되어 있지 않으면 선두에 추가
+            if (selectedProject?.image) {
+              const main = selectedProject.image as string;
+              if (!lightboxImages.includes(main)) {
+                lightboxImages.unshift(main);
+              }
+            }
+
+            const total = lightboxImages.length || 1;
+            const safeIndex = total > 0
+              ? Math.min(Math.max(lightboxIndex, 0), total - 1)
+              : 0;
+            const currentImage =
+              total > 0 && lightboxImages[safeIndex]
+                ? lightboxImages[safeIndex]
+                : lightboxImage;
+
+            const handleClose = () => {
+              setLightboxImage(null);
+            };
+
+            const handlePrev = (e: React.MouseEvent) => {
+              e.stopPropagation();
+              if (total > 1 && lightboxImages.length > 0) {
+                const newIndex = (safeIndex - 1 + total) % total;
+                setLightboxIndex(newIndex);
+                if (lightboxImages[newIndex]) {
+                  setLightboxImage(lightboxImages[newIndex]);
+                }
+              }
+            };
+
+            const handleNext = (e: React.MouseEvent) => {
+              e.stopPropagation();
+              if (total > 1 && lightboxImages.length > 0) {
+                const newIndex = (safeIndex + 1) % total;
+                setLightboxIndex(newIndex);
+                if (lightboxImages[newIndex]) {
+                  setLightboxImage(lightboxImages[newIndex]);
+                }
+              }
+            };
+
+            return (
+              <motion.div
+                key="lightbox"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4"
+                onClick={handleClose}
+              >
+                {/* 닫기 버튼 */}
+                <button
+                  onClick={handleClose}
+                  className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center text-white hover:bg-white/20 rounded-full transition-colors z-10"
+                  aria-label="닫기"
+                >
+                  <X size={24} />
+                </button>
+
+                {/* 이미지 컨테이너 */}
+                <div
+                  className="relative max-w-[95vw] max-h-[95vh] flex items-center justify-center"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <AnimatePresence mode="wait">
+                    <motion.img
+                      key={currentImage}
+                      src={currentImage}
+                          alt={`${selectedProject?.title || ''} - 이미지 ${safeIndex + 1}`}
+                      className="max-w-full max-h-[95vh] object-contain"
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      transition={{ duration: 0.2 }}
+                      onError={(e) => {
+                        console.error('라이트박스 이미지 로드 실패:', currentImage);
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
+                    />
+                  </AnimatePresence>
+
+                  {/* 라이트박스 안에서 방향키 사용 안내 툴팁: 어떤 이미지를 열었든, 열린 직후 3초 동안만 표시 */}
+                  {total > 1 && showLightboxTooltip && (
+                    <div className="pointer-events-none absolute bottom-14 left-1/2 -translate-x-1/2 bg-black/80 text-white text-xs md:text-sm px-3 md:px-4 py-1.5 md:py-2 rounded-full shadow-lg flex items-center gap-1 opacity-90">
+                      <Eye size={14} className="opacity-90" />
+                      <span className="font-medium">좌우 방향키로 이미지를 넘겨볼 수 있어요</span>
+                    </div>
+                  )}
+
+                  {/* 이전/다음 버튼 (이미지가 여러 개일 때만) */}
+                  {total > 1 && (
+                    <>
+                      <button
+                        onClick={handlePrev}
+                        className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center bg-white/10 hover:bg-white/20 text-white rounded-full backdrop-blur-sm transition-colors"
+                        aria-label="이전 이미지"
+                      >
+                        <ChevronLeft size={24} />
+                      </button>
+                      <button
+                        onClick={handleNext}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center bg-white/10 hover:bg-white/20 text-white rounded-full backdrop-blur-sm transition-colors"
+                        aria-label="다음 이미지"
+                      >
+                        <ChevronRight size={24} />
+                      </button>
+                      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 text-white text-sm px-4 py-2 rounded-full">
+                        {safeIndex + 1} / {total}
+                      </div>
+                    </>
+                  )}
+                </div>
+              </motion.div>
+            );
+          } catch (error) {
+            console.error('라이트박스 렌더링 오류:', error);
+            return null;
+          }
+        })()}
       </AnimatePresence>
     </section>
   );

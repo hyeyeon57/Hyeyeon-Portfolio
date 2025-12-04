@@ -374,10 +374,9 @@
 
       // 대표 이미지
       const mainImageFile = document.getElementById('mainImageFile').files?.[0];
-      const galleryFiles = document.getElementById('galleryImagesFile').files;
 
-      // 업로드할 파일 개수 계산
-      const totalFiles = (mainImageFile ? 1 : 0) + (galleryFiles ? galleryFiles.length : 0);
+      // 갤러리 이미지: 사용자 정의 배열(galleryFileList)의 순서를 그대로 사용
+      const totalFiles = (mainImageFile ? 1 : 0) + (window.galleryFileList ? window.galleryFileList.length : 0);
 
       // 업로드 진행 상황 모달 표시
       if (totalFiles > 0) {
@@ -389,8 +388,8 @@
         if (totalFiles > 0) {
           const filesToUpload = [];
           if (mainImageFile) filesToUpload.push(mainImageFile);
-          if (galleryFiles && galleryFiles.length > 0) {
-            filesToUpload.push(...Array.from(galleryFiles));
+          if (window.galleryFileList && window.galleryFileList.length > 0) {
+            filesToUpload.push(...window.galleryFileList);
           }
 
           const uploadedUrls = await uploadFilesToS3WithProgress(filesToUpload, 'projects');
@@ -509,20 +508,108 @@
         }
       });
     }
+    // 갤러리 이미지 선택: 썸네일 + 파일명 + 드래그로 순서 변경 + 삭제
     const galleryImagesFile = document.getElementById('galleryImagesFile');
     const galleryImagesStatus = document.getElementById('galleryImagesStatus');
+    window.galleryFileList = [];
+    let draggedGalleryIndex = null;
+
+    const refreshCreateGalleryStatus = () => {
+      if (!galleryImagesStatus) return;
+
+      galleryImagesStatus.innerHTML = window.galleryFileList.map((file, idx) => {
+        const url = URL.createObjectURL(file);
+        return `
+          <div
+            class="flex items-center gap-2 py-1 border border-gray-200 rounded-md px-2 bg-white"
+            data-gallery-create-index="${idx}"
+            draggable="true"
+          >
+            <div class="w-12 h-12 rounded border border-gray-200 overflow-hidden bg-gray-50 flex-shrink-0">
+              <img
+                src="${url}"
+                alt="Gallery ${idx + 1}"
+                class="w-full h-full object-cover"
+                onerror="this.style.display='none'"
+              />
+            </div>
+            <span class="text-sm break-all" title="${file.name}">${file.name}</span>
+            <div class="flex items-center gap-1 ml-auto">
+              <button
+                type="button"
+                class="px-2 py-1 text-xs text-red-600 border border-red-200 rounded"
+                data-remove-gallery-create="${idx}"
+              >
+                삭제
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // 삭제
+      galleryImagesStatus.querySelectorAll('[data-remove-gallery-create]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const idx = Number(btn.getAttribute('data-remove-gallery-create'));
+          if (!Number.isNaN(idx)) {
+            window.galleryFileList.splice(idx, 1);
+            refreshCreateGalleryStatus();
+          }
+        });
+      });
+
+      // 드래그로 순서 변경
+      galleryImagesStatus.querySelectorAll('[data-gallery-create-index]').forEach((item) => {
+        item.addEventListener('dragstart', (e) => {
+          const idx = Number(item.getAttribute('data-gallery-create-index'));
+          if (!Number.isNaN(idx)) {
+            draggedGalleryIndex = idx;
+            item.classList.add('opacity-50', 'ring-2', 'ring-indigo-400');
+            if (e.dataTransfer) {
+              e.dataTransfer.effectAllowed = 'move';
+            }
+          }
+        });
+
+        item.addEventListener('dragover', (e) => {
+          e.preventDefault();
+        });
+
+        item.addEventListener('drop', (e) => {
+          e.preventDefault();
+          const targetIdx = Number(item.getAttribute('data-gallery-create-index'));
+          if (
+            draggedGalleryIndex === null ||
+            Number.isNaN(targetIdx) ||
+            draggedGalleryIndex === targetIdx
+          ) {
+            draggedGalleryIndex = null;
+            return;
+          }
+
+          const newList = [...window.galleryFileList];
+          const [moved] = newList.splice(draggedGalleryIndex, 1);
+          newList.splice(targetIdx, 0, moved);
+          window.galleryFileList = newList;
+          draggedGalleryIndex = null;
+          refreshCreateGalleryStatus();
+        });
+
+        item.addEventListener('dragend', () => {
+          draggedGalleryIndex = null;
+        });
+      });
+    };
+
     if (galleryImagesFile && galleryImagesStatus) {
       galleryImagesFile.addEventListener('change', () => {
-        galleryImagesStatus.innerHTML = '';
         if (galleryImagesFile.files?.length) {
-          Array.from(galleryImagesFile.files).forEach((f) => {
-            const div = document.createElement('div');
-            div.className = 'truncate max-w-[320px]';
-            div.textContent = truncate(f.name);
-            div.title = f.name;
-            galleryImagesStatus.appendChild(div);
-          });
+          // 새로 선택한 파일들을 기존 리스트 뒤에 추가
+          window.galleryFileList.push(...Array.from(galleryImagesFile.files));
         }
+        // input 값 초기화해서 같은 파일을 다시 선택할 수 있게
+        galleryImagesFile.value = '';
+        refreshCreateGalleryStatus();
       });
     }
 
