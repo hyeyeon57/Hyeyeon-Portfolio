@@ -51,7 +51,7 @@ export const HeroSection: React.FC<HeroSectionProps> = () => {
 
             {/* 자기소개 */}
             <motion.p
-              className="text-xl md:text-2xl lg:text-3xl font-light leading-relaxed max-w-2xl mb-12 text-text-sub"
+              className="text-xl md:text-2xl lg:text-3xl font-light leading-relaxed max-w-2xl mb-24 text-text-sub"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.4 }}
@@ -69,13 +69,13 @@ export const HeroSection: React.FC<HeroSectionProps> = () => {
             >
               <a
                 href={personalInfo.resumeUrl}
-                className="inline-flex items-center justify-center px-8 py-4 text-sm font-light text-white bg-brand-main hover:opacity-90 transition-all duration-300"
+                className="inline-flex items-center justify-center px-8 py-4 text-sm font-light text-white bg-brand-main hover:opacity-90 transition-all duration-300 rounded-lg"
               >
                 이력서 다운로드
               </a>
               <a
                 href={personalInfo.coverLetterUrl}
-                className="inline-flex items-center justify-center px-8 py-4 text-sm font-light text-brand-main bg-transparent hover:bg-brand-main/5 transition-all duration-300 border border-brand-main/30 hover:border-brand-main"
+                className="inline-flex items-center justify-center px-8 py-4 text-sm font-light text-white bg-brand-main hover:opacity-90 transition-all duration-300 rounded-lg"
               >
                 자기소개서 다운로드
               </a>

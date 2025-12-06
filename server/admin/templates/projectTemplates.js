@@ -154,7 +154,7 @@ export const renderDetailModal = (project, files, categoryLabels, isAuthenticate
   };
   return `
     <div class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="this.remove()">
-      <div class="bg-white rounded-2xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+      <div class="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[85vh] overflow-y-auto" onclick="event.stopPropagation()">
         <div class="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
           <h2 class="text-2xl font-bold text-gray-900">${project.title}</h2>
           <button onclick="this.closest('.fixed').remove()" class="p-2 hover:bg-gray-100 rounded-full transition">
@@ -256,7 +256,7 @@ export const renderDetailModal = (project, files, categoryLabels, isAuthenticate
 export const renderEditModal = (project, categoryLabels) => {
   return `
     <div class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="this.remove()">
-      <div class="bg-white rounded-2xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+      <div class="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[85vh] overflow-y-auto" onclick="event.stopPropagation()">
         <div class="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
           <h2 class="text-2xl font-bold text-gray-900">프로젝트 수정</h2>
           <button onclick="this.closest('.fixed').remove()" class="p-2 hover:bg-gray-100 rounded-full transition">

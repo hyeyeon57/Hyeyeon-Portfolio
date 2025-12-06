@@ -10,6 +10,7 @@ const visitorRoutes = require('./routes/visitorRoutes.cjs');
 const projectRoutes = require('./routes/projectRoutes.cjs');
 const contactRoutes = require('./routes/contactRoutes.cjs');
 const fileRoutes = require('./routes/fileRoutes.cjs');
+const documentRoutes = require('./routes/documentRoutes.cjs');
 const healthRoutes = require('./routes/healthRoutes.cjs');
 const { PUBLIC_DIR } = require('./utils/pathHelpers.cjs');
 const { asyncHandler } = require('./utils/asyncHandler.cjs');
@@ -83,14 +84,25 @@ const createApp = ({ withDbMiddleware = false } = {}) => {
   app.use('/api/contacts', contactRoutes);
   app.use('/bo-api/contacts', contactRoutes);
 
-  // 파일(PDF) 업로드
-  app.use('/api', fileRoutes);
-  app.use('/bo-api', fileRoutes);
+  // 문서 관리 (이력서/자기소개서)
+  app.use('/api/documents', documentRoutes);
+  app.use('/bo-api/documents', documentRoutes);
+
+  // 파일(PDF) 업로드 - 더 구체적인 경로이므로 문서 라우트 이후에 등록
+  app.use('/api/upload-pdf', fileRoutes);
+  app.use('/bo-api/upload-pdf', fileRoutes);
 
   // bo-api 프록시 (서버 환경에서만 사용, 서버리스에서는 무한 리다이렉트 방지)
   if (!process.env.SERVERLESS_EXPRESS) {
     app.use('/bo-api', (req, res, next) => {
-      if (req.path === '/visitors/monthly') return next();
+      // 이미 등록된 라우트는 통과
+      if (req.path.startsWith('/visitors')) return next();
+      if (req.path.startsWith('/projects')) return next();
+      if (req.path.startsWith('/contacts')) return next();
+      if (req.path.startsWith('/documents')) return next();
+      if (req.path.startsWith('/auth')) return next();
+      if (req.path.startsWith('/admin')) return next();
+      if (req.path.startsWith('/templates')) return next();
       if (req.path === '/upload-pdf') return next();
       return res.redirect(307, '/api' + req.url);
     });

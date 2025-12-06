@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, Home, Briefcase, Mail } from 'lucide-react';
+import { Menu, X, Home, Briefcase, Mail, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -93,6 +93,9 @@ export const Header: React.FC = () => {
     return null;
   }
 
+  // 전체 프로젝트 페이지에서는 다른 헤더 레이아웃
+  const isProjectsPage = pathname === '/projects';
+
   return (
     <motion.header
       initial={{ y: -100 }}
@@ -105,59 +108,77 @@ export const Header: React.FC = () => {
       )}
     >
       <nav className="max-w-container mx-auto px-6 md:px-container-x">
-        <div className="flex items-center justify-between">
-          {/* Logo */}
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <Link 
-              href="/" 
-              className="text-xl md:text-2xl font-light text-text-main hover:text-text-sub transition-colors tracking-tight"
-            >
-              Portfolio
+        {isProjectsPage ? (
+          // 전체 프로젝트 페이지 헤더
+          <div className="flex items-center">
+            {/* 홈으로 버튼 */}
+            <Link href="/">
+              <motion.button
+                whileHover={{ x: -5 }}
+                whileTap={{ scale: 0.95 }}
+                className="flex items-center gap-2 text-text-secondary hover:text-brand-main transition-colors duration-300"
+              >
+                <ArrowLeft size={20} />
+                <span className="text-sm font-medium">홈으로</span>
+              </motion.button>
             </Link>
-          </motion.div>
+          </div>
+        ) : (
+          // 기본 헤더 레이아웃
+          <div className="flex items-center justify-between">
+            {/* Logo */}
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <Link 
+                href="/" 
+                className="text-xl md:text-2xl font-light text-text-main hover:text-text-sub transition-colors tracking-tight"
+              >
+                Portfolio
+              </Link>
+            </motion.div>
 
-          {/* Desktop Navigation */}
-          <ul className="hidden md:flex items-center gap-4 lg:gap-6">
-            {navItems.map((item) => {
-              const isActive = item.href.startsWith('#') 
-                ? activeSection === item.href.replace('#', '')
-                : item.href.startsWith('/#')
-                ? pathname === '/' && activeSection === item.href.replace('/#', '')
-                : pathname === item.href;
-              return (
-                <li key={item.href} className="relative group">
-                  <Link
-                    href={item.href}
-                    className={cn(
-                      'flex flex-col items-center gap-1 text-sm font-light transition-all duration-200 px-3 py-2 rounded-lg relative z-10',
-                      isActive
-                        ? 'text-brand-main bg-brand-main/5'
-                        : 'text-text-secondary hover:text-brand-main hover:bg-brand-main/5'
-                    )}
-                  >
-                    <span className="flex items-center gap-1 whitespace-nowrap">
-                      <span className="hidden">{item.icon}</span>
-                      <span>{item.label}</span>
-                    </span>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
+            {/* Desktop Navigation */}
+            <ul className="hidden md:flex items-center gap-4 lg:gap-6">
+              {navItems.map((item) => {
+                const isActive = item.href.startsWith('#') 
+                  ? activeSection === item.href.replace('#', '')
+                  : item.href.startsWith('/#')
+                  ? pathname === '/' && activeSection === item.href.replace('/#', '')
+                  : pathname === item.href;
+                return (
+                  <li key={item.href} className="relative group">
+                    <Link
+                      href={item.href}
+                      className={cn(
+                        'flex flex-col items-center gap-1 text-sm font-light transition-all duration-200 px-3 py-2 rounded-lg relative z-10',
+                        isActive
+                          ? 'text-brand-main bg-brand-main/5'
+                          : 'text-text-secondary hover:text-brand-main hover:bg-brand-main/5'
+                      )}
+                    >
+                      <span className="flex items-center gap-1 whitespace-nowrap">
+                        <span className="hidden">{item.icon}</span>
+                        <span>{item.label}</span>
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
 
-          {/* Mobile Menu Button */}
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="md:hidden p-2 text-text-main"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          >
-            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </motion.button>
-        </div>
+            {/* Mobile Menu Button */}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="md:hidden p-2 text-text-main"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </motion.button>
+          </div>
+        )}
 
         {/* Mobile Navigation */}
         <AnimatePresence>

@@ -1,3 +1,6 @@
+/* Pretendard 폰트 Import - @import는 최상단에 위치해야 함 */
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -29,9 +32,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
   font-weight: 300;
 }
-
-/* Pretendard 폰트 Import */
-@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
 
 @layer utilities {
   .text-balance {

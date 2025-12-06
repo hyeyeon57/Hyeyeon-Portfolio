@@ -4,12 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>관리자 대시보드 (모듈화)</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <style>
-    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
-    body { font-family: 'Pretendard', sans-serif; }
-  </style>
+  <link rel="stylesheet" href="/admin.css">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js" defer></script>
 </head>
 <body class="bg-gray-50">
   <div class="max-w-7xl mx-auto px-4 py-6">
@@ -31,13 +27,81 @@
 
     <div class="border-b mb-6">
       <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-        <button class="tab-btn active" data-tab="projects">프로젝트</button>
+        <button class="tab-btn active" data-tab="documents">문서 관리</button>
+        <button class="tab-btn" data-tab="projects">프로젝트</button>
         <button class="tab-btn" data-tab="contacts">연락</button>
         <button class="tab-btn" data-tab="visitors">방문자</button>
       </nav>
     </div>
 
-    <div id="content-projects" class="tab-content">
+    <!-- 문서 관리 탭 -->
+    <div id="content-documents" class="tab-content">
+      <div class="bg-white border rounded-xl shadow-sm">
+        <div class="px-6 py-4 border-b">
+          <h2 class="text-xl font-semibold text-gray-900">문서 관리</h2>
+          <p class="text-sm text-gray-500 mt-1">이력서와 자기소개서 PDF를 업로드하고 관리하세요.</p>
+        </div>
+        <div class="p-6 space-y-6">
+          <!-- 이력서 -->
+          <div class="border border-gray-200 rounded-lg p-6">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <i data-lucide="file-text" class="w-5 h-5 text-blue-600"></i>
+                  이력서
+                </h3>
+                <p class="text-sm text-gray-500 mt-1">포트폴리오에 표시될 이력서 PDF 파일</p>
+              </div>
+            </div>
+            <div id="resume-status" class="mb-4">
+              <!-- 현재 파일 정보가 여기에 표시됩니다 -->
+            </div>
+            <div class="flex items-center gap-3">
+              <label for="resume-upload" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer text-sm font-medium transition-colors">
+                <i data-lucide="upload" class="w-4 h-4 inline-block mr-2"></i>
+                파일 선택
+              </label>
+              <input type="file" id="resume-upload" accept=".pdf" class="hidden" />
+              <button id="resume-delete" class="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 text-sm font-medium transition-colors" style="display:none;">
+                <i data-lucide="trash-2" class="w-4 h-4 inline-block mr-2"></i>
+                삭제
+              </button>
+              <span id="resume-upload-status" class="text-sm text-gray-500"></span>
+            </div>
+          </div>
+
+          <!-- 자기소개서 -->
+          <div class="border border-gray-200 rounded-lg p-6">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <i data-lucide="file-text" class="w-5 h-5 text-purple-600"></i>
+                  자기소개서
+                </h3>
+                <p class="text-sm text-gray-500 mt-1">포트폴리오에 표시될 자기소개서 PDF 파일</p>
+              </div>
+            </div>
+            <div id="coverletter-status" class="mb-4">
+              <!-- 현재 파일 정보가 여기에 표시됩니다 -->
+            </div>
+            <div class="flex items-center gap-3">
+              <label for="coverletter-upload" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 cursor-pointer text-sm font-medium transition-colors">
+                <i data-lucide="upload" class="w-4 h-4 inline-block mr-2"></i>
+                파일 선택
+              </label>
+              <input type="file" id="coverletter-upload" accept=".pdf" class="hidden" />
+              <button id="coverletter-delete" class="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 text-sm font-medium transition-colors" style="display:none;">
+                <i data-lucide="trash-2" class="w-4 h-4 inline-block mr-2"></i>
+                삭제
+              </button>
+              <span id="coverletter-upload-status" class="text-sm text-gray-500"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="content-projects" class="tab-content hidden">
       <div class="bg-white border rounded-xl shadow-sm">
         <div class="px-6 py-4 border-b flex items-center justify-between">
           <h2 class="text-xl font-semibold text-gray-900">프로젝트 목록</h2>
@@ -241,7 +305,30 @@
     import { statsCardsTemplate, todayChartTemplate, weeklyChartTemplate, monthlyChartTemplate } from '/templates/statsTemplates.js';
     import { categoryLabels } from '/templates/utils.js';
 
-    // 포트 3000(Next.js)로 통합되었으므로 항상 /bo-api 사용
+    // lucide 로드 보장 함수
+    function ensureLucide() {
+      if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        window.lucide.createIcons();
+        return;
+      }
+      // fallback: 스크립트가 로드되지 않았다면 다시 로드 시도
+      const existing = document.querySelector('script[data-lucide-fallback]');
+      if (!existing) {
+        const script = document.createElement('script');
+        script.src = 'https://unpkg.com/lucide@latest/dist/umd/lucide.js';
+        script.defer = true;
+        script.setAttribute('data-lucide-fallback', 'true');
+        script.onload = () => {
+          if (window.lucide && window.lucide.createIcons) {
+            window.lucide.createIcons();
+          }
+        };
+        document.head.appendChild(script);
+      }
+    }
+
+    // 같은 오리진을 사용하여 세션 쿠키가 제대로 전달되도록 함
+    // Next.js API 라우트(/bo-api)가 Express 서버로 프록시함
     const API_URL = '/bo-api';
 
     let projects = [];
@@ -265,8 +352,209 @@
       tabContents.forEach(content => {
         content.classList.toggle('hidden', content.id !== `content-${tab}`);
       });
+      
+      // 탭 전환 시 해당 탭 데이터 로드
+      if (tab === 'documents') {
+        loadDocuments();
+      }
     }
     tabButtons.forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
+
+    // 문서 관리 함수들
+    async function loadDocuments() {
+      try {
+        const res = await fetch(`${API_URL}/documents`, { credentials: 'include' });
+        const data = await res.json();
+        if (data.success) {
+          updateDocumentStatus('resume', data.data.resume);
+          updateDocumentStatus('coverLetter', data.data.coverLetter);
+        }
+      } catch (error) {
+        console.error('문서 로드 실패:', error);
+      }
+    }
+
+    function updateDocumentStatus(type, docData) {
+      // 타입을 HTML ID 형식으로 변환 (coverLetter -> coverletter)
+      const typeId = type === 'coverLetter' ? 'coverletter' : type;
+      
+      const statusEl = document.getElementById(`${typeId}-status`);
+      const deleteBtn = document.getElementById(`${typeId}-delete`);
+      const uploadStatus = document.getElementById(`${typeId}-upload-status`);
+      const uploadLabel = document.querySelector(`label[for="${typeId}-upload"]`);
+      
+      // 요소가 없으면 에러 로그만 출력하고 종료
+      if (!statusEl) {
+        console.error(`문서 상태 요소를 찾을 수 없습니다: ${typeId}-status`);
+        return;
+      }
+      
+      if (docData && docData.url) {
+        const fileName = docData.fileName || docData.url.split('/').pop();
+        const updatedAt = docData.updatedAt ? new Date(docData.updatedAt).toLocaleDateString('ko-KR') : '';
+        
+        statusEl.innerHTML = `
+          <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+            <i data-lucide="file-text" class="w-5 h-5 text-gray-600"></i>
+            <div class="flex-1">
+              <p class="text-sm font-medium text-gray-900">${fileName}</p>
+              <p class="text-xs text-gray-500">업로드일: ${updatedAt}</p>
+            </div>
+            <a href="${docData.url}" target="_blank" class="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 text-sm font-medium transition-colors">
+              <i data-lucide="eye" class="w-4 h-4 inline-block mr-1"></i>
+              보기
+            </a>
+          </div>
+        `;
+        if (deleteBtn) deleteBtn.style.display = 'inline-flex';
+        if (uploadStatus) uploadStatus.textContent = '';
+        // 파일 선택 버튼 텍스트를 현재 파일명으로 변경
+        if (uploadLabel) {
+          uploadLabel.innerHTML = `
+            <i data-lucide="upload" class="w-4 h-4 inline-block mr-2"></i>
+            ${fileName}
+          `;
+        }
+      } else {
+        statusEl.innerHTML = `
+          <div class="text-center py-4 text-gray-400">
+            <i data-lucide="file-x" class="w-8 h-8 mx-auto mb-2"></i>
+            <p class="text-sm">업로드된 파일이 없습니다</p>
+          </div>
+        `;
+        if (deleteBtn) deleteBtn.style.display = 'none';
+        if (uploadStatus) uploadStatus.textContent = '';
+        // 파일 선택 버튼 텍스트를 기본값으로 복원
+        if (uploadLabel) {
+          uploadLabel.innerHTML = `
+            <i data-lucide="upload" class="w-4 h-4 inline-block mr-2"></i>
+            파일 선택
+          `;
+        }
+      }
+      ensureLucide();
+    }
+
+    // 문서 관리 함수 비활성화
+    async function uploadDocument(type, file) {
+      return; // 함수 비활성화
+      if (!file) return;
+      
+      if (file.type !== 'application/pdf') {
+        alert('PDF 파일만 업로드 가능합니다.');
+        return;
+      }
+
+      // 타입을 HTML ID 형식으로 변환 (coverLetter -> coverletter)
+      const typeId = type === 'coverLetter' ? 'coverletter' : type;
+
+      const uploadStatus = document.getElementById(`${typeId}-upload-status`);
+      const uploadBtn = document.querySelector(`label[for="${typeId}-upload"]`);
+      
+      try {
+        if (uploadStatus) uploadStatus.textContent = '업로드 중...';
+        if (uploadBtn) uploadBtn.style.pointerEvents = 'none';
+        if (uploadBtn) uploadBtn.style.opacity = '0.5';
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('type', type);
+
+        const res = await fetch(`${API_URL}/documents/${type}`, {
+          method: 'PUT',
+          credentials: 'include',
+          body: formData,
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          if (uploadStatus) uploadStatus.textContent = '업로드 완료!';
+          if (uploadStatus) uploadStatus.className = 'text-sm text-green-600';
+          // 문서 상태 업데이트 (파일 선택 버튼 텍스트도 함께 업데이트됨)
+          await loadDocuments();
+          setTimeout(() => {
+            if (uploadStatus) uploadStatus.textContent = '';
+            if (uploadStatus) uploadStatus.className = 'text-sm text-gray-500';
+          }, 2000);
+        } else {
+          throw new Error(data.error || '업로드 실패');
+        }
+      } catch (error) {
+        console.error('문서 업로드 실패:', error);
+        alert(`업로드 실패: ${error.message}`);
+        if (uploadStatus) uploadStatus.textContent = '업로드 실패';
+        if (uploadStatus) uploadStatus.className = 'text-sm text-red-600';
+      } finally {
+        if (uploadBtn) uploadBtn.style.pointerEvents = 'auto';
+        if (uploadBtn) uploadBtn.style.opacity = '1';
+        // 파일 입력 초기화
+        const fileInput = document.getElementById(`${typeId}-upload`);
+        if (fileInput) fileInput.value = '';
+      }
+    }
+
+    async function deleteDocument(type) {
+      if (!confirm('정말 삭제하시겠습니까?')) return;
+
+      // 타입을 HTML ID 형식으로 변환 (coverLetter -> coverletter)
+      const typeId = type === 'coverLetter' ? 'coverletter' : type;
+
+      const deleteBtn = document.getElementById(`${typeId}-delete`);
+      const uploadStatus = document.getElementById(`${typeId}-upload-status`);
+      
+      try {
+        if (deleteBtn) deleteBtn.style.pointerEvents = 'none';
+        if (deleteBtn) deleteBtn.style.opacity = '0.5';
+        if (uploadStatus) uploadStatus.textContent = '삭제 중...';
+
+        const res = await fetch(`${API_URL}/documents/${type}`, {
+          method: 'DELETE',
+          credentials: 'include',
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          if (uploadStatus) uploadStatus.textContent = '삭제 완료!';
+          if (uploadStatus) uploadStatus.className = 'text-sm text-green-600';
+          await loadDocuments();
+          setTimeout(() => {
+            if (uploadStatus) uploadStatus.textContent = '';
+            if (uploadStatus) uploadStatus.className = 'text-sm text-gray-500';
+          }, 2000);
+        } else {
+          throw new Error(data.error || '삭제 실패');
+        }
+      } catch (error) {
+        console.error('문서 삭제 실패:', error);
+        alert(`삭제 실패: ${error.message}`);
+        if (uploadStatus) uploadStatus.textContent = '삭제 실패';
+        if (uploadStatus) uploadStatus.className = 'text-sm text-red-600';
+      } finally {
+        if (deleteBtn) deleteBtn.style.pointerEvents = 'auto';
+        if (deleteBtn) deleteBtn.style.opacity = '1';
+      }
+    }
+
+    // 문서 관리 이벤트 리스너
+    document.getElementById('resume-upload')?.addEventListener('change', (e) => {
+      const file = e.target.files?.[0];
+      if (file) uploadDocument('resume', file);
+    });
+
+    document.getElementById('coverletter-upload')?.addEventListener('change', (e) => {
+      const file = e.target.files?.[0];
+      if (file) uploadDocument('coverLetter', file);
+    });
+
+    document.getElementById('resume-delete')?.addEventListener('click', () => {
+      deleteDocument('resume');
+    });
+
+    document.getElementById('coverletter-delete')?.addEventListener('click', () => {
+      deleteDocument('coverLetter');
+    });
 
     async function checkAuth() {
       try {
@@ -343,7 +631,7 @@
         `;
       }).join('');
       // 아이콘 갱신
-      setTimeout(() => lucide.createIcons(), 0);
+      setTimeout(() => ensureLucide(), 0);
     }
 
     async function viewDetail(id) {
@@ -358,7 +646,7 @@
       } catch (e) {}
       const detailHtml = renderDetailModal(project, files, categoryLabels, isAuthenticated);
       document.body.insertAdjacentHTML('beforeend', detailHtml);
-      lucide.createIcons();
+      ensureLucide();
       initDetailTabs(projectId);
     }
 
@@ -381,7 +669,7 @@
       if (!project) return;
       const html = renderEditModal(project, categoryLabels);
       document.body.insertAdjacentHTML('beforeend', html);
-      lucide.createIcons();
+      ensureLucide();
 
       let galleryList = Array.isArray(project.images) && project.images.length ? [...project.images] : [];
       let draggedGalleryIndex = null;
@@ -731,7 +1019,7 @@
           </div>
         </div>
       `;
-      setTimeout(() => lucide.createIcons(), 0);
+      setTimeout(() => ensureLucide(), 0);
     };
 
     function renderContacts(contactsList) {
@@ -798,7 +1086,7 @@
           </tr>
         `;
       }).join('');
-      setTimeout(() => lucide.createIcons(), 0);
+      setTimeout(() => ensureLucide(), 0);
     }
 
     function applyContactFilters() {
@@ -876,7 +1164,7 @@
       const statsContainer = document.getElementById('visitor-stats');
       if (statsContainer) {
         statsContainer.innerHTML = statsCardsTemplate(stats);
-        setTimeout(() => lucide.createIcons(), 0);
+        setTimeout(() => ensureLucide(), 0);
       }
       if (stats.hourly) renderTodayChart(stats.hourly, stats.today || 0);
       if (stats.weekly) renderWeeklyChart(stats.weekly, stats.thisWeek || 0);
@@ -970,7 +1258,7 @@
         barWidth,
         barGap
       });
-      lucide.createIcons();
+      ensureLucide();
       const tooltip = document.getElementById('tooltip-daily');
       chartContainer.querySelectorAll('.bar-daily').forEach((bar, idx) => {
         bar.addEventListener('mouseenter', (e) => showTooltip(e, 'daily', bar, tooltip, chartContainer));
@@ -1068,8 +1356,23 @@
 
     async function logout() {
       if (!confirm('로그아웃 하시겠습니까?')) return;
-      await fetch(`${API_URL}/auth/logout`, { method:'POST', credentials:'include' });
-      window.location.href = '/admin/login';
+      try {
+        const response = await fetch(`${API_URL}/auth/logout`, { 
+          method: 'POST', 
+          credentials: 'include' 
+        });
+        const result = await response.json();
+        if (result.success) {
+          // 로그아웃 성공 - 로그인 페이지로 이동
+          window.location.href = '/admin/login';
+        } else {
+          alert('로그아웃 중 오류가 발생했습니다.');
+        }
+      } catch (error) {
+        console.error('로그아웃 오류:', error);
+        // 에러가 발생해도 로그인 페이지로 이동 (세션이 이미 만료되었을 수 있음)
+        window.location.href = '/admin/login';
+      }
     }
     document.getElementById('logoutBtn').addEventListener('click', logout);
 
@@ -1207,7 +1510,7 @@
           </tr>
         `;
       }).join('');
-      lucide.createIcons();
+      ensureLucide();
 
       // 결과 개수 업데이트
       const countElement = document.getElementById('visitor-total');
@@ -1263,7 +1566,7 @@
         originalHTML = searchBtn.innerHTML;
         searchBtn.disabled = true;
         searchBtn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> 검색 중...';
-        lucide.createIcons();
+        ensureLucide();
       }
 
       try {
@@ -1276,7 +1579,7 @@
         if (searchBtn) {
           searchBtn.disabled = false;
           searchBtn.innerHTML = originalHTML;
-          lucide.createIcons();
+          ensureLucide();
         }
       }
     }
@@ -1291,7 +1594,7 @@
       const originalText = btn.innerHTML;
       btn.disabled = true;
       btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> 초기화 중...';
-      lucide.createIcons();
+      ensureLucide();
 
       try {
         const response = await fetch(`${API_URL}/visitors`, {
@@ -1314,7 +1617,7 @@
       } finally {
         btn.disabled = false;
         btn.innerHTML = originalText;
-        lucide.createIcons();
+        ensureLucide();
       }
     }
 
@@ -1447,7 +1750,7 @@
         if (progressBar) progressBar.style.width = '0%';
         if (progressText) progressText.textContent = '0% 완료';
         if (statusText) statusText.textContent = '업로드 시작 중...';
-        lucide.createIcons();
+        ensureLucide();
       }
     }
 
@@ -1541,8 +1844,30 @@
 
     // 초기 실행
     (async () => {
+      // lucide 로드 대기
+      await new Promise((resolve) => {
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+          resolve();
+        } else {
+          const checkInterval = setInterval(() => {
+            if (window.lucide && typeof window.lucide.createIcons === 'function') {
+              clearInterval(checkInterval);
+              resolve();
+            }
+          }, 100);
+          // 최대 5초 대기
+          setTimeout(() => {
+            clearInterval(checkInterval);
+            resolve();
+          }, 5000);
+        }
+      });
+      
       await checkAuth();
       await checkMongoStatus();
+      // 초기 탭 설정 (문서 관리 탭이 기본)
+      switchTab('documents');
+      await loadDocuments();
       await loadProjects();
       await loadContacts();
       await loadVisitorStatsForTab();
@@ -1575,7 +1900,7 @@
         await loadVisitors(startDateInput.value, endDateInput.value, 'newest');
       }
 
-      lucide.createIcons();
+      ensureLucide();
     })();
   </script>
 </body>

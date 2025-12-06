@@ -1,11 +1,38 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Compass, Mail, Phone, MapPin, GraduationCap, Calendar } from 'lucide-react';
 import { personalInfo } from '@/data/portfolio';
+import { DocumentInfo } from '@/types/portfolio';
 
 export const AboutSection: React.FC = () => {
+  const [documents, setDocuments] = useState<DocumentInfo | null>(null);
+
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      try {
+        const response = await fetch('/api/documents');
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success) {
+            setDocuments(result.data);
+          } else {
+            console.error('문서 API 호출 실패:', result.error);
+          }
+        } else {
+          console.error('문서 API 응답 실패:', response.status, response.statusText);
+        }
+      } catch (error) {
+        console.error('문서 데이터를 가져오는 중 오류 발생:', error);
+      }
+    };
+
+    fetchDocuments();
+  }, []);
+
+  const resumeUrl = documents?.resume?.url || personalInfo.resumeUrl;
+  const coverLetterUrl = documents?.coverLetter?.url || personalInfo.coverLetterUrl;
   const profileInfo = [
     { icon: <Mail className="w-5 h-5" />, label: '이메일', value: personalInfo.email },
     { icon: <Phone className="w-5 h-5" />, label: '연락처', value: personalInfo.phone },
@@ -143,26 +170,36 @@ export const AboutSection: React.FC = () => {
         </div>
 
         {/* 다운로드 버튼 */}
-        <motion.div
-          className="flex flex-col sm:flex-row gap-4 justify-center mt-12"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-        >
-          <a
-            href={personalInfo.resumeUrl}
-            className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-point-yellow text-dark-bg rounded-full font-semibold hover:bg-point-yellow-light transition-all duration-300 shadow-glow-yellow hover:shadow-glow-yellow-lg"
+        {(resumeUrl || coverLetterUrl) && (
+          <motion.div
+            className="flex flex-col sm:flex-row gap-4 justify-center mt-20"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.2 }}
           >
-            📄 이력서 다운로드
-          </a>
-          <a
-            href={personalInfo.coverLetterUrl}
-            className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-dark-surface border-2 border-point-yellow text-point-yellow rounded-full font-semibold hover:bg-point-yellow hover:text-dark-bg transition-all duration-300"
-          >
-            🧾 자기소개서 다운로드
-          </a>
-        </motion.div>
+            {resumeUrl && (
+              <a
+                href={resumeUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 text-sm font-light text-white bg-brand-main hover:opacity-90 transition-all duration-300 rounded-lg"
+              >
+                📄 이력서 다운로드
+              </a>
+            )}
+            {coverLetterUrl && (
+              <a
+                href={coverLetterUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 text-sm font-light text-white bg-brand-main hover:opacity-90 transition-all duration-300 rounded-lg"
+              >
+                🧾 자기소개서 다운로드
+              </a>
+            )}
+          </motion.div>
+        )}
       </div>
     </section>
   );

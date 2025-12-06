@@ -4,12 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>관리자 로그인</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <style>
-    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
-    body { font-family: 'Pretendard', sans-serif; }
-  </style>
+  <link rel="stylesheet" href="/admin.css">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js" defer></script>
 </head>
 <body class="bg-gray-50 min-h-screen flex items-center justify-center">
   <div class="max-w-md w-full mx-4">
@@ -23,7 +19,7 @@
         <p class="text-gray-500">포트폴리오 관리 시스템</p>
       </div>
 
-      <form id="loginForm" class="space-y-6">
+      <form id="loginForm" class="space-y-6" method="post" action="/admin/login">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">아이디</label>
           <input 
@@ -88,7 +84,24 @@
   </div>
 
   <script>
-    lucide.createIcons();
+    // lucide 로드 보장
+    function ensureLucide() {
+      if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        window.lucide.createIcons();
+        return;
+      }
+      // fallback: 스크립트가 로드되지 않았다면 다시 로드 시도
+      const existing = document.querySelector('script[data-lucide-fallback]');
+      if (!existing) {
+        const script = document.createElement('script');
+        script.src = 'https://unpkg.com/lucide@latest/dist/umd/lucide.js';
+        script.defer = true;
+        script.setAttribute('data-lucide-fallback', 'true');
+        script.onload = () => window.lucide && window.lucide.createIcons && window.lucide.createIcons();
+        document.head.appendChild(script);
+      }
+    }
+    ensureLucide();
 
     // 비밀번호 보기/숨기기
     function togglePassword() {
@@ -102,7 +115,7 @@
         passwordInput.type = 'password';
         eyeIcon.setAttribute('data-lucide', 'eye');
       }
-      lucide.createIcons();
+      ensureLucide();
     }
 
     // 로그인 폼 제출
@@ -122,8 +135,13 @@
       submitBtn.innerHTML = '<div class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> 로그인 중...';
       
       try {
-        // Vercel 프로덕션에서는 /bo-api/* 경로가 Express 백오피스로 라우팅됨
-        const response = await fetch('/bo-api/auth/login', {
+        // 같은 오리진을 사용하여 세션 쿠키가 제대로 전달되도록 함
+        // Next.js API 라우트(/bo-api)가 Express 서버로 프록시함
+        const API_URL = '/bo-api';
+        const loginUrl = `${API_URL}/auth/login`;
+        console.log('🔐 로그인 요청:', { loginUrl, username, origin: window.location.origin });
+        
+        const response = await fetch(loginUrl, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -132,10 +150,29 @@
           body: JSON.stringify({ username, password })
         });
         
-        const result = await response.json();
+        console.log('📡 로그인 응답:', { 
+          status: response.status, 
+          statusText: response.statusText,
+          ok: response.ok,
+          headers: Object.fromEntries(response.headers.entries())
+        });
+        
+        // 응답이 JSON이 아닐 수 있으므로 확인
+        let result;
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          result = await response.json();
+        } else {
+          const text = await response.text();
+          console.error('❌ JSON이 아닌 응답:', text);
+          throw new Error(`서버 오류 (${response.status}): ${text.substring(0, 100)}`);
+        }
+        
+        console.log('📋 로그인 결과:', result);
         
         if (result.success) {
           // 로그인 성공 - 관리자 페이지로 이동
+          console.log('✅ 로그인 성공, 리다이렉트 중...');
           window.location.href = '/admin';
         } else {
           // 로그인 실패
@@ -143,15 +180,27 @@
           errorMessage.classList.remove('hidden');
           submitBtn.disabled = false;
           submitBtn.innerHTML = '<i data-lucide="log-in" class="w-5 h-5"></i> 로그인';
-          lucide.createIcons();
+          ensureLucide();
         }
       } catch (error) {
-        console.error('로그인 오류:', error);
-        errorMessage.textContent = '로그인 중 오류가 발생했습니다.';
+        console.error('❌ 로그인 오류:', error);
+        let errorText = '로그인 중 오류가 발생했습니다.';
+        
+        if (error.message) {
+          if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+            errorText = '백엔드 서버에 연결할 수 없습니다. 서버가 실행 중인지 확인하세요.';
+          } else if (error.message.includes('서버 오류')) {
+            errorText = error.message;
+          } else {
+            errorText = `오류: ${error.message}`;
+          }
+        }
+        
+        errorMessage.textContent = errorText;
         errorMessage.classList.remove('hidden');
         submitBtn.disabled = false;
         submitBtn.innerHTML = '<i data-lucide="log-in" class="w-5 h-5"></i> 로그인';
-        lucide.createIcons();
+        ensureLucide();
       }
     });
 

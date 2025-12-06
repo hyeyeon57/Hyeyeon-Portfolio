@@ -151,43 +151,104 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
   }
 
   if (error) {
-    // 503 에러인 경우 특별한 메시지 표시
+    // 에러 타입별 분류
+    const is500Error = error.includes('500') || error.includes('Internal Server Error');
     const is503Error = error.includes('503') || error.includes('Service Unavailable');
+    const is504Error = error.includes('504') || error.includes('Gateway Timeout');
     const isMongoDBError = error.includes('MongoDB') || error.includes('연결');
+    const isNetworkError = error.includes('fetch failed') || error.includes('ECONNREFUSED') || error.includes('연결할 수 없습니다');
+    const isTimeoutError = error.includes('타임아웃') || error.includes('timeout');
     
     return (
       <section id="projects" className="py-20 relative overflow-hidden" style={{ backgroundColor: '#F7F7FB' }}>
         <div className="container mx-auto px-4 text-center">
           <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-2xl mx-auto">
-            <h3 className="text-red-800 font-semibold mb-2">⚠️ 프로젝트를 불러올 수 없습니다</h3>
-            <p className="text-red-600 mb-4">{error}</p>
+            <h3 className="text-red-800 font-semibold mb-2 text-xl">⚠️ 프로젝트를 불러올 수 없습니다</h3>
+            <p className="text-red-600 mb-4 font-medium">{error}</p>
             
-            {is503Error && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mt-4 text-left">
-                <h4 className="text-yellow-800 font-semibold mb-2">🔧 503 에러 해결 방법:</h4>
-                <ol className="text-sm text-yellow-700 list-decimal list-inside space-y-1">
-                  <li>Vercel 환경 변수 확인: <code className="bg-yellow-100 px-1 rounded">MONGODB_URI</code> 설정 여부</li>
-                  <li>MongoDB Atlas Network Access: <code className="bg-yellow-100 px-1 rounded">0.0.0.0/0</code> 설정 확인</li>
-                  <li>백엔드 서버 상태 확인: <a href="/bo-api/health" target="_blank" className="text-blue-600 underline">Health Check</a></li>
-                  <li>Vercel 로그 확인: Deployments → Functions → /bo-api/projects</li>
+            {/* 500 에러 - 백엔드 서버 문제 */}
+            {is500Error && (
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mt-4 text-left">
+                <h4 className="text-orange-800 font-semibold mb-2">🔧 500 에러 해결 방법:</h4>
+                <ol className="text-sm text-orange-700 list-decimal list-inside space-y-2">
+                  <li><strong>백엔드 서버가 실행 중인지 확인:</strong>
+                    <ul className="list-disc list-inside ml-4 mt-1">
+                      <li>터미널에서 <code className="bg-orange-100 px-1 rounded">npm run dev:server</code> 실행</li>
+                      <li><code className="bg-orange-100 px-1 rounded">http://localhost:3005/bo-api/health</code> 접속해서 서버 상태 확인</li>
+                    </ul>
+                  </li>
+                  <li><strong>MongoDB 연결 확인:</strong>
+                    <ul className="list-disc list-inside ml-4 mt-1">
+                      <li>MongoDB가 실행 중인지 확인</li>
+                      <li><code className="bg-orange-100 px-1 rounded">.env</code> 파일에 <code className="bg-orange-100 px-1 rounded">MONGODB_URI</code> 설정 확인</li>
+                    </ul>
+                  </li>
+                  <li><strong>서버 로그 확인:</strong>
+                    <ul className="list-disc list-inside ml-4 mt-1">
+                      <li>백엔드 서버 터미널에서 에러 메시지 확인</li>
+                      <li><code className="bg-orange-100 px-1 rounded">[projectController]</code> 또는 <code className="bg-orange-100 px-1 rounded">[projectService]</code> 로그 확인</li>
+                    </ul>
+                  </li>
                 </ol>
               </div>
             )}
             
-            {isMongoDBError && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4 text-left">
-                <h4 className="text-blue-800 font-semibold mb-2">💡 MongoDB 연결 문제:</h4>
-                <p className="text-sm text-blue-700">
-                  MongoDB 연결이 실패했습니다. Vercel 환경 변수에 <code className="bg-blue-100 px-1 rounded">MONGODB_URI</code>가 올바르게 설정되어 있는지 확인하세요.
+            {/* 503 에러 - 서비스 사용 불가 */}
+            {is503Error && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mt-4 text-left">
+                <h4 className="text-yellow-800 font-semibold mb-2">🔧 503 에러 해결 방법:</h4>
+                <ol className="text-sm text-yellow-700 list-decimal list-inside space-y-1">
+                  <li>백엔드 서버가 실행 중인지 확인</li>
+                  <li>MongoDB 연결 상태 확인</li>
+                  <li>백엔드 서버 상태 확인: <a href="http://localhost:3005/bo-api/health" target="_blank" className="text-blue-600 underline">Health Check</a></li>
+                </ol>
+              </div>
+            )}
+            
+            {/* 네트워크 에러 - 백엔드 서버에 연결할 수 없음 */}
+            {isNetworkError && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mt-4 text-left">
+                <h4 className="text-red-800 font-semibold mb-2">🌐 네트워크 연결 문제:</h4>
+                <p className="text-sm text-red-700 mb-2">
+                  백엔드 서버에 연결할 수 없습니다. 다음을 확인하세요:
+                </p>
+                <ol className="text-sm text-red-700 list-decimal list-inside space-y-1">
+                  <li><strong>백엔드 서버 실행:</strong> 터미널에서 <code className="bg-red-100 px-1 rounded">npm run dev:server</code> 실행</li>
+                  <li><strong>포트 확인:</strong> 포트 3005가 사용 중인지 확인</li>
+                  <li><strong>방화벽 확인:</strong> 방화벽이 포트 3005를 차단하지 않는지 확인</li>
+                </ol>
+              </div>
+            )}
+            
+            {/* 타임아웃 에러 */}
+            {isTimeoutError && (
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mt-4 text-left">
+                <h4 className="text-purple-800 font-semibold mb-2">⏱️ 타임아웃 문제:</h4>
+                <p className="text-sm text-purple-700">
+                  백엔드 서버 응답이 너무 느립니다. MongoDB 연결이 느리거나 서버가 과부하 상태일 수 있습니다.
                 </p>
               </div>
             )}
             
-            <p className="text-sm text-red-500 mt-4">
-              브라우저 콘솔(F12)을 열어 자세한 오류를 확인하세요.
-              <br />
-              백엔드 서버 연결 상태를 확인해주세요.
-            </p>
+            {/* MongoDB 에러 */}
+            {isMongoDBError && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4 text-left">
+                <h4 className="text-blue-800 font-semibold mb-2">💡 MongoDB 연결 문제:</h4>
+                <p className="text-sm text-blue-700">
+                  MongoDB 연결이 실패했습니다. <code className="bg-blue-100 px-1 rounded">.env</code> 파일에 <code className="bg-blue-100 px-1 rounded">MONGODB_URI</code>가 올바르게 설정되어 있는지 확인하세요.
+                </p>
+              </div>
+            )}
+            
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mt-4 text-left">
+              <h4 className="text-gray-800 font-semibold mb-2">📋 디버깅 방법:</h4>
+              <ul className="text-sm text-gray-700 list-disc list-inside space-y-1">
+                <li>브라우저 개발자 도구(F12) → Network 탭에서 <code className="bg-gray-100 px-1 rounded">/api/projects</code> 요청 확인</li>
+                <li>브라우저 콘솔(F12) → Console 탭에서 자세한 에러 메시지 확인</li>
+                <li>백엔드 서버 터미널에서 에러 로그 확인</li>
+                <li>Next.js 서버 터미널에서 <code className="bg-gray-100 px-1 rounded">📡 백엔드 API 호출</code> 로그 확인</li>
+              </ul>
+            </div>
           </div>
         </div>
       </section>

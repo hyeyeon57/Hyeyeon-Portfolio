@@ -6,6 +6,20 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  // Windows 파일 잠금 문제 해결을 위한 설정
+  webpack: (config, { isServer }) => {
+    // Windows에서 파일 잠금 문제 완화
+    if (process.platform === 'win32') {
+      config.watchOptions = {
+        poll: 1500,
+        aggregateTimeout: 1000,
+        ignored: /node_modules/,
+        followSymlinks: false,
+      };
+    }
+    return config;
+  },
+  reactStrictMode: true,
   // Chrome으로 자동 열기 설정
   onDemandEntries: {
     maxInactiveAge: 25 * 1000,

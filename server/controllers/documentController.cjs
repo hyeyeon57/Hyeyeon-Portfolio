@@ -1,0 +1,177 @@
+const Document = require('../models/Document.cjs');
+const { connectDB } = require('../config/database.cjs');
+const { ok, fail } = require('../utils/httpResponse.cjs');
+const { PUBLIC_DIR } = require('../utils/pathHelpers.cjs');
+const path = require('path');
+const fs = require('fs').promises;
+
+/**
+ * 문서 정보 조회 (이력서/자기소개서)
+ */
+const getDocuments = async (req, res) => {
+  try {
+    await connectDB();
+    
+    const documents = await Document.find({}).sort({ type: 1 });
+    
+    // 기본값 설정
+    const result = {
+      resume: null,
+      coverLetter: null,
+    };
+    
+    // MongoDB에서 조회
+    documents.forEach(doc => {
+      if (doc.type === 'resume') {
+        result.resume = {
+          url: doc.url,
+          fileName: doc.fileName,
+          updatedAt: doc.updatedAt,
+        };
+      } else if (doc.type === 'coverLetter') {
+        result.coverLetter = {
+          url: doc.url,
+          fileName: doc.fileName,
+          updatedAt: doc.updatedAt,
+        };
+      }
+    });
+    
+    return ok(res, { data: result, message: '문서 정보를 조회했습니다.' });
+  } catch (error) {
+    console.error('[documentController] 문서 조회 실패:', error);
+    return fail(res, 500, `문서 정보를 조회하는데 실패했습니다: ${error.message || '알 수 없는 오류'}`);
+  }
+};
+
+/**
+ * 문서 업로드/업데이트
+ */
+const updateDocument = async (req, res) => {
+  try {
+    await connectDB();
+    
+    const { type } = req.params; // URL 파라미터에서 가져오기
+    const file = req.file; // multer로 업로드된 파일
+    
+    if (!type || !['resume', 'coverLetter'].includes(type)) {
+      return fail(res, 400, '문서 타입이 올바르지 않습니다. (resume 또는 coverLetter)');
+    }
+    
+    if (!file) {
+      return fail(res, 400, '파일이 업로드되지 않았습니다.');
+    }
+    
+    // PDF 파일만 허용
+    if (file.mimetype !== 'application/pdf') {
+      return fail(res, 400, 'PDF 파일만 업로드 가능합니다.');
+    }
+    
+    // documents 폴더에 저장
+    const documentsDir = path.join(PUBLIC_DIR, 'documents');
+    await fs.mkdir(documentsDir, { recursive: true });
+    
+    // 원본 파일명 사용 (확장자 포함)
+    const originalFileName = file.originalname || `document_${Date.now()}.pdf`;
+    const fileExt = path.extname(originalFileName) || '.pdf';
+    const baseFileName = path.basename(originalFileName, fileExt);
+    
+    // 파일명 생성: 타입별 접두사 + 원본 파일명
+    const fileName = `${type === 'resume' ? 'resume_' : 'coverletter_'}${baseFileName}${fileExt}`;
+    const filePath = path.join(documentsDir, fileName);
+    
+    // 기존 파일이 있으면 삭제 (같은 타입의 모든 파일 삭제)
+    try {
+      const existingDocs = await Document.find({ type });
+      for (const doc of existingDocs) {
+        const oldFilePath = path.join(PUBLIC_DIR, doc.url);
+        try {
+          await fs.access(oldFilePath);
+          await fs.unlink(oldFilePath);
+        } catch (err) {
+          // 파일이 없으면 무시
+        }
+      }
+    } catch (err) {
+      // 기존 파일 삭제 실패는 무시
+    }
+    
+    // 새 파일 저장
+    await fs.rename(file.path, filePath);
+    
+    // URL 생성 (public 경로 기준)
+    const url = `/documents/${fileName}`;
+    
+    // MongoDB에 저장 또는 업데이트 (원본 파일명 저장)
+    const document = await Document.findOneAndUpdate(
+      { type },
+      {
+        type,
+        url,
+        fileName: originalFileName, // 원본 파일명 저장
+        updatedAt: new Date(),
+      },
+      {
+        upsert: true, // 없으면 생성, 있으면 업데이트
+        new: true,
+      }
+    );
+    
+    return ok(res, {
+      data: {
+        type: document.type,
+        url: document.url,
+        fileName: document.fileName,
+        updatedAt: document.updatedAt,
+      },
+      message: '문서가 업로드되었습니다.',
+    });
+  } catch (error) {
+    console.error('[documentController] 문서 업로드 실패:', error);
+    return fail(res, 500, `문서 업로드에 실패했습니다: ${error.message || '알 수 없는 오류'}`);
+  }
+};
+
+/**
+ * 문서 삭제
+ */
+const deleteDocument = async (req, res) => {
+  try {
+    await connectDB();
+    
+    const { type } = req.params;
+    
+    if (!type || !['resume', 'coverLetter'].includes(type)) {
+      return fail(res, 400, '문서 타입이 올바르지 않습니다.');
+    }
+    
+    const document = await Document.findOne({ type });
+    
+    if (!document) {
+      return fail(res, 404, '문서를 찾을 수 없습니다.');
+    }
+    
+    // 파일 삭제
+    const filePath = path.join(PUBLIC_DIR, document.url);
+    try {
+      await fs.unlink(filePath);
+    } catch (err) {
+      console.error('파일 삭제 실패:', err);
+    }
+    
+    // MongoDB에서 삭제
+    await Document.deleteOne({ type });
+    
+    return ok(res, { message: '문서가 삭제되었습니다.' });
+  } catch (error) {
+    console.error('[documentController] 문서 삭제 실패:', error);
+    return fail(res, 500, `문서 삭제에 실패했습니다: ${error.message || '알 수 없는 오류'}`);
+  }
+};
+
+module.exports = {
+  getDocuments,
+  updateDocument,
+  deleteDocument,
+};
+

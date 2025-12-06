@@ -87,8 +87,8 @@ export interface PersonalInfo {
     notion: string;
   };
   availableDate: string;
-  resumeUrl: string;
-  coverLetterUrl: string;
+  resumeUrl: string | null;
+  coverLetterUrl: string | null;
 }
 
 

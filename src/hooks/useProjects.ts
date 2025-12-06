@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { Project } from '@/types/portfolio';
 import { API_CONFIG } from '@/constants/api';
 
@@ -16,15 +16,23 @@ interface UseProjectsReturn {
  * - 에러 핸들링
  */
 export function useProjects(): UseProjectsReturn {
+  // Hydration 에러 방지: 서버와 클라이언트가 같은 초기값 사용
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // 초기 로드 완료 여부 추적 (무한 루프 방지)
+  const hasInitialLoad = useRef(false);
+  
+  // fetchProjects 함수를 ref로 저장하여 재귀 호출 시 최신 버전 사용
+  const fetchProjectsRef = useRef<typeof fetchProjects>();
 
-  const fetchProjects = async (forceRefresh = false, retryCount = 0) => {
+  const fetchProjects = useCallback(async (forceRefresh = false, retryCount = 0) => {
     try {
       const timestamp = forceRefresh ? Date.now() + Math.random() : Date.now();
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.TIMEOUT_MS);
+      // 대표 프로젝트는 너무 오래 기다리지 않도록 타임아웃을 4초로 단축
+      const timeoutId = setTimeout(() => controller.abort(), Math.min(API_CONFIG.TIMEOUT_MS, 4000));
 
       let response;
       try {
@@ -44,15 +52,20 @@ export function useProjects(): UseProjectsReturn {
         if ((fetchError.name === 'AbortError' || fetchError.message?.includes('aborted')) && retryCount < API_CONFIG.MAX_RETRIES) {
           console.warn(`⚠️ 요청 타임아웃, 재시도 중... (${retryCount + 1}/${API_CONFIG.MAX_RETRIES})`);
           await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)));
-          return fetchProjects(forceRefresh, retryCount + 1);
+          return fetchProjectsRef.current?.(forceRefresh, retryCount + 1);
         }
 
         if ((fetchError.message?.includes('fetch failed') || fetchError.message?.includes('network')) && retryCount < API_CONFIG.MAX_RETRIES) {
           console.warn(`⚠️ 네트워크 에러, 재시도 중... (${retryCount + 1}/${API_CONFIG.MAX_RETRIES})`);
           await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)));
-          return fetchProjects(forceRefresh, retryCount + 1);
+          return fetchProjectsRef.current?.(forceRefresh, retryCount + 1);
         }
 
+        // 백그라운드 업데이트 실패 시 조용히 무시
+        if (forceRefresh) {
+          console.warn('⚠️ 백그라운드 프로젝트 업데이트 실패 (캐시 데이터 유지):', fetchError.message);
+          return;
+        }
         throw fetchError;
       }
 
@@ -61,7 +74,7 @@ export function useProjects(): UseProjectsReturn {
         if ((response.status === 503 || response.status === 504) && retryCount < API_CONFIG.MAX_RETRIES) {
           console.warn(`⚠️ 백엔드 서버 오류 (${response.status}), 재시도 중... (${retryCount + 1}/${API_CONFIG.MAX_RETRIES})`);
           await new Promise(resolve => setTimeout(resolve, 2000 * (retryCount + 1)));
-          return fetchProjects(forceRefresh, retryCount + 1);
+          return fetchProjectsRef.current?.(forceRefresh, retryCount + 1);
         }
 
         // 응답 본문 읽기 시도
@@ -75,6 +88,12 @@ export function useProjects(): UseProjectsReturn {
           errorDetails = await response.text().catch(() => '응답 본문을 읽을 수 없습니다.');
         }
 
+        // 백그라운드 업데이트 실패 시 조용히 무시
+        if (forceRefresh) {
+          console.warn('⚠️ 백그라운드 프로젝트 업데이트 실패 (캐시 데이터 유지):', errorDetails);
+          return;
+        }
+
         const errorMsg = `백엔드 API 호출 실패 (${response.status}: ${response.statusText})${errorDetails ? ` - ${errorDetails}` : ''}`;
         throw new Error(errorMsg);
       }
@@ -84,43 +103,90 @@ export function useProjects(): UseProjectsReturn {
       if (result.success && Array.isArray(result.data)) {
         setProjects(result.data);
         setError(null);
+
+        // 2) 최신 데이터를 세션 스토리지에 캐시
+        if (typeof window !== 'undefined') {
+          try {
+            window.sessionStorage.setItem(
+              'featured-projects-cache',
+              JSON.stringify({ data: result.data, updatedAt: Date.now() }),
+            );
+          } catch {
+            // 스토리지 제한 등은 조용히 무시
+          }
+        }
       } else {
+        // 데이터 형식 오류
+        if (forceRefresh) {
+          console.warn('⚠️ 백그라운드 프로젝트 업데이트 실패 - 데이터 형식 오류 (캐시 데이터 유지)');
+          return;
+        }
         throw new Error('프로젝트 데이터 형식이 올바르지 않습니다.');
       }
     } catch (err: any) {
       console.error('❌ 프로젝트 로드 실패:', err);
+      
+      // 백그라운드 업데이트 실패 시 조용히 무시 (초기 로드가 아니면)
+      if (forceRefresh) {
+        console.warn('⚠️ 백그라운드 프로젝트 업데이트 실패 (캐시 데이터 유지):', err.message);
+        return; // 에러 상태로 변경하지 않음
+      }
+      
+      // 초기 로드 시에만 에러 표시
       setError(err.message || '프로젝트를 불러오는데 실패했습니다.');
     } finally {
-      setLoading(false);
+      // 초기 로드가 아니면 loading 상태를 변경하지 않음
+      if (!forceRefresh) {
+        setLoading(false);
+      }
     }
-  };
+  }, []); // 의존성 배열 비움 - setState 함수들은 안정적
+
+  // fetchProjects 함수를 ref에 저장 (재귀 호출용)
+  fetchProjectsRef.current = fetchProjects;
 
   useEffect(() => {
-    fetchProjects();
+    // 클라이언트에서만 실행 (Hydration 에러 방지)
+    if (typeof window === 'undefined') return;
+    
+    // 초기 로드는 한 번만 실행
+    if (hasInitialLoad.current) return;
+    hasInitialLoad.current = true;
 
-    // 폴링: 5초마다 자동 새로고침 (선택적)
-    const pollInterval = setInterval(() => {
-      fetchProjects(true);
-    }, 5000);
-
-    // 포커스 시 새로고침
-    const handleFocus = () => fetchProjects(true);
-    window.addEventListener('focus', handleFocus);
-
-    // Visibility API: 탭이 다시 활성화되면 새로고침
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        fetchProjects(true);
+    // 세션 스토리지에서 캐시된 데이터 로드 (즉시 표시)
+    try {
+      const cached = window.sessionStorage.getItem('featured-projects-cache');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed?.data) && parsed.data.length > 0) {
+          setProjects(parsed.data as Project[]);
+          setLoading(false);
+          setError(null); // 에러 초기화
+          
+          // 캐시가 오래되었는지 확인
+          const updatedAt = typeof parsed?.updatedAt === 'number' ? parsed.updatedAt : 0;
+          const tenMinutes = 10 * 60 * 1000;
+          const shouldRefresh = Date.now() - updatedAt > tenMinutes;
+          
+          // 백그라운드에서 최신 데이터로 업데이트 (에러 발생해도 조용히 무시)
+          if (shouldRefresh) {
+            // fetchProjects 함수가 이미 정의되었으므로 직접 호출
+            fetchProjects(true).catch((err) => {
+              // 백그라운드 업데이트 실패 시 조용히 무시 (캐시 데이터 유지)
+              console.warn('⚠️ 백그라운드 프로젝트 업데이트 실패 (캐시 데이터 유지):', err.message);
+            });
+          }
+          return;
+        }
       }
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    } catch {
+      // 캐시 읽기 실패 시 무시하고 계속 진행
+    }
 
-    return () => {
-      clearInterval(pollInterval);
-      window.removeEventListener('focus', handleFocus);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, []);
+    // 캐시가 없으면 바로 페치
+    fetchProjects(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // 빈 의존성 배열 - 초기 마운트 시 한 번만 실행 (fetchProjects는 useCallback으로 안정적)
 
   return {
     projects,

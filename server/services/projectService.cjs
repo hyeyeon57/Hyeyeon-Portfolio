@@ -19,21 +19,35 @@ const findProjectById = async (id) => {
 };
 
 const listProjects = async () => {
-  if (!isConnected()) {
-    return { ok: false, status: 503, message: 'MongoDB가 연결되지 않았습니다. MongoDB를 실행하거나 .env 파일에 MONGODB_URI를 설정하세요.' };
+  try {
+    if (!isConnected()) {
+      console.error('[projectService] MongoDB 연결되지 않음');
+      return { ok: false, status: 503, message: 'MongoDB가 연결되지 않았습니다. MongoDB를 실행하거나 .env 파일에 MONGODB_URI를 설정하세요.' };
+    }
+
+    console.log('[projectService] 프로젝트 조회 시작...');
+    const projects = await Project.find()
+      .sort({ createdAt: -1 })
+      .lean()
+      .select('id title subtitle description fullDescription image images tags category date startDate endDate role duration team achievements link featured designPdf detailPdf previewPdf designLink figmaLink designFile gallery retrospective createdAt updatedAt')
+      .maxTimeMS(5000); // 5초 타임아웃
+
+    console.log(`[projectService] 프로젝트 조회 완료: ${projects.length}개`);
+
+    const normalized = projects.map((p) => ({
+      ...p,
+      images: (p.images && p.images.length ? p.images : (p.gallery || [])),
+    }));
+
+    return { ok: true, data: normalized };
+  } catch (error) {
+    console.error('[projectService] 프로젝트 조회 중 에러:', {
+      message: error.message,
+      name: error.name,
+      stack: error.stack
+    });
+    return { ok: false, status: 500, message: `프로젝트 조회 실패: ${error.message || '알 수 없는 오류'}` };
   }
-
-  const projects = await Project.find()
-    .sort({ createdAt: -1 })
-    .lean()
-    .select('id title subtitle description fullDescription image images tags category date startDate endDate role duration team achievements link featured designPdf detailPdf previewPdf designLink figmaLink designFile gallery retrospective createdAt updatedAt');
-
-  const normalized = projects.map((p) => ({
-    ...p,
-    images: (p.images && p.images.length ? p.images : (p.gallery || [])),
-  }));
-
-  return { ok: true, data: normalized };
 };
 
 const getProject = async (id) => {
