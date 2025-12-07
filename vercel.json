@@ -1,13 +1,12 @@
 {
   "version": 2,
-  "buildCommand": "npm run build:admin-css && npm run build",
+  "buildCommand": "npm run build",
   "devCommand": "npm run dev",
   "installCommand": "npm install",
   "framework": "nextjs",
   "outputDirectory": ".next",
   "cleanUrls": true,
   "trailingSlash": false,
-  "ignoreCommand": "git diff --quiet HEAD^ HEAD ./server/admin/",
   "functions": {
     "pages/api/**/*.ts": {
       "maxDuration": 30
