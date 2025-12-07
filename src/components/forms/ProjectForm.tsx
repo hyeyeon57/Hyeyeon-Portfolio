@@ -395,7 +395,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSave, onCan
             />
             {formData.detailPdf && (
               <a
-                href={formData.detailPdf}
+                href={`${formData.detailPdf}#view=FitH`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="px-4 py-2 bg-brand-main/10 text-brand-main rounded-lg hover:bg-brand-main/20 transition-colors text-sm font-medium whitespace-nowrap"
