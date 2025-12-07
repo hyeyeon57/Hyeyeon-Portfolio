@@ -13,21 +13,34 @@ const fs = require('fs');
 
 const router = express.Router();
 
-// documents 폴더 생성
-const documentsDir = path.join(PUBLIC_DIR, 'documents');
-if (!fs.existsSync(documentsDir)) {
-  fs.mkdirSync(documentsDir, { recursive: true });
+// documents 폴더 생성 (로컬 환경에서만)
+if (!process.env.VERCEL) {
+  const documentsDir = path.join(PUBLIC_DIR, 'documents');
+  if (!fs.existsSync(documentsDir)) {
+    try {
+      fs.mkdirSync(documentsDir, { recursive: true });
+    } catch (error) {
+      console.warn('[documentRoutes] 폴더 생성 실패 (무시):', error?.message);
+    }
+  }
 }
 
 // multer 설정 (임시 저장 후 컨트롤러에서 이동)
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const tempDir = path.join(PUBLIC_DIR, 'temp');
-    if (!fs.existsSync(tempDir)) {
-      fs.mkdirSync(tempDir, { recursive: true });
-    }
-    cb(null, tempDir);
-  },
+// Vercel 환경에서는 메모리 스토리지 사용 (파일 시스템 접근 불가)
+const storage = process.env.VERCEL
+  ? multer.memoryStorage() // Vercel: 메모리 스토리지
+  : multer.diskStorage({
+      destination: function (req, file, cb) {
+        const tempDir = path.join(PUBLIC_DIR, 'temp');
+        if (!fs.existsSync(tempDir)) {
+          try {
+            fs.mkdirSync(tempDir, { recursive: true });
+          } catch (error) {
+            console.warn('[documentRoutes] temp 폴더 생성 실패 (무시):', error?.message);
+          }
+        }
+        cb(null, tempDir);
+      },
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     cb(null, uniqueSuffix + path.extname(file.originalname));

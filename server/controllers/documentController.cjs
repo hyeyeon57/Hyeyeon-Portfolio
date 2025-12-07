@@ -83,9 +83,19 @@ const updateDocument = async (req, res) => {
         return fail(res, 400, 'PDF 파일만 업로드 가능합니다.');
       }
       
-      // documents 폴더에 저장
+      // documents 폴더에 저장 (로컬 환경에서만)
+      // Vercel 환경에서는 파일 시스템 접근 불가
+      if (process.env.VERCEL) {
+        return fail(res, 400, 'Vercel 환경에서는 파일 업로드가 지원되지 않습니다. Vercel Blob Storage 또는 S3를 사용해주세요.');
+      }
+      
       const documentsDir = path.join(PUBLIC_DIR, 'documents');
-      await fs.mkdir(documentsDir, { recursive: true });
+      try {
+        await fs.mkdir(documentsDir, { recursive: true });
+      } catch (mkdirError) {
+        console.warn('[documentController] 폴더 생성 실패 (무시):', mkdirError?.message);
+        // 폴더가 이미 존재할 수 있으므로 계속 진행
+      }
       
       // 원본 파일명 사용 (확장자 포함)
       const originalFileName = file.originalname || `document_${Date.now()}.pdf`;
@@ -177,12 +187,18 @@ const deleteDocument = async (req, res) => {
       return fail(res, 404, '문서를 찾을 수 없습니다.');
     }
     
-    // 파일 삭제
-    const filePath = path.join(PUBLIC_DIR, document.url);
-    try {
-      await fs.unlink(filePath);
-    } catch (err) {
-      console.error('파일 삭제 실패:', err);
+    // 파일 삭제 (로컬 환경에서만)
+    if (!process.env.VERCEL) {
+      const filePath = path.join(PUBLIC_DIR, document.url);
+      try {
+        await fs.unlink(filePath);
+      } catch (err) {
+        console.warn('파일 삭제 실패 (무시):', err?.message);
+        // 파일이 없거나 이미 삭제된 경우 무시
+      }
+    } else {
+      // Vercel 환경에서는 파일 시스템 접근 불가
+      console.log('[documentController] Vercel 환경: 파일 시스템 삭제 건너뜀');
     }
     
     // MongoDB에서 삭제
