@@ -492,6 +492,27 @@
         return;
       }
 
+      // 업로드 전 인증 상태 확인 및 세션 갱신
+      try {
+        const authCheck = await fetch('/bo-api/auth/check', {
+          method: 'GET',
+          credentials: 'include',
+        });
+        const authData = await authCheck.json();
+        console.log('🔐 문서 저장 전 인증 상태:', authData);
+        
+        if (!authData.authenticated) {
+          alert('세션이 만료되었습니다. 다시 로그인해주세요.');
+          window.location.href = '/admin/login';
+          return;
+        }
+      } catch (authError) {
+        console.error('인증 확인 실패:', authError);
+        alert('인증 확인 중 오류가 발생했습니다. 다시 로그인해주세요.');
+        window.location.href = '/admin/login';
+        return;
+      }
+
       const statusEl = document.getElementById(`${typeId}-status`);
       const statusTextEl = document.getElementById(`${typeId}-status-text`);
       const uploadStatus = document.getElementById(`${typeId}-upload-status`);
@@ -2239,6 +2260,30 @@
         throw new Error('업로드할 파일이 없습니다.');
       }
 
+      // 업로드 전 인증 상태 확인 및 세션 갱신
+      try {
+        const authCheck = await fetch('/bo-api/auth/check', {
+          method: 'GET',
+          credentials: 'include',
+        });
+        const authData = await authCheck.json();
+        console.log('🔐 파일 업로드 전 인증 상태:', authData);
+        
+        if (!authData.authenticated) {
+          throw new Error('세션이 만료되었습니다. 다시 로그인해주세요.');
+        }
+      } catch (authError) {
+        console.error('인증 확인 실패:', authError);
+        if (authError.message.includes('세션이 만료')) {
+          alert('세션이 만료되었습니다. 다시 로그인해주세요.');
+          window.location.href = '/admin/login';
+        } else {
+          alert('인증 확인 중 오류가 발생했습니다. 다시 로그인해주세요.');
+          window.location.href = '/admin/login';
+        }
+        throw authError;
+      }
+
       // 1. Presigned URL 요청
       const fileInfos = Array.from(files).map(file => ({
         filename: file.name,
@@ -2801,6 +2846,27 @@
 
     window.uploadImageInEdit = async (kind) => {
       console.log(`🖼️ uploadImageInEdit 호출됨: kind=${kind}`);
+      
+      // 업로드 전 인증 상태 확인 및 세션 갱신
+      try {
+        const authCheck = await fetch('/bo-api/auth/check', {
+          method: 'GET',
+          credentials: 'include',
+        });
+        const authData = await authCheck.json();
+        console.log('🔐 이미지 업로드 전 인증 상태:', authData);
+        
+        if (!authData.authenticated) {
+          alert('세션이 만료되었습니다. 다시 로그인해주세요.');
+          window.location.href = '/admin/login';
+          return;
+        }
+      } catch (authError) {
+        console.error('인증 확인 실패:', authError);
+        alert('인증 확인 중 오류가 발생했습니다. 다시 로그인해주세요.');
+        window.location.href = '/admin/login';
+        return;
+      }
       
       try {
         if (kind === 'main') {

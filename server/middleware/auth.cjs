@@ -10,6 +10,15 @@ const requireAuth = (req, res, next) => {
   });
 
   if (req.session && req.session.isAuthenticated) {
+    // 세션 갱신: 인증된 사용자의 요청마다 세션을 갱신하여 만료 방지
+    req.session.touch();
+    req.session.save((err) => {
+      if (err) {
+        console.error('[Auth] 세션 갱신 실패:', err);
+      } else {
+        console.log('[Auth] 인증 성공, 세션 갱신됨');
+      }
+    });
     console.log('[Auth] 인증 성공, 다음 미들웨어로 진행');
     return next();
   }
