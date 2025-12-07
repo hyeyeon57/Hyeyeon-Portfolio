@@ -370,7 +370,7 @@ export const Footer: React.FC = () => {
           {/* Footer 하단 */}
           <div className="flex flex-col gap-4">
             {/* Admin Viewer 안내 텍스트 */}
-            <div className="text-center">
+            <div className="text-right">
               <p className="text-sm text-text-secondary mb-2">
                 Admin Viewer에서 관리자 화면도 구경해보세요!
               </p>
