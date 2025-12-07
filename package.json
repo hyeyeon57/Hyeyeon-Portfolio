@@ -9,7 +9,7 @@
     "dev": "npm run clean && next dev",
     "dev:fresh": "npm run clean && next dev",
     "dev:server": "npm run build:admin-css && node server/index.cjs",
-    "build": "npm run build:admin-css && next build",
+    "build": "npm run build:admin-css || echo 'Warning: admin-css build failed, continuing...' && next build",
     "build:admin-css": "tailwindcss -i ./server/admin/admin.css -o ./public/admin.css --minify -c ./tailwind.admin.config.ts",
     "start": "next start",
     "start:server": "node server/index.cjs",

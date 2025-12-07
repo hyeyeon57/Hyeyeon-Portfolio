@@ -19,6 +19,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ error: 'Method not allowed. Use PUT.' });
   }
 
+  // Vercel 서버리스 환경에서는 로컬 파일 저장 불가
+  if (process.env.VERCEL) {
+    console.warn('⚠️ Vercel 환경에서는 로컬 파일 저장이 불가능합니다. Vercel Blob Storage 또는 S3를 사용해주세요.');
+    return res.status(400).json({
+      success: false,
+      error: 'Vercel 환경에서는 로컬 파일 저장이 불가능합니다. Vercel Blob Storage 또는 S3를 사용해주세요.',
+      storage: 'vercel',
+    });
+  }
+
   try {
     let { filename } = req.query;
     

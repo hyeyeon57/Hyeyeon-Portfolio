@@ -76,8 +76,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // Vercel Blob 용량 초과 또는 오류 시 로컬 또는 S3로 자동 폴백
         console.warn('⚠️ Vercel Blob Storage 오류, 폴백 시도:', vercelError.message);
         
-        // 우선순위 2: 로컬 파일 시스템으로 폴백
-        const isLocalEnvironment = !process.env.VERCEL;
+        // 우선순위 2: 로컬 파일 시스템으로 폴백 (Vercel 환경에서는 불가)
+        const isLocalEnvironment = !process.env.VERCEL && !process.env.VERCEL_ENV;
         if (isLocalEnvironment) {
           console.log('📤 로컬 파일 시스템으로 폴백...');
           // 로컬 폴백 로직으로 계속 진행 (아래 코드 실행)
@@ -100,7 +100,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // 우선순위 2: 로컬 파일 시스템 (완전 무료, 로컬 개발 환경)
     // Vercel 같은 서버리스 환경에서는 작동하지 않으므로, 로컬 환경에서만 사용
-    const isLocalEnvironment = !process.env.VERCEL;
+    const isLocalEnvironment = !process.env.VERCEL && !process.env.VERCEL_ENV;
     
     if (isLocalEnvironment) {
       console.log('📤 로컬 파일 시스템 사용 (완전 무료)');
