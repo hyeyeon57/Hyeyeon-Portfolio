@@ -107,23 +107,36 @@ const updateDocument = async (req, res) => {
       const filePath = path.join(documentsDir, fileName);
       
       // 기존 파일이 있으면 삭제 (같은 타입의 모든 파일 삭제)
-      try {
-        const existingDocs = await Document.find({ type });
-        for (const doc of existingDocs) {
-          const oldFilePath = path.join(PUBLIC_DIR, doc.url);
-          try {
-            await fs.access(oldFilePath);
-            await fs.unlink(oldFilePath);
-          } catch (err) {
-            // 파일이 없으면 무시
+      // Vercel 환경에서는 파일 시스템 접근 불가
+      if (!process.env.VERCEL) {
+        try {
+          const existingDocs = await Document.find({ type });
+          for (const doc of existingDocs) {
+            const oldFilePath = path.join(PUBLIC_DIR, doc.url);
+            try {
+              await fs.access(oldFilePath);
+              await fs.unlink(oldFilePath);
+            } catch (err) {
+              // 파일이 없으면 무시
+            }
           }
+        } catch (err) {
+          // 기존 파일 삭제 실패는 무시
         }
-      } catch (err) {
-        // 기존 파일 삭제 실패는 무시
+        
+        // 새 파일 저장
+        if (file.path) {
+          await fs.rename(file.path, filePath);
+        } else if (file.buffer) {
+          // 메모리 스토리지인 경우 (Vercel)
+          await fs.writeFile(filePath, file.buffer);
+        } else {
+          throw new Error('파일 데이터를 찾을 수 없습니다.');
+        }
+      } else {
+        // Vercel 환경에서는 파일 시스템 저장 불가
+        throw new Error('Vercel 환경에서는 파일 업로드가 지원되지 않습니다. Vercel Blob Storage 또는 S3를 사용해주세요.');
       }
-      
-      // 새 파일 저장
-      await fs.rename(file.path, filePath);
       
       // URL 생성 (public 경로 기준)
       url = `/documents/${fileName}`;
