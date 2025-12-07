@@ -2507,6 +2507,27 @@
       console.log(`🚀 window.uploadFilesToS3 존재 여부:`, typeof window.uploadFilesToS3);
       console.log(`🚀 현재 시간:`, new Date().toISOString());
       
+      // 업로드 전 인증 상태 확인 및 세션 갱신
+      try {
+        const authCheck = await fetch('/bo-api/auth/check', {
+          method: 'GET',
+          credentials: 'include',
+        });
+        const authData = await authCheck.json();
+        console.log('🔐 PDF 업로드 전 인증 상태:', authData);
+        
+        if (!authData.authenticated) {
+          alert('세션이 만료되었습니다. 다시 로그인해주세요.');
+          window.location.href = '/admin/login';
+          return;
+        }
+      } catch (authError) {
+        console.error('인증 확인 실패:', authError);
+        alert('인증 확인 중 오류가 발생했습니다. 다시 로그인해주세요.');
+        window.location.href = '/admin/login';
+        return;
+      }
+      
       try {
         const prefix = kind.charAt(0).toUpperCase() + kind.slice(1);
         const fileInputId = `edit${prefix}PdfFile`;
