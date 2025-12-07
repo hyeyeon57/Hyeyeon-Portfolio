@@ -118,6 +118,28 @@ const createApp = ({ withDbMiddleware = false } = {}) => {
   // 정적 파일
   app.use(express.static(PUBLIC_DIR));
 
+  // 에러 핸들링 미들웨어 (모든 라우트 이후에 추가)
+  app.use((err, req, res, next) => {
+    console.error('[Express] Unhandled error:', err);
+    if (!res.headersSent) {
+      res.status(500).json({
+        error: 'Internal Server Error',
+        message: err?.message || 'Unknown error',
+        ...(process.env.NODE_ENV === 'development' && { stack: err?.stack }),
+      });
+    }
+  });
+
+  // 404 핸들러
+  app.use((req, res) => {
+    if (!res.headersSent) {
+      res.status(404).json({
+        error: 'Not Found',
+        message: `Route ${req.method} ${req.url} not found`,
+      });
+    }
+  });
+
   return app;
 };
 
