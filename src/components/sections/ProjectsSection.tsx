@@ -456,7 +456,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.3, delay: index * 0.05 }}
                                 className="relative w-full overflow-hidden bg-bg-light cursor-pointer hover:opacity-90 transition-opacity"
-                                style={{ minHeight: '500px', maxHeight: '80vh' }}
+                                style={{ minHeight: '700px', maxHeight: '90vh' }}
                                 onClick={() => handleImageClickForLightbox(image, index)}
                               >
                                 <Image
