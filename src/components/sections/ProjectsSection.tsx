@@ -603,7 +603,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                     if (detailPdf) {
                       return (
                         <a
-                          href={`${detailPdf}#view=FitH`}
+                          href={`${detailPdf}#view=Fit`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-2 px-6 py-3 bg-brand-main text-white rounded-xl hover:opacity-90 transition-all duration-300 shadow-md"
@@ -651,7 +651,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                     if (designPdf) {
                       return (
                         <a
-                          href={`${designPdf}#view=FitH`}
+                          href={`${designPdf}#view=Fit`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-xl hover:opacity-90 transition-all duration-300 shadow-md"

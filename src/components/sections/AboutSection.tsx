@@ -180,7 +180,7 @@ export const AboutSection: React.FC = () => {
           >
             {resumeUrl && (
               <a
-                href={`${resumeUrl}#view=FitH`}
+                href={`${resumeUrl}#view=Fit`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 text-sm font-light text-white bg-brand-main hover:opacity-90 transition-all duration-300 rounded-lg"
@@ -190,7 +190,7 @@ export const AboutSection: React.FC = () => {
             )}
             {coverLetterUrl && (
               <a
-                href={`${coverLetterUrl}#view=FitH`}
+                href={`${coverLetterUrl}#view=Fit`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 text-sm font-light text-white bg-brand-main hover:opacity-90 transition-all duration-300 rounded-lg"

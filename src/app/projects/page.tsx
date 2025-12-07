@@ -777,7 +777,7 @@ export default function AllProjectsPage() {
                     if (detailPdf) {
                       return (
                         <a
-                          href={`${detailPdf}#view=FitH`}
+                          href={`${detailPdf}#view=Fit`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-2 px-6 py-3 bg-brand-main text-white rounded-xl hover:opacity-90 transition-all duration-300 shadow-md"
@@ -819,7 +819,7 @@ export default function AllProjectsPage() {
                     if (designPdf) {
                       return (
                         <a
-                          href={`${designPdf}#view=FitH`}
+                          href={`${designPdf}#view=Fit`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-xl hover:opacity-90 transition-all duration-300 shadow-md"
@@ -872,7 +872,7 @@ export default function AllProjectsPage() {
                   {/* 미리보기 PDF */}
                   {(selectedProject as any).previewPdf && (
                     <a
-                      href={`${(selectedProject as any).previewPdf}#view=FitH`}
+                      href={`${(selectedProject as any).previewPdf}#view=Fit`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-xl hover:opacity-90 transition-all duration-300 shadow-md"

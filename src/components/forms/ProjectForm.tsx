@@ -306,7 +306,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSave, onCan
             />
             {formData.designPdf && (
               <a
-                href={`${formData.designPdf}#view=FitH`}
+                href={`${formData.designPdf}#view=Fit`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="px-4 py-2 bg-brand-main/10 text-brand-main rounded-lg hover:bg-brand-main/20 transition-colors text-sm font-medium whitespace-nowrap"
@@ -395,7 +395,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSave, onCan
             />
             {formData.detailPdf && (
               <a
-                href={`${formData.detailPdf}#view=FitH`}
+                href={`${formData.detailPdf}#view=Fit`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="px-4 py-2 bg-brand-main/10 text-brand-main rounded-lg hover:bg-brand-main/20 transition-colors text-sm font-medium whitespace-nowrap"
@@ -484,7 +484,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSave, onCan
             />
             {formData.previewPdf && (
               <a
-                href={`${formData.previewPdf}#view=FitH`}
+                href={`${formData.previewPdf}#view=Fit`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="px-4 py-2 bg-brand-main/10 text-brand-main rounded-lg hover:bg-brand-main/20 transition-colors text-sm font-medium whitespace-nowrap"
