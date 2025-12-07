@@ -409,7 +409,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-3xl overflow-hidden max-w-7xl w-full max-h-[95vh] overflow-y-auto shadow-2xl"
+              className="bg-white rounded-3xl overflow-hidden max-w-7xl w-full max-h-[95vh] overflow-y-auto custom-scrollbar shadow-2xl"
             >
               {/* Modal Header */}
               <div className="sticky top-0 z-10 bg-white border-b border-line-medium p-6 flex items-start justify-between">
@@ -444,46 +444,44 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                     if (total === 0) return null;
                     
                     return (
-                      <div className="mb-8 rounded-2xl overflow-hidden border border-line-light bg-white">
-                        {/* 스크롤 가능한 이미지 영역 */}
-                        <div className="max-h-[70vh] overflow-y-auto custom-scrollbar">
-                          <div className="space-y-0">
-                            {images.map((image, index) => {
-                              if (!image) return null;
-                              return (
-                                <motion.div
-                                  key={`${image}-${index}`}
-                                  initial={{ opacity: 0, y: 20 }}
-                                  animate={{ opacity: 1, y: 0 }}
-                                  transition={{ duration: 0.3, delay: index * 0.05 }}
-                                  className="relative w-full overflow-hidden bg-bg-light cursor-pointer hover:opacity-90 transition-opacity"
-                                  style={{ minHeight: '500px', maxHeight: '80vh' }}
-                                  onClick={() => handleImageClickForLightbox(image, index)}
-                                >
-                                  <Image
-                                    src={image}
-                                    alt={`${selectedProject?.title || ''} - 이미지 ${index + 1}`}
-                                    fill
-                                    className="object-contain"
-                                    loading="lazy"
-                                    onError={(e) => {
-                                      console.error('이미지 로드 실패:', image);
-                                      (e.target as HTMLImageElement).style.display = 'none';
-                                    }}
-                                    unoptimized={image?.startsWith('http') || image?.startsWith('//')}
-                                  />
-                                  
-                                  {/* 클릭 안내 툴팁 (첫 번째 이미지에만) */}
-                                  {index === 0 && (
-                                    <div className="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/85 text-white text-sm px-4 py-2 rounded-full shadow-lg flex items-center gap-2 opacity-0 hover:opacity-100 transition-opacity group-hover:opacity-100">
-                                      <Eye size={16} className="opacity-90" />
-                                      <span className="font-medium">클릭 시 전체화면으로 볼 수 있어요</span>
-                                    </div>
-                                  )}
-                                </motion.div>
-                              );
-                            })}
-                          </div>
+                      <div className="mb-8 overflow-hidden">
+                        {/* 이미지 영역 - 스크롤 없이 전체 높이 사용 */}
+                        <div className="space-y-0">
+                          {images.map((image, index) => {
+                            if (!image) return null;
+                            return (
+                              <motion.div
+                                key={`${image}-${index}`}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.3, delay: index * 0.05 }}
+                                className="relative w-full overflow-hidden bg-bg-light cursor-pointer hover:opacity-90 transition-opacity"
+                                style={{ minHeight: '500px', maxHeight: '80vh' }}
+                                onClick={() => handleImageClickForLightbox(image, index)}
+                              >
+                                <Image
+                                  src={image}
+                                  alt={`${selectedProject?.title || ''} - 이미지 ${index + 1}`}
+                                  fill
+                                  className="object-contain"
+                                  loading="lazy"
+                                  onError={(e) => {
+                                    console.error('이미지 로드 실패:', image);
+                                    (e.target as HTMLImageElement).style.display = 'none';
+                                  }}
+                                  unoptimized={image?.startsWith('http') || image?.startsWith('//')}
+                                />
+                                
+                                {/* 클릭 안내 툴팁 (첫 번째 이미지에만) */}
+                                {index === 0 && (
+                                  <div className="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/85 text-white text-sm px-4 py-2 rounded-full shadow-lg flex items-center gap-2 opacity-0 hover:opacity-100 transition-opacity group-hover:opacity-100">
+                                    <Eye size={16} className="opacity-90" />
+                                    <span className="font-medium">클릭 시 전체화면으로 볼 수 있어요</span>
+                                  </div>
+                                )}
+                              </motion.div>
+                            );
+                          })}
                         </div>
                       </div>
                     );
@@ -498,7 +496,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                 })()}
 
                 {/* Project Info Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 px-8 pt-8">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 px-2 pt-8">
                   <div className="bg-bg-light rounded-xl p-4 border border-line-light">
                     <p className="text-xs text-text-secondary mb-1 font-medium">진행 기간</p>
                     <p className="text-sm font-semibold text-text-main">
@@ -543,7 +541,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                 </div>
 
                 {/* Tags */}
-                <div className="flex flex-wrap gap-2 mb-8 px-8">
+                <div className="flex flex-wrap gap-2 mb-8 px-2">
                   {selectedProject.tags.map((tag, i) => (
                     <span
                       key={i}
@@ -555,7 +553,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                 </div>
 
                 {/* Description */}
-                <div className="mb-8 px-8">
+                <div className="mb-8 px-2">
                   <h3 className="text-xl font-bold text-text-main mb-4 flex items-center gap-2">
                     <span className="text-brand-main">📋</span>
                     프로젝트 개요
@@ -567,7 +565,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
 
                 {/* Achievements */}
                 {selectedProject.achievements && selectedProject.achievements.length > 0 && (
-                  <div className="mb-8 px-8">
+                  <div className="mb-8 px-2">
                     <h3 className="text-xl font-bold text-text-main mb-4 flex items-center gap-2">
                       <span className="text-brand-main">🎯</span>
                       주요 성과
@@ -584,7 +582,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                 )}
 
                 {/* Retrospective */}
-                <div className="mb-8 px-8">
+                <div className="mb-8 px-2">
                   <h3 className="text-xl font-bold text-text-main mb-4 flex items-center gap-2">
                     <span className="text-brand-main">💭</span>
                     회고
@@ -595,7 +593,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                 </div>
 
                 {/* External Links */}
-                <div className="mt-8 pt-8 pb-8 border-t border-line-light flex flex-wrap gap-3 px-8">
+                <div className="mt-8 pt-8 pb-8 border-t border-line-light flex flex-wrap gap-3 px-2">
                   {/* 프로젝트 상세보기 - PDF 우선, 없으면 링크 */}
                   {(() => {
                     const projectWithExtras = selectedProject as typeof selectedProject & { detailPdf?: string };
