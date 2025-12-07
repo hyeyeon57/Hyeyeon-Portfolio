@@ -3,21 +3,40 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 // Express 앱을 서버리스 함수로 감싸기
 let app: any = null;
 let appError: Error | null = null;
+let initializationAttempted = false;
 
-try {
-  const { createApp } = require('../../../server/app.cjs');
-  
-  // 서버리스 실행 시 매번 앱 생성하는 비용을 줄이기 위해 모듈 레벨에 캐싱
-  if (!process.env.SERVERLESS_EXPRESS) {
-    process.env.SERVERLESS_EXPRESS = 'true';
+function initializeApp() {
+  if (initializationAttempted) {
+    return { app, appError };
   }
   
-  app = createApp({ withDbMiddleware: true });
-  console.log('[bo-api] Express app initialized successfully');
-} catch (error: any) {
-  console.error('[bo-api] Failed to initialize Express app:', error);
-  appError = error;
+  initializationAttempted = true;
+  
+  try {
+    console.log('[bo-api] Initializing Express app...');
+    const { createApp } = require('../../../server/app.cjs');
+    
+    // 서버리스 실행 시 매번 앱 생성하는 비용을 줄이기 위해 모듈 레벨에 캐싱
+    if (!process.env.SERVERLESS_EXPRESS) {
+      process.env.SERVERLESS_EXPRESS = 'true';
+    }
+    
+    app = createApp({ withDbMiddleware: true });
+    console.log('[bo-api] Express app initialized successfully');
+  } catch (error: any) {
+    console.error('[bo-api] Failed to initialize Express app:', {
+      message: error?.message,
+      stack: error?.stack,
+      name: error?.name,
+    });
+    appError = error;
+  }
+  
+  return { app, appError };
 }
+
+// 초기화 시도
+initializeApp();
 
 export const config = {
   api: {
@@ -27,6 +46,23 @@ export const config = {
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  // 앱이 없으면 재시도
+  if (!app && !appError) {
+    const result = initializeApp();
+    if (result.appError || !result.app) {
+      console.error('[bo-api handler] Express app initialization failed after retry:', result.appError?.message || 'App is null');
+      return res.status(500).json({
+        error: 'Server initialization failed',
+        message: result.appError?.message || 'Express app is not available',
+        ...(process.env.NODE_ENV === 'development' && { 
+          stack: result.appError?.stack,
+          details: 'Check server logs for more information'
+        }),
+      });
+    }
+    app = result.app;
+  }
+  
   // Express 앱 초기화 실패 시 즉시 반환
   if (appError || !app) {
     console.error('[bo-api handler] Express app initialization failed:', appError?.message || 'App is null');

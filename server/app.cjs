@@ -23,10 +23,11 @@ const { connectDB } = require('./config/database.cjs');
  * @returns {import('express').Express}
  */
 const createApp = ({ withDbMiddleware = false } = {}) => {
-  const app = express();
+  try {
+    const app = express();
 
-  // 에러 핸들링 미들웨어 (라우트 이후에 추가)
-  // Express는 4개 파라미터를 가진 함수를 에러 핸들러로 인식
+    // 에러 핸들링 미들웨어 (라우트 이후에 추가)
+    // Express는 4개 파라미터를 가진 함수를 에러 핸들러로 인식
 
   // 미들웨어
   app.use(cors({
