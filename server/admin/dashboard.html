@@ -11,8 +11,8 @@
   <div class="max-w-7xl mx-auto px-4 py-6">
     <header class="flex items-center justify-between mb-6">
       <div>
-        <h1 class="text-3xl font-bold text-gray-900">관리자 대시보드</h1>
-        <p class="text-gray-500 text-sm">모듈화된 새 대시보드</p>
+        <h1 class="text-3xl font-bold text-gray-900" id="dashboard-title">관리자 대시보드</h1>
+        <p class="text-gray-500 text-sm" id="dashboard-subtitle">모듈화된 새 대시보드</p>
       </div>
       <div class="flex items-center gap-3">
         <div id="mongodbStatus" class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm">
@@ -481,6 +481,12 @@
 
     // 문서 저장 함수 (업로드 및 서버 저장)
     async function saveDocument(type) {
+      // Viewer 모드 체크
+      if (window.isViewerMode) {
+        alert('Viewer 모드에서는 저장이 불가능합니다.');
+        return;
+      }
+      
       // 타입을 HTML ID 형식으로 변환 (coverLetter -> coverletter)
       const typeId = type === 'coverLetter' ? 'coverletter' : type;
       
@@ -837,6 +843,12 @@
     }
 
     async function editProject(id) {
+      // Viewer 모드 체크
+      if (window.isViewerMode) {
+        alert('Viewer 모드에서는 수정이 불가능합니다.');
+        return;
+      }
+      
       if (!isAuthenticated) {
         alert('로그인이 필요합니다.');
         return;
@@ -1227,6 +1239,12 @@
       updateDuration();
 
       form.addEventListener('submit', async (e) => {
+        // Viewer 모드 체크
+        if (window.isViewerMode) {
+          e.preventDefault();
+          alert('Viewer 모드에서는 저장이 불가능합니다.');
+          return;
+        }
         e.preventDefault();
         const fd = new FormData(form);
         
@@ -1964,6 +1982,12 @@
     }
 
     async function deleteProject(id) {
+      // Viewer 모드 체크
+      if (window.isViewerMode) {
+        alert('Viewer 모드에서는 삭제가 불가능합니다.');
+        return;
+      }
+      
       if (!isAuthenticated) {
         alert('로그인이 필요합니다.');
         return;
@@ -2502,6 +2526,12 @@
 
     // 편집 모달용 업로드 함수들 (전역으로 정의)
     window.uploadPdfInEdit = async (kind) => {
+      // Viewer 모드 체크
+      if (window.isViewerMode) {
+        alert('Viewer 모드에서는 파일 업로드가 불가능합니다.');
+        return;
+      }
+      
       console.log(`🚀 ========== uploadPdfInEdit 호출됨 ==========`);
       console.log(`🚀 kind: ${kind}`);
       console.log(`🚀 window.uploadFilesToS3 존재 여부:`, typeof window.uploadFilesToS3);
@@ -2866,6 +2896,12 @@
     };
 
     window.uploadImageInEdit = async (kind) => {
+      // Viewer 모드 체크
+      if (window.isViewerMode) {
+        alert('Viewer 모드에서는 이미지 업로드가 불가능합니다.');
+        return;
+      }
+      
       console.log(`🖼️ uploadImageInEdit 호출됨: kind=${kind}`);
       
       // 업로드 전 인증 상태 확인 및 세션 갱신
@@ -3168,8 +3204,109 @@
     window.hideUploadProgress = hideUploadProgress;
     window.uploadWithProgress = uploadWithProgress;
 
+    // Viewer 모드 감지 및 설정
+    const isViewerMode = window.location.pathname.includes('/admin/viewer');
+    window.isViewerMode = isViewerMode;
+    
+    // Viewer 모드일 때 UI 변경 및 기능 비활성화
+    function setupViewerMode() {
+      if (!isViewerMode) return;
+      
+      // 제목 변경
+      const titleEl = document.getElementById('dashboard-title');
+      const subtitleEl = document.getElementById('dashboard-subtitle');
+      if (titleEl) titleEl.textContent = 'Admin Viewer';
+      if (subtitleEl) subtitleEl.textContent = '로그인 없이 관리자 화면을 구경할 수 있습니다 (수정/삭제 불가)';
+      
+      // 로그아웃 버튼 숨기기
+      const logoutBtn = document.getElementById('logoutBtn');
+      if (logoutBtn) logoutBtn.style.display = 'none';
+      
+      // 모든 수정/삭제 버튼 비활성화
+      const editButtons = document.querySelectorAll('[onclick*="editProject"], [onclick*="deleteProject"], button[id*="edit"], button[id*="delete"]');
+      editButtons.forEach(btn => {
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+        btn.style.cursor = 'not-allowed';
+        btn.onclick = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          alert('Viewer 모드에서는 수정/삭제가 불가능합니다.');
+        };
+      });
+      
+      // 파일 업로드 input 비활성화
+      const fileInputs = document.querySelectorAll('input[type="file"]');
+      fileInputs.forEach(input => {
+        input.disabled = true;
+        input.style.opacity = '0.5';
+        input.style.cursor = 'not-allowed';
+      });
+      
+      // 저장 버튼 비활성화
+      const saveButtons = document.querySelectorAll('button[id*="save"], button:contains("저장")');
+      document.querySelectorAll('button').forEach(btn => {
+        if (btn.textContent.includes('저장') || btn.id.includes('save')) {
+          btn.disabled = true;
+          btn.style.opacity = '0.5';
+          btn.style.cursor = 'not-allowed';
+          btn.onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            alert('Viewer 모드에서는 저장이 불가능합니다.');
+          };
+        }
+      });
+      
+      // 삭제 버튼 비활성화
+      const deleteButtons = document.querySelectorAll('button[id*="delete"], button:contains("삭제")');
+      document.querySelectorAll('button').forEach(btn => {
+        if (btn.textContent.includes('삭제') || btn.id.includes('delete')) {
+          btn.disabled = true;
+          btn.style.opacity = '0.5';
+          btn.style.cursor = 'not-allowed';
+          btn.onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            alert('Viewer 모드에서는 삭제가 불가능합니다.');
+          };
+        }
+      });
+      
+      // 프로젝트 생성 버튼 비활성화 (있는 경우)
+      const createButtons = document.querySelectorAll('a[href*="create"], button:contains("생성"), button:contains("추가")');
+      document.querySelectorAll('a, button').forEach(el => {
+        if (el.href && el.href.includes('create') || 
+            el.textContent.includes('생성') || 
+            el.textContent.includes('추가')) {
+          el.style.pointerEvents = 'none';
+          el.style.opacity = '0.5';
+          el.style.cursor = 'not-allowed';
+          if (el.onclick) {
+            const originalOnclick = el.onclick;
+            el.onclick = (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              alert('Viewer 모드에서는 생성/추가가 불가능합니다.');
+            };
+          }
+        }
+      });
+      
+      // 방문자 기록 초기화 버튼 비활성화
+      const clearVisitorsBtn = document.getElementById('clearVisitorsBtn');
+      if (clearVisitorsBtn) {
+        clearVisitorsBtn.disabled = true;
+        clearVisitorsBtn.style.opacity = '0.5';
+        clearVisitorsBtn.style.cursor = 'not-allowed';
+      }
+    }
+
     // 초기 실행
     (async () => {
+      // Viewer 모드 설정 (인증 체크 전에 실행)
+      setupViewerMode();
+      
       // lucide 로드 대기
       await new Promise((resolve) => {
         if (window.lucide && typeof window.lucide.createIcons === 'function') {
@@ -3189,7 +3326,10 @@
         }
       });
       
-      await checkAuth();
+      // Viewer 모드가 아닐 때만 인증 체크
+      if (!isViewerMode) {
+        await checkAuth();
+      }
       await checkMongoStatus();
       // 초기 탭 설정 (문서 관리 탭이 기본)
       switchTab('documents');

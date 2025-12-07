@@ -368,18 +368,36 @@ export const Footer: React.FC = () => {
           <div className="h-px bg-line-medium mb-8" />
 
           {/* Footer 하단 */}
-          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-            <p className="text-sm text-text-secondary">
-              © 2025 Jang Haeyeon Portfolio All rights reserved.
-            </p>
-            <a
-              href="/admin/login"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm text-text-secondary hover:text-brand-main transition-colors underline"
-            >
-              Admin Login
-            </a>
+          <div className="flex flex-col gap-4">
+            {/* Admin Viewer 안내 텍스트 */}
+            <div className="text-center">
+              <p className="text-sm text-text-secondary mb-2">
+                Admin Viewer에서 관리자 화면도 구경해보세요!
+              </p>
+            </div>
+            <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+              <p className="text-sm text-text-secondary">
+                © 2025 Jang Haeyeon Portfolio All rights reserved.
+              </p>
+              <div className="flex items-center gap-4">
+                <a
+                  href="/admin/viewer"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-text-secondary hover:text-brand-main transition-colors underline"
+                >
+                  Admin Viewer
+                </a>
+                <a
+                  href="/admin/login"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-text-secondary hover:text-brand-main transition-colors underline"
+                >
+                  Admin Login
+                </a>
+              </div>
+            </div>
           </div>
         </div>
       </div>
