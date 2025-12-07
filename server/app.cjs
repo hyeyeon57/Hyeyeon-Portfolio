@@ -25,13 +25,16 @@ const { connectDB } = require('./config/database.cjs');
 const createApp = ({ withDbMiddleware = false } = {}) => {
   const app = express();
 
+  // 에러 핸들링 미들웨어 (라우트 이후에 추가)
+  // Express는 4개 파라미터를 가진 함수를 에러 핸들러로 인식
+
   // 미들웨어
   app.use(cors({
     origin: ALLOWED_ORIGINS,
     credentials: true,
   }));
-  app.use(express.json());
-  app.use(express.urlencoded({ extended: true }));
+  app.use(express.json({ limit: '50mb' }));
+  app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
   app.use(session({
     name: SESSION_CONFIG.COOKIE_NAME,
