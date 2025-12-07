@@ -3,18 +3,43 @@ const express = require('express');
 const cors = require('cors');
 const session = require('express-session');
 const path = require('path');
-const { ALLOWED_ORIGINS, SESSION_CONFIG, ADMIN_CONFIG } = require('./config/constants');
-const adminRoutes = require('./admin/routes/adminRoutes.cjs');
-const authRoutes = require('./admin/routes/authRoutes.cjs');
-const visitorRoutes = require('./routes/visitorRoutes.cjs');
-const projectRoutes = require('./routes/projectRoutes.cjs');
-const contactRoutes = require('./routes/contactRoutes.cjs');
-const fileRoutes = require('./routes/fileRoutes.cjs');
-const documentRoutes = require('./routes/documentRoutes.cjs');
-const healthRoutes = require('./routes/healthRoutes.cjs');
-const { PUBLIC_DIR } = require('./utils/pathHelpers.cjs');
-const { asyncHandler } = require('./utils/asyncHandler.cjs');
-const { connectDB } = require('./config/database.cjs');
+
+// 모듈 로드를 try-catch로 감싸서 에러 처리
+let ALLOWED_ORIGINS, SESSION_CONFIG, ADMIN_CONFIG;
+let adminRoutes, authRoutes, visitorRoutes, projectRoutes, contactRoutes, fileRoutes, documentRoutes, healthRoutes;
+let PUBLIC_DIR;
+let asyncHandler, connectDB;
+
+try {
+  const constants = require('./config/constants');
+  ALLOWED_ORIGINS = constants.ALLOWED_ORIGINS;
+  SESSION_CONFIG = constants.SESSION_CONFIG;
+  ADMIN_CONFIG = constants.ADMIN_CONFIG;
+  
+  adminRoutes = require('./admin/routes/adminRoutes.cjs');
+  authRoutes = require('./admin/routes/authRoutes.cjs');
+  visitorRoutes = require('./routes/visitorRoutes.cjs');
+  projectRoutes = require('./routes/projectRoutes.cjs');
+  contactRoutes = require('./routes/contactRoutes.cjs');
+  fileRoutes = require('./routes/fileRoutes.cjs');
+  documentRoutes = require('./routes/documentRoutes.cjs');
+  healthRoutes = require('./routes/healthRoutes.cjs');
+  
+  const pathHelpers = require('./utils/pathHelpers.cjs');
+  PUBLIC_DIR = pathHelpers.PUBLIC_DIR;
+  
+  asyncHandler = require('./utils/asyncHandler.cjs').asyncHandler;
+  connectDB = require('./config/database.cjs').connectDB;
+  
+  console.log('[app.cjs] All modules loaded successfully');
+} catch (moduleError) {
+  console.error('[app.cjs] Module loading failed:', {
+    message: moduleError?.message,
+    stack: moduleError?.stack,
+    name: moduleError?.name,
+  });
+  throw moduleError; // 모듈 로드 실패는 치명적이므로 throw
+}
 
 /**
  * 공통 Express 앱 생성기
