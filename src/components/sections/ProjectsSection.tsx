@@ -24,9 +24,9 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
   const [galleryDirection, setGalleryDirection] = useState(0); // 카드 미리보기 슬라이드 방향
   const [lightboxImage, setLightboxImage] = useState<string | null>(null); // 라이트박스 이미지
   const [lightboxIndex, setLightboxIndex] = useState(0); // 라이트박스 이미지 인덱스
-  const [isHoveringFirstImage, setIsHoveringFirstImage] = useState(false); // 팝업 내 대표 이미지 hover 상태
   const [showLightboxTooltip, setShowLightboxTooltip] = useState(false); // 라이트박스 자동 툴팁 (최초 1회)
   const [hasShownLightboxTooltip, setHasShownLightboxTooltip] = useState(false); // 이 세션에서 이미 한 번 보여줬는지 여부
+  const [projectImageIndex, setProjectImageIndex] = useState(0); // 프로젝트 상세 모달 이미지 인덱스
 
   // 키보드로 라이트박스 제어 (ESC: 닫기, ← →: 이미지 이동)
   useEffect(() => {
@@ -432,7 +432,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
 
               {/* Modal Content */}
               <div className="p-8 md:p-10">
-                {/* 이미지 세로 나열 */}
+                {/* 이미지 슬라이더 - 한 장씩 크게 표시 */}
                 {(() => {
                   try {
                     const images: string[] = [];
@@ -444,57 +444,112 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                     const total = images.length;
                     if (total === 0) return null;
                     
+                    const currentIndex = projectImageIndex >= 0 && projectImageIndex < total ? projectImageIndex : 0;
+                    const currentImage = images[currentIndex];
+                    
+                    const goToPrevious = () => {
+                      setProjectImageIndex((prev) => (prev - 1 + total) % total);
+                    };
+                    
+                    const goToNext = () => {
+                      setProjectImageIndex((prev) => (prev + 1) % total);
+                    };
+                    
                     return (
                       <div className="mb-8 rounded-2xl overflow-hidden border border-line-light bg-white">
-                        <div className="max-h-[70vh] overflow-y-auto custom-scrollbar">
-                          <div className="space-y-4 p-4">
-                            {images.map((image, index) => {
-                              if (!image) return null;
-                              return (
-                                <motion.div
-                                  key={`${image}-${index}`}
-                                  initial={{ opacity: 0, y: 20 }}
-                                  animate={{ opacity: 1, y: 0 }}
-                                  transition={{ duration: 0.3, delay: index * 0.05 }}
-                                  className="relative w-full rounded-lg overflow-hidden border border-line-light bg-bg-light cursor-pointer hover:opacity-90 transition-opacity"
-                                  style={{ minHeight: '200px' }}
-                                  onMouseEnter={() => {
-                                    if (index === 0) {
-                                      setIsHoveringFirstImage(true);
-                                    }
-                                  }}
-                                  onMouseLeave={() => {
-                                    if (index === 0) {
-                                      setIsHoveringFirstImage(false);
-                                    }
-                                  }}
-                                  onClick={() => handleImageClickForLightbox(image, index)}
-                                >
-                                  <Image
-                                    src={image}
-                                    alt={`${selectedProject?.title || ''} - 이미지 ${index + 1}`}
-                                    fill
-                                    className="object-contain"
-                                    loading="lazy"
-                                    onError={(e) => {
-                                      console.error('이미지 로드 실패:', image);
-                                      (e.target as HTMLImageElement).style.display = 'none';
+                        {/* 메인 이미지 영역 */}
+                        <div className="relative w-full bg-bg-light" style={{ minHeight: '500px', maxHeight: '70vh' }}>
+                          {currentImage && (
+                            <motion.div
+                              key={currentImage}
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              transition={{ duration: 0.3 }}
+                              className="relative w-full h-full cursor-pointer"
+                              style={{ minHeight: '500px', maxHeight: '70vh' }}
+                              onClick={() => handleImageClickForLightbox(currentImage, currentIndex)}
+                            >
+                              <Image
+                                src={currentImage}
+                                alt={`${selectedProject?.title || ''} - 이미지 ${currentIndex + 1}`}
+                                fill
+                                className="object-contain"
+                                loading="lazy"
+                                onError={(e) => {
+                                  console.error('이미지 로드 실패:', currentImage);
+                                  (e.target as HTMLImageElement).style.display = 'none';
+                                }}
+                                unoptimized={currentImage?.startsWith('http') || currentImage?.startsWith('//')}
+                              />
+                              
+                              {/* 이전/다음 버튼 (이미지가 2개 이상일 때만 표시) */}
+                              {total > 1 && (
+                                <>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      goToPrevious();
                                     }}
-                                    unoptimized={image?.startsWith('http') || image?.startsWith('//')}
-                                  />
-
-                                  {/* 1번(대표) 이미지 툴팁: hover 시에만 표시 */}
-                                  {index === 0 && isHoveringFirstImage && (
-                                    <div className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/85 text-white text-sm px-4 py-2 rounded-full shadow-lg flex items-center gap-1 opacity-90 group-hover:opacity-100 transition-opacity">
-                                      <Eye size={16} className="opacity-90" />
-                                      <span className="font-medium">이미지 클릭 시 크게 볼 수 있어요!</span>
-                                    </div>
-                                  )}
-                                </motion.div>
-                              );
-                            })}
-                          </div>
+                                    className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition-all backdrop-blur-sm z-10"
+                                    aria-label="이전 이미지"
+                                  >
+                                    <ChevronLeft size={24} />
+                                  </button>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      goToNext();
+                                    }}
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition-all backdrop-blur-sm z-10"
+                                    aria-label="다음 이미지"
+                                  >
+                                    <ChevronRight size={24} />
+                                  </button>
+                                </>
+                              )}
+                              
+                              {/* 이미지 번호 표시 */}
+                              {total > 1 && (
+                                <div className="absolute top-4 right-4 bg-black/50 text-white px-3 py-1.5 rounded-full text-sm font-medium backdrop-blur-sm z-10">
+                                  {currentIndex + 1} / {total}
+                                </div>
+                              )}
+                            </motion.div>
+                          )}
                         </div>
+                        
+                        {/* 하단 슬라이드바 (이미지 썸네일) */}
+                        {total > 1 && (
+                          <div className="w-full bg-gray-100 p-4 overflow-x-auto">
+                            <div className="flex gap-3 justify-center items-center">
+                              {images.map((image, index) => {
+                                if (!image) return null;
+                                const isActive = index === currentIndex;
+                                return (
+                                  <button
+                                    key={`thumb-${image}-${index}`}
+                                    onClick={() => setProjectImageIndex(index)}
+                                    className={`flex-shrink-0 relative rounded-lg overflow-hidden border-2 transition-all ${
+                                      isActive
+                                        ? 'border-brand-main shadow-lg scale-105'
+                                        : 'border-gray-300 hover:border-gray-400 opacity-70 hover:opacity-100'
+                                    }`}
+                                    style={{ width: '80px', height: '60px' }}
+                                  >
+                                    <Image
+                                      src={image}
+                                      alt={`썸네일 ${index + 1}`}
+                                      fill
+                                      className="object-cover"
+                                      loading="lazy"
+                                      unoptimized={image?.startsWith('http') || image?.startsWith('//')}
+                                    />
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     );
                   } catch (error) {
