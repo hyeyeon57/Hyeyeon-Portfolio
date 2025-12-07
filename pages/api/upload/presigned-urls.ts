@@ -41,12 +41,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     }
 
-    // 우선순위 설정: 1. Vercel Blob, 2. 로컬 파일 시스템, 3. AWS S3
+    // 우선순위 설정:
+    // - Vercel 환경: 1. Vercel Blob Storage, 2. AWS S3
+    // - 로컬 환경: 1. Vercel Blob Storage, 2. 로컬 파일 시스템, 3. AWS S3
+    
+    const isVercelEnvironment = Boolean(process.env.VERCEL || process.env.VERCEL_ENV);
     
     // 우선순위 1: Vercel Blob Storage (무료 플랜: 1GB 스토리지, 100GB 대역폭/월)
-    // 용량 초과 시 자동으로 로컬 또는 S3로 폴백
+    // 용량 초과 시 자동으로 S3로 폴백 (Vercel 환경) 또는 로컬/S3로 폴백 (로컬 환경)
     if (isVercelBlobEnabled && vercelBlob) {
-      console.log('📤 Vercel Blob Storage 사용 (무료 플랜: 1GB)');
+      console.log('📤 Vercel Blob Storage 사용 시도 (무료 플랜: 1GB)');
       try {
         const presignedUrls = await Promise.all(
           files.map(async (file: any) => {
@@ -67,40 +71,45 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           })
         );
         
+        console.log('✅ Vercel Blob Storage 업로드 URL 생성 성공');
         return res.status(200).json({
           success: true,
           data: presignedUrls,
           storage: 'vercel-blob',
         });
       } catch (vercelError: any) {
-        // Vercel Blob 용량 초과 또는 오류 시 로컬 또는 S3로 자동 폴백
-        console.warn('⚠️ Vercel Blob Storage 오류, 폴백 시도:', vercelError.message);
+        // Vercel Blob 용량 초과 또는 오류 시 폴백
+        console.warn('⚠️ Vercel Blob Storage 오류:', vercelError.message);
+        console.warn('⚠️ 폴백 시도 중...');
         
-        // 우선순위 2: 로컬 파일 시스템으로 폴백 (Vercel 환경에서는 불가)
-        const isLocalEnvironment = !process.env.VERCEL && !process.env.VERCEL_ENV;
-        if (isLocalEnvironment) {
-          console.log('📤 로컬 파일 시스템으로 폴백...');
-          // 로컬 폴백 로직으로 계속 진행 (아래 코드 실행)
-        } else if (isS3Enabled) {
-          // 로컬이 안 되면 S3로 폴백
-          console.log('📤 S3로 폴백...');
-          const presignedUrls = await generatePresignedUrls(files, folder);
-          return res.status(200).json({
-            success: true,
-            data: presignedUrls,
-            storage: 's3',
-            fallback: true,
-            fallbackReason: vercelError.message,
-          });
-        } else {
-          throw vercelError;
+        // Vercel 환경에서는 S3로만 폴백
+        if (isVercelEnvironment) {
+          if (isS3Enabled) {
+            console.log('📤 Vercel 환경: S3로 폴백...');
+            const presignedUrls = await generatePresignedUrls(files, folder);
+            return res.status(200).json({
+              success: true,
+              data: presignedUrls,
+              storage: 's3',
+              fallback: true,
+              fallbackReason: vercelError.message,
+              originalStorage: 'vercel-blob',
+            });
+          } else {
+            // Vercel 환경에서 Blob 실패하고 S3도 없으면 에러
+            console.error('❌ Vercel 환경에서 Vercel Blob 실패, S3도 설정되지 않음');
+            throw new Error(`Vercel Blob Storage 오류: ${vercelError.message}. S3를 설정해주세요.`);
+          }
         }
+        // 로컬 환경에서는 아래 로컬 파일 시스템 로직으로 계속 진행
+        console.log('📤 로컬 환경: 로컬 파일 시스템으로 폴백 시도...');
       }
     }
 
-    // 우선순위 2: 로컬 파일 시스템 (완전 무료, 로컬 개발 환경)
+    // 우선순위 2: 로컬 파일 시스템 (완전 무료, 로컬 개발 환경에서만)
     // Vercel 같은 서버리스 환경에서는 작동하지 않으므로, 로컬 환경에서만 사용
-    const isLocalEnvironment = !process.env.VERCEL && !process.env.VERCEL_ENV;
+    // Vercel 환경에서는 이 단계를 건너뛰고 바로 S3로 이동
+    const isLocalEnvironment = !isVercelEnvironment;
     
     if (isLocalEnvironment) {
       console.log('📤 로컬 파일 시스템 사용 (완전 무료)');
@@ -155,14 +164,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    // 우선순위 3: AWS S3 (유료, 사용량에 따라 비용 발생)
+    // 우선순위 3 (로컬 환경) 또는 우선순위 2 (Vercel 환경): AWS S3 (유료, 사용량에 따라 비용 발생)
     if (isS3Enabled) {
-      console.log('📤 AWS S3 사용 (유료)');
+      if (isVercelEnvironment) {
+        console.log('📤 Vercel 환경: AWS S3 사용 (Vercel Blob 실패 또는 미설정)');
+      } else {
+        console.log('📤 로컬 환경: AWS S3 사용 (Vercel Blob 및 로컬 파일 시스템 실패 또는 미설정)');
+      }
       const presignedUrls = await generatePresignedUrls(files, folder);
       return res.status(200).json({
         success: true,
         data: presignedUrls,
         storage: 's3',
+        fallback: isVercelBlobEnabled, // Vercel Blob이 설정되어 있었으면 폴백
       });
     }
 
