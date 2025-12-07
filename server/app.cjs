@@ -53,8 +53,14 @@ const createApp = ({ withDbMiddleware = false } = {}) => {
 
   if (withDbMiddleware) {
     app.use(asyncHandler(async (req, res, next) => {
-      if (connectDB) {
-        await connectDB();
+      try {
+        if (connectDB) {
+          await connectDB();
+        }
+      } catch (dbError) {
+        // MongoDB 연결 실패해도 요청은 계속 처리 (에러는 로그만)
+        console.warn('[createApp] MongoDB connection failed in middleware:', dbError?.message);
+        // 연결 실패해도 요청은 계속 진행 (일부 엔드포인트는 DB 없이도 작동 가능)
       }
       next();
     }));
@@ -141,7 +147,18 @@ const createApp = ({ withDbMiddleware = false } = {}) => {
     }
   });
 
-  return app;
+    console.log('[createApp] Express app initialization completed successfully');
+    return app;
+  } catch (error) {
+    console.error('[createApp] Error creating Express app:', {
+      message: error?.message,
+      stack: error?.stack,
+      name: error?.name,
+      isVercel: !!process.env.VERCEL,
+      nodeEnv: process.env.NODE_ENV,
+    });
+    throw error; // 에러를 다시 throw하여 호출자가 처리할 수 있도록
+  }
 };
 
 module.exports = { createApp, ADMIN_CONFIG };
