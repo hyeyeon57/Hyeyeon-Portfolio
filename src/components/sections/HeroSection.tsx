@@ -20,6 +20,25 @@ export const HeroSection: React.FC<HeroSectionProps> = () => {
   const [documents, setDocuments] = useState<DocumentInfo | null>(null);
 
   useEffect(() => {
+    // 캐시에서 먼저 로드 (즉시 표시)
+    const cacheKey = 'documents-cache';
+    try {
+      const cached = sessionStorage.getItem(cacheKey);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        const cacheTime = parsed?.timestamp || 0;
+        const fiveMinutes = 5 * 60 * 1000;
+        
+        // 5분 이내 캐시면 즉시 사용
+        if (Date.now() - cacheTime < fiveMinutes) {
+          setDocuments(parsed.data);
+        }
+      }
+    } catch (e) {
+      // 캐시 읽기 실패 시 무시
+    }
+
+    // 백그라운드에서 최신 데이터 가져오기
     const fetchDocuments = async () => {
       try {
         const response = await fetch('/api/documents');
@@ -27,6 +46,15 @@ export const HeroSection: React.FC<HeroSectionProps> = () => {
           const result = await response.json();
           if (result.success) {
             setDocuments(result.data);
+            // 캐시에 저장
+            try {
+              sessionStorage.setItem(cacheKey, JSON.stringify({
+                data: result.data,
+                timestamp: Date.now()
+              }));
+            } catch (e) {
+              // 캐시 저장 실패 시 무시
+            }
           }
         }
       } catch (error) {
@@ -37,6 +65,7 @@ export const HeroSection: React.FC<HeroSectionProps> = () => {
     fetchDocuments();
   }, []);
 
+  // personalInfo의 URL을 먼저 사용하고, API 응답이 오면 업데이트
   const resumeUrl = documents?.resume?.url || personalInfo.resumeUrl;
   const coverLetterUrl = documents?.coverLetter?.url || personalInfo.coverLetterUrl;
 
