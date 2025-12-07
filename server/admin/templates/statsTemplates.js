@@ -1,5 +1,5 @@
 export const statsCardsTemplate = (stats) => `
-  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+  <div class="grid grid-cols-3 gap-4">
     <div class="bg-white p-6 rounded-xl shadow-sm border">
       <div class="flex items-center justify-between">
         <div>
