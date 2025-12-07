@@ -496,7 +496,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                 })()}
 
                 {/* Project Info Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 px-2 pt-8">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 px-8 pt-8">
                   <div className="bg-bg-light rounded-xl p-4 border border-line-light">
                     <p className="text-xs text-text-secondary mb-1 font-medium">진행 기간</p>
                     <p className="text-sm font-semibold text-text-main">
@@ -541,7 +541,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                 </div>
 
                 {/* Tags */}
-                <div className="flex flex-wrap gap-2 mb-8 px-2">
+                <div className="flex flex-wrap gap-2 mb-8 px-8">
                   {selectedProject.tags.map((tag, i) => (
                     <span
                       key={i}
@@ -553,7 +553,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                 </div>
 
                 {/* Description */}
-                <div className="mb-8 px-2">
+                <div className="mb-8 px-8">
                   <h3 className="text-xl font-bold text-text-main mb-4 flex items-center gap-2">
                     <span className="text-brand-main">📋</span>
                     프로젝트 개요
@@ -565,7 +565,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
 
                 {/* Achievements */}
                 {selectedProject.achievements && selectedProject.achievements.length > 0 && (
-                  <div className="mb-8 px-2">
+                  <div className="mb-8 px-8">
                     <h3 className="text-xl font-bold text-text-main mb-4 flex items-center gap-2">
                       <span className="text-brand-main">🎯</span>
                       주요 성과
@@ -582,7 +582,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                 )}
 
                 {/* Retrospective */}
-                <div className="mb-8 px-2">
+                <div className="mb-8 px-8">
                   <h3 className="text-xl font-bold text-text-main mb-4 flex items-center gap-2">
                     <span className="text-brand-main">💭</span>
                     회고
@@ -593,7 +593,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                 </div>
 
                 {/* External Links */}
-                <div className="mt-8 pt-8 pb-8 border-t border-line-light flex flex-wrap gap-3 px-2">
+                <div className="mt-8 pt-8 pb-8 border-t border-line-light flex flex-wrap gap-3 px-8">
                   {/* 프로젝트 상세보기 - PDF 우선, 없으면 링크 */}
                   {(() => {
                     const projectWithExtras = selectedProject as typeof selectedProject & { detailPdf?: string };
