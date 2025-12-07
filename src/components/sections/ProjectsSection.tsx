@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ExternalLink, Calendar, Users, Award, FileText, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { PROJECT_CATEGORIES } from '@/constants/categories';
 import { useProjects } from '@/hooks/useProjects';
 
@@ -307,14 +308,16 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                 {/* Project Image */}
                 <div className="relative h-48 overflow-hidden bg-gradient-to-br from-brand-main/5 to-brand-sub-1/5">
                   {project.image && (
-                    <img 
+                    <Image 
                       src={project.image} 
                       alt={project.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 block"
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
                       style={{ display: 'block', margin: 0 }}
                       onError={(e) => {
                         e.currentTarget.style.display = 'none';
                       }}
+                      unoptimized={project.image?.startsWith('http') || project.image?.startsWith('//')}
                     />
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -454,6 +457,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                                   animate={{ opacity: 1, y: 0 }}
                                   transition={{ duration: 0.3, delay: index * 0.05 }}
                                   className="relative w-full rounded-lg overflow-hidden border border-line-light bg-bg-light cursor-pointer hover:opacity-90 transition-opacity"
+                                  style={{ minHeight: '200px' }}
                                   onMouseEnter={() => {
                                     if (index === 0) {
                                       setIsHoveringFirstImage(true);
@@ -466,15 +470,17 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                                   }}
                                   onClick={() => handleImageClickForLightbox(image, index)}
                                 >
-                                  <img
+                                  <Image
                                     src={image}
                                     alt={`${selectedProject?.title || ''} - 이미지 ${index + 1}`}
-                                    className="w-full h-auto object-contain"
+                                    fill
+                                    className="object-contain"
                                     loading="lazy"
                                     onError={(e) => {
                                       console.error('이미지 로드 실패:', image);
                                       (e.target as HTMLImageElement).style.display = 'none';
                                     }}
+                                    unoptimized={image?.startsWith('http') || image?.startsWith('//')}
                                   />
 
                                   {/* 1번(대표) 이미지 툴팁: hover 시에만 표시 */}
