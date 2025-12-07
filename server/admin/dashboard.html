@@ -650,25 +650,43 @@
       }
     }
 
-    // 문서 관리 이벤트 리스너 (프로젝트 PDF와 동일한 방식)
-    document.getElementById('resume-upload-btn')?.addEventListener('click', async () => {
+    // 문서 관리 이벤트 리스너
+    // 파일 선택 버튼: 파일만 선택
+    document.getElementById('resume-upload-btn')?.addEventListener('click', () => {
       const fileInput = document.getElementById('resume-upload');
-      const file = fileInput?.files?.[0];
-      if (file) {
-        await uploadDocument('resume', file);
-      } else {
-        alert('PDF 파일을 선택하세요.');
+      if (fileInput) {
+        fileInput.click();
       }
     });
 
-    document.getElementById('coverletter-upload-btn')?.addEventListener('click', async () => {
-      const fileInput = document.getElementById('coverletter-upload');
-      const file = fileInput?.files?.[0];
+    document.getElementById('resume-upload')?.addEventListener('change', (e) => {
+      const file = e.target.files?.[0];
       if (file) {
-        await uploadDocument('coverLetter', file);
-      } else {
-        alert('PDF 파일을 선택하세요.');
+        selectDocumentFile('resume', file);
       }
+    });
+
+    document.getElementById('coverletter-upload-btn')?.addEventListener('click', () => {
+      const fileInput = document.getElementById('coverletter-upload');
+      if (fileInput) {
+        fileInput.click();
+      }
+    });
+
+    document.getElementById('coverletter-upload')?.addEventListener('change', (e) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        selectDocumentFile('coverLetter', file);
+      }
+    });
+
+    // 저장 버튼: 업로드 및 서버 저장
+    document.getElementById('resume-save-btn')?.addEventListener('click', async () => {
+      await saveDocument('resume');
+    });
+
+    document.getElementById('coverletter-save-btn')?.addEventListener('click', async () => {
+      await saveDocument('coverLetter');
     });
 
     document.getElementById('resume-delete')?.addEventListener('click', async () => {
