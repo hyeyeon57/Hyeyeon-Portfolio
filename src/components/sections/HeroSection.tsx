@@ -1,10 +1,15 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useRef } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { personalInfo } from '@/data/portfolio';
+
+interface DocumentInfo {
+  resume?: { url: string; fileName: string };
+  coverLetter?: { url: string; fileName: string };
+}
 
 interface HeroSectionProps {
   theme?: 'light' | 'dark';
@@ -12,6 +17,28 @@ interface HeroSectionProps {
 
 export const HeroSection: React.FC<HeroSectionProps> = () => {
   const ref = useRef(null);
+  const [documents, setDocuments] = useState<DocumentInfo | null>(null);
+
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      try {
+        const response = await fetch('/api/documents');
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success) {
+            setDocuments(result.data);
+          }
+        }
+      } catch (error) {
+        console.error('문서 데이터를 가져오는 중 오류 발생:', error);
+      }
+    };
+
+    fetchDocuments();
+  }, []);
+
+  const resumeUrl = documents?.resume?.url || personalInfo.resumeUrl;
+  const coverLetterUrl = documents?.coverLetter?.url || personalInfo.coverLetterUrl;
 
   return (
     <section 
@@ -67,18 +94,26 @@ export const HeroSection: React.FC<HeroSectionProps> = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.6 }}
             >
-              <a
-                href={personalInfo.resumeUrl}
-                className="inline-flex items-center justify-center px-8 py-4 text-sm font-light text-white bg-brand-main hover:opacity-90 transition-all duration-300 rounded-lg"
-              >
-                이력서 다운로드
-              </a>
-              <a
-                href={personalInfo.coverLetterUrl}
-                className="inline-flex items-center justify-center px-8 py-4 text-sm font-light text-white bg-brand-main hover:opacity-90 transition-all duration-300 rounded-lg"
-              >
-                자기소개서 다운로드
-              </a>
+              {resumeUrl && (
+                <a
+                  href={resumeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center px-8 py-4 text-sm font-light text-white bg-brand-main hover:opacity-90 transition-all duration-300 rounded-lg"
+                >
+                  이력서 다운로드
+                </a>
+              )}
+              {coverLetterUrl && (
+                <a
+                  href={coverLetterUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center px-8 py-4 text-sm font-light text-white bg-brand-main hover:opacity-90 transition-all duration-300 rounded-lg"
+                >
+                  자기소개서 다운로드
+                </a>
+              )}
             </motion.div>
           </motion.div>
 
