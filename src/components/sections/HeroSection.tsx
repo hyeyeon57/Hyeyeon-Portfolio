@@ -96,7 +96,7 @@ export const HeroSection: React.FC<HeroSectionProps> = () => {
             >
               {resumeUrl && (
                 <a
-                  href={resumeUrl}
+                  href={`${resumeUrl}#view=FitH`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center justify-center px-8 py-4 text-sm font-light text-white bg-brand-main hover:opacity-90 transition-all duration-300 rounded-lg"
@@ -106,7 +106,7 @@ export const HeroSection: React.FC<HeroSectionProps> = () => {
               )}
               {coverLetterUrl && (
                 <a
-                  href={coverLetterUrl}
+                  href={`${coverLetterUrl}#view=FitH`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center justify-center px-8 py-4 text-sm font-light text-white bg-brand-main hover:opacity-90 transition-all duration-300 rounded-lg"
