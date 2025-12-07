@@ -154,14 +154,14 @@ export const renderDetailModal = (project, files, categoryLabels, isAuthenticate
   };
   return `
     <div class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="this.remove()">
-      <div class="bg-white rounded-2xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
-        <div class="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
+      <div class="bg-white rounded-2xl shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden" onclick="event.stopPropagation()">
+        <div class="flex-shrink-0 bg-white border-b px-6 py-4 flex justify-between items-center">
           <h2 class="text-2xl font-bold text-gray-900">${project.title}</h2>
           <button onclick="this.closest('.fixed').remove()" class="p-2 hover:bg-gray-100 rounded-full transition">
             <i data-lucide="x" class="w-6 h-6"></i>
           </button>
         </div>
-        <div class="p-6 space-y-6">
+        <div class="flex-1 overflow-y-auto p-6 space-y-6 min-h-0" style="scrollbar-width: thin; scrollbar-color: #cbd5e0 #f7fafc; -webkit-overflow-scrolling: touch;">
           <div>
             <h3 class="text-sm font-medium text-gray-500 mb-1">부제목</h3>
             <p class="text-lg text-gray-900">${project.subtitle || ''}</p>
@@ -236,7 +236,7 @@ export const renderDetailModal = (project, files, categoryLabels, isAuthenticate
             </div>
           </div>
         </div>
-        <div class="sticky bottom-0 bg-white border-t px-6 py-4 flex justify-end gap-3">
+        <div class="flex-shrink-0 bg-white border-t px-6 py-4 flex justify-end gap-3">
           ${
             isAuthenticated
               ? `<button onclick="editProject('${project.id}'); this.closest('.fixed').remove();" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
@@ -255,140 +255,179 @@ export const renderDetailModal = (project, files, categoryLabels, isAuthenticate
 
 export const renderEditModal = (project, categoryLabels) => {
   return `
-    <div class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="this.remove()">
-      <div class="bg-white rounded-2xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
-        <div class="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
-          <h2 class="text-2xl font-bold text-gray-900">프로젝트 수정</h2>
-          <button onclick="this.closest('.fixed').remove()" class="p-2 hover:bg-gray-100 rounded-full transition">
-            <i data-lucide="x" class="w-6 h-6"></i>
+    <div class="fixed inset-0 bg-black/60 z-[9999] flex items-center justify-center p-4" style="backdrop-filter: blur(4px);" onclick="this.remove()">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[92vh] flex flex-col relative z-[10000] overflow-hidden border border-gray-100" onclick="event.stopPropagation()">
+        <div class="flex-shrink-0 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+          <div>
+            <h2 class="text-xl font-bold text-gray-900">프로젝트 수정</h2>
+            <p class="text-xs text-gray-500 mt-0.5">프로젝트 정보를 수정하세요</p>
+          </div>
+          <button onclick="this.closest('.fixed').remove()" class="p-2 hover:bg-white/80 rounded-lg transition-colors text-gray-500 hover:text-gray-700">
+            <i data-lucide="x" class="w-5 h-5"></i>
           </button>
         </div>
-        <form id="editForm" class="p-6 space-y-6">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">제목 *</label>
-            <input type="text" name="title" value="${project.title || ''}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">부제목</label>
-            <input type="text" name="subtitle" value="${project.subtitle || ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">설명 *</label>
-            <textarea name="description" required rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg">${project.description || ''}</textarea>
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">상세 설명</label>
-            <textarea name="fullDescription" rows="5" class="w-full px-4 py-2 border border-gray-300 rounded-lg">${project.fullDescription || ''}</textarea>
-          </div>
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">카테고리 *</label>
-              <select name="category" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
-                ${Object.entries(categoryLabels).map(([key, label]) => `<option value="${key}" ${project.category === key ? 'selected' : ''}>${label}</option>`).join('')}
-              </select>
+        <form id="editForm" class="flex-1 overflow-y-auto p-6 space-y-6 min-h-0 bg-gray-50/30" style="max-height: calc(92vh - 140px); scrollbar-width: thin; scrollbar-color: #cbd5e0 #f7fafc; -webkit-overflow-scrolling: touch; overflow-y: auto !important;">
+          <div class="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+            <div class="flex items-center gap-2 mb-5 pb-4 border-b border-gray-200">
+              <div>
+                <h3 class="text-base font-bold text-gray-900">프로젝트 설명</h3>
+                <p class="text-xs text-gray-500">프로젝트의 기본 정보를 입력하세요</p>
+              </div>
+            </div>
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-semibold text-gray-800 mb-2">제목 <span class="text-red-500">*</span></label>
+                <input type="text" name="title" value="${project.title || ''}" required class="w-full px-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-white" />
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-800 mb-2">부제목</label>
+                <input type="text" name="subtitle" value="${project.subtitle || ''}" class="w-full px-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-white" />
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-800 mb-2">설명 <span class="text-red-500">*</span></label>
+                <textarea name="description" required rows="3" class="w-full px-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all resize-none bg-white">${project.description || ''}</textarea>
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-800 mb-2">상세 설명</label>
+                <textarea name="fullDescription" rows="4" class="w-full px-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all resize-none bg-white">${project.fullDescription || ''}</textarea>
+              </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-semibold text-gray-800 mb-2">카테고리 <span class="text-red-500">*</span></label>
+                <select name="category" required class="w-full px-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-white">
+                  ${Object.entries(categoryLabels).map(([key, label]) => `<option value="${key}" ${project.category === key ? 'selected' : ''}>${label}</option>`).join('')}
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-800 mb-2">태그 <span class="text-xs text-gray-500 font-normal">(쉼표로 구분)</span></label>
+                <input type="text" name="tags" value="${(project.tags || []).join(', ')}" class="w-full px-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-white" placeholder="예: 태그1, 태그2, 태그3" />
+              </div>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">태그 (쉼표로 구분)</label>
-              <input type="text" name="tags" value="${(project.tags || []).join(', ')}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" />
-            </div>
-          </div>
-          <div class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">팀 구성</label>
-              <input type="text" name="team" value="${project.team || ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+              <label class="block text-sm font-semibold text-gray-800 mb-2">팀 구성</label>
+              <input type="text" name="team" value="${project.team || ''}" class="w-full px-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-white" placeholder="예: 3명" />
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">시작일</label>
-                <input type="date" name="startDate" id="editStartDate" value="${project.startDate || ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+                <label class="block text-sm font-semibold text-gray-800 mb-2">시작일</label>
+                <input type="date" name="startDate" id="editStartDate" value="${project.startDate || ''}" class="w-full px-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-white" />
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">종료일</label>
-                <input type="date" name="endDate" id="editEndDate" value="${project.endDate || ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+                <label class="block text-sm font-semibold text-gray-800 mb-2">종료일</label>
+                <input type="date" name="endDate" id="editEndDate" value="${project.endDate || ''}" class="w-full px-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-white" />
               </div>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">기간 (자동 계산)</label>
-              <input type="text" name="duration" id="editDuration" value="${project.duration || ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50" readonly />
-              <p class="text-xs text-gray-500 mt-1">시작일/종료일을 선택하면 자동 계산됩니다.</p>
+              <label class="block text-sm font-semibold text-gray-800 mb-2">기간 <span class="text-xs text-gray-500 font-normal">(자동 계산)</span></label>
+              <input type="text" name="duration" id="editDuration" value="${project.duration || ''}" class="w-full px-4 py-2.5 text-sm border border-gray-300 rounded-lg bg-white text-gray-700" readonly />
+              <p class="text-xs text-gray-500 mt-1.5 flex items-center gap-1">
+                <i data-lucide="info" class="w-3 h-3"></i>
+                시작일/종료일을 선택하면 자동 계산됩니다.
+              </p>
             </div>
-          </div>
-          <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-semibold text-gray-800 mb-2">역할</label>
+                <input type="text" name="role" value="${project.role || ''}" class="w-full px-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-white" placeholder="예: UX 기획자" />
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-800 mb-2">링크</label>
+                <input type="text" name="link" value="${project.link || ''}" class="w-full px-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-white" placeholder="https://..." />
+              </div>
+            </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">역할</label>
-              <input type="text" name="role" value="${project.role || ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+              <label class="block text-sm font-semibold text-gray-800 mb-2">주요 성과 <span class="text-xs text-gray-500 font-normal">(줄바꿈으로 구분)</span></label>
+              <textarea name="achievements" rows="4" class="w-full px-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all resize-none bg-white" placeholder="각 성과를 새 줄에 입력하세요">${(project.achievements || []).join('\\n')}</textarea>
             </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">링크</label>
-              <input type="text" name="link" value="${project.link || ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" />
-            </div>
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">주요 성과 (줄바꿈으로 구분)</label>
-            <textarea name="achievements" rows="5" class="w-full px-4 py-2 border border-gray-300 rounded-lg">${(project.achievements || []).join('\\n')}</textarea>
-          </div>
-          <div class="space-y-4 border rounded-lg p-4 bg-gray-50">
-            <div class="flex items-center gap-2">
-              <i data-lucide="file-text" class="w-4 h-4 text-gray-600"></i>
-              <h3 class="text-lg font-semibold text-gray-800">PDF 업로드</h3>
-              <span class="text-sm text-gray-500">(업로드 후 URL 자동 저장)</span>
-            </div>
-            <div class="space-y-2">
-              <label class="block text-sm font-medium text-gray-700">화면 설계서 PDF</label>
-              <div class="flex items-center gap-3 flex-wrap">
-                <input type="file" accept="application/pdf" id="editDesignPdfFile" class="text-sm" />
-                <button type="button" onclick="uploadPdfInEdit('design')" class="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">업로드</button>
-                <span id="editDesignPdfStatus" class="text-sm text-gray-600">${project.designPdf ? `<a href="${project.designPdf}" target="_blank" class="text-blue-600 underline">${truncate(project.designPdf.split('/').pop())}</a>` : ''}</span>
-                ${project.designPdf ? `<button type="button" id="removeDesignPdfBtn" class="px-2 py-1 text-xs text-red-600 border border-red-200 rounded">삭제</button>` : ''}
-              </div>
-              <input type="hidden" name="designPdf" id="editDesignPdf" value="${project.designPdf || ''}" />
-            </div>
-            <div class="space-y-2">
-              <label class="block text-sm font-medium text-gray-700">프로젝트 상세보기 PDF</label>
-              <div class="flex items-center gap-3 flex-wrap">
-                <input type="file" accept="application/pdf" id="editDetailPdfFile" class="text-sm" />
-                <button type="button" onclick="uploadPdfInEdit('detail')" class="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">업로드</button>
-                <span id="editDetailPdfStatus" class="text-sm text-gray-600">${project.detailPdf ? `<a href="${project.detailPdf}" target="_blank" class="text-blue-600 underline">${truncate(project.detailPdf.split('/').pop())}</a>` : ''}</span>
-                ${project.detailPdf ? `<button type="button" id="removeDetailPdfBtn" class="px-2 py-1 text-xs text-red-600 border border-red-200 rounded">삭제</button>` : ''}
-              </div>
-              <input type="hidden" name="detailPdf" id="editDetailPdf" value="${project.detailPdf || ''}" />
+            <div class="flex justify-center pt-4 border-t border-gray-200 mt-4">
+              <button type="submit" form="editForm" class="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium shadow-sm transition-colors">
+                저장
+              </button>
             </div>
           </div>
-          <div class="space-y-4 border rounded-lg p-4 bg-gray-50">
-            <div class="flex items-center gap-2">
-              <i data-lucide="image" class="w-4 h-4 text-gray-600"></i>
-              <h3 class="text-lg font-semibold text-gray-800">이미지 업로드</h3>
-              <span class="text-sm text-gray-500">(대표 1개, 갤러리 여러 개)</span>
-            </div>
-            <div class="space-y-2">
-              <label class="block text-sm font-medium text-gray-700">대표 이미지</label>
-              <input type="file" accept="image/png, image/jpeg" id="editMainImageFile" class="text-sm" />
-              <div class="flex items-center gap-2" id="editMainImageStatusWrapper">
-                <div id="editMainImageStatus" class="text-sm text-gray-600">${project.image ? `<a href="${project.image}" target="_blank" class="text-blue-600 underline">${truncate(project.image.split('/').pop())}</a>` : ''}</div>
-                ${project.image ? `<button type="button" id="removeMainImageBtn" class="px-2 py-1 text-xs text-red-600 border border-red-200 rounded">삭제</button>` : ''}
+          </div>
+          <div class="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+            <div class="flex items-center gap-2 mb-5 pb-4 border-b border-gray-200">
+              <div>
+                <h3 class="text-base font-bold text-gray-900">PDF 업로드</h3>
+                <p class="text-xs text-gray-500">업로드 후 URL이 자동으로 저장됩니다</p>
               </div>
             </div>
-            <div class="space-y-2">
-              <label class="block text-sm font-medium text-gray-700">갤러리 이미지 (다중 선택)</label>
-              <input type="file" accept="image/png, image/jpeg" id="editGalleryImagesFile" class="text-sm" multiple />
-              <div id="editGalleryImagesStatus" class="text-sm text-gray-600 space-y-1">
-                ${(project.images || []).map((img, idx) => `<div class="flex items-center gap-2" data-existing-gallery="${img}">
-                  <span class="truncate max-w-[240px]" title="${img}">${truncate(img.split('/').pop())}</span>
-                  <button type="button" class="px-2 py-1 text-xs text-red-600 border border-red-200 rounded" data-remove-gallery="${idx}">삭제</button>
-                </div>`).join('')}
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-semibold text-gray-800 mb-2">화면 설계서 PDF</label>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <input type="file" accept="application/pdf" id="editDesignPdfFile" class="text-xs flex-1 min-w-[120px]" />
+                  <button type="button" onclick="uploadPdfInEdit('design')" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium shadow-sm">업로드</button>
+                </div>
+                <div class="mt-2 flex items-center gap-2 overflow-x-hidden">
+                  <span id="editDesignPdfStatus" class="text-xs text-gray-600 truncate flex-1 min-w-0">${project.designPdf ? `<a href="${project.designPdf}" target="_blank" class="text-purple-600 hover:text-purple-700 underline font-normal break-all">${truncate(project.designPdf.split('/').pop())}</a>` : '<span class="text-gray-400">파일이 없습니다</span>'}</span>
+                  ${project.designPdf ? `<button type="button" id="removeDesignPdfBtn" class="px-2 py-1 text-xs text-red-600 border border-red-200 rounded hover:bg-red-50 transition-colors flex-shrink-0">삭제</button>` : ''}
+                </div>
+                <input type="hidden" name="designPdf" id="editDesignPdf" value="${project.designPdf || ''}" />
               </div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-800 mb-2">프로젝트 상세보기 PDF</label>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <input type="file" accept="application/pdf" id="editDetailPdfFile" class="text-xs flex-1 min-w-[120px]" />
+                  <button type="button" onclick="uploadPdfInEdit('detail')" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium shadow-sm">업로드</button>
+                </div>
+                <div class="mt-2 flex items-center gap-2 overflow-x-hidden">
+                  <span id="editDetailPdfStatus" class="text-xs text-gray-600 truncate flex-1 min-w-0">${project.detailPdf ? `<a href="${project.detailPdf}" target="_blank" class="text-purple-600 hover:text-purple-700 underline font-normal break-all">${truncate(project.detailPdf.split('/').pop())}</a>` : '<span class="text-gray-400">파일이 없습니다</span>'}</span>
+                  ${project.detailPdf ? `<button type="button" id="removeDetailPdfBtn" class="px-2 py-1 text-xs text-red-600 border border-red-200 rounded hover:bg-red-50 transition-colors flex-shrink-0">삭제</button>` : ''}
+                </div>
+                <input type="hidden" name="detailPdf" id="editDetailPdf" value="${project.detailPdf || ''}" />
+              </div>
+            </div>
+            <div class="flex justify-center pt-4 border-t border-gray-200 mt-4">
+              <button type="submit" form="editForm" class="w-full px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm font-medium shadow-sm transition-colors">
+                저장
+              </button>
             </div>
           </div>
-          <div class="flex gap-4 pt-4">
-            <button type="submit" class="flex-1 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition font-medium">
-              수정 완료
-            </button>
-            <button type="button" onclick="this.closest('.fixed').remove()" class="px-8 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
-              취소
-            </button>
+          <div class="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+            <div class="flex items-center gap-2 mb-5 pb-4 border-b border-gray-200">
+              <div>
+                <h3 class="text-base font-bold text-gray-900">이미지 업로드</h3>
+                <p class="text-xs text-gray-500">대표 이미지 1개, 갤러리 이미지 여러 개</p>
+              </div>
+            </div>
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-semibold text-gray-800 mb-2">대표 이미지</label>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <input type="file" accept="image/png, image/jpeg" id="editMainImageFile" class="text-xs flex-1 min-w-[120px]" />
+                  <button type="button" onclick="uploadImageInEdit('main')" class="px-4 py-2 text-white rounded-lg transition-colors text-sm font-medium shadow-sm" style="background-color: #3BBA70;" onmouseover="this.style.backgroundColor='#2a8a54'" onmouseout="this.style.backgroundColor='#3BBA70'">업로드</button>
+                </div>
+                <div class="flex items-center gap-2 mt-2" id="editMainImageStatusWrapper">
+                  <div id="editMainImageStatus" class="text-sm text-gray-600">${project.image ? `<a href="${project.image}" target="_blank" class="text-green-600 hover:text-green-700 underline font-medium">${truncate(project.image.split('/').pop())}</a>` : '<span class="text-gray-400">파일이 없습니다</span>'}</div>
+                  ${project.image ? `<button type="button" id="removeMainImageBtn" class="px-2 py-1 text-xs text-white rounded transition-colors" style="background-color: #3BBA70; border: 1px solid #3BBA70;" onmouseover="this.style.backgroundColor='#2a8a54'; this.style.borderColor='#2a8a54'" onmouseout="this.style.backgroundColor='#3BBA70'; this.style.borderColor='#3BBA70'">삭제</button>` : ''}
+                </div>
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-800 mb-2">갤러리 이미지 <span class="text-xs text-gray-500 font-normal">(다중 선택 가능)</span></label>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <input type="file" accept="image/png, image/jpeg" id="editGalleryImagesFile" class="text-xs flex-1 min-w-[120px]" multiple />
+                  <button type="button" onclick="uploadImageInEdit('gallery')" class="px-4 py-2 text-white rounded-lg transition-colors text-sm font-medium shadow-sm" style="background-color: #3BBA70;" onmouseover="this.style.backgroundColor='#2a8a54'" onmouseout="this.style.backgroundColor='#3BBA70'">업로드</button>
+                </div>
+                <div id="editGalleryImagesStatus" class="text-sm text-gray-600 space-y-2 max-h-40 overflow-y-auto mt-2" style="scrollbar-width: thin; scrollbar-color: #cbd5e0 #f7fafc;">
+                  ${(project.images || []).map((img, idx) => `<div class="flex items-center gap-2 py-2 px-3 bg-gray-50 rounded-lg border border-gray-200" data-existing-gallery="${img}">
+                    <span class="truncate flex-1 text-xs font-medium" title="${img}">${truncate(img.split('/').pop())}</span>
+                    <button type="button" class="px-2 py-1 text-xs text-white rounded transition-colors flex-shrink-0" style="background-color: #3BBA70; border: 1px solid #3BBA70;" onmouseover="this.style.backgroundColor='#2a8a54'; this.style.borderColor='#2a8a54'" onmouseout="this.style.backgroundColor='#3BBA70'; this.style.borderColor='#3BBA70'" data-remove-gallery="${idx}">삭제</button>
+                  </div>`).join('')}
+                  ${(project.images || []).length === 0 ? '<p class="text-xs text-gray-400 text-center py-2">갤러리 이미지가 없습니다</p>' : ''}
+                </div>
+              </div>
+            </div>
+            <div class="flex justify-center pt-4 border-t border-gray-200 mt-4">
+              <button type="submit" form="editForm" class="w-full px-6 py-3 text-white rounded-lg text-sm font-medium shadow-sm transition-colors" style="background-color: #3BBA70;" onmouseover="this.style.backgroundColor='#2a8a54'" onmouseout="this.style.backgroundColor='#3BBA70'">
+                저장
+              </button>
+            </div>
           </div>
         </form>
       </div>
     </div>
   `;
 };
+

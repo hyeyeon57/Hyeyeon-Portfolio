@@ -665,24 +665,207 @@
         alert('로그인이 필요합니다.');
         return;
       }
-      const project = projects.find(p => p.id === id || p._id === id);
-      if (!project) return;
+      
+      // 항상 서버에서 최신 프로젝트 데이터 가져오기 (캐시된 데이터 사용 안 함)
+      let project;
+      try {
+        console.log('📥 서버에서 최신 프로젝트 데이터 가져오는 중...', id);
+        const res = await fetch(`${API_URL}/projects/${id}`, { credentials: 'include' });
+        const data = await res.json();
+        console.log('📥 서버 응답:', data);
+        
+        if (data.success && data.data) {
+          project = data.data;
+          console.log('✅ 최신 프로젝트 데이터 로드 완료');
+        } else {
+          console.error('❌ 프로젝트를 찾을 수 없음:', data);
+          alert('프로젝트를 찾을 수 없습니다.');
+          return;
+        }
+      } catch (e) {
+        console.error('❌ 프로젝트 조회 오류:', e);
+        alert('프로젝트를 불러오는 중 오류가 발생했습니다.');
+        return;
+      }
+      
+      console.log('📝 편집 모달 열기 - 프로젝트 데이터:', {
+        id: project.id || project._id,
+        designPdf: project.designPdf,
+        detailPdf: project.detailPdf,
+        image: project.image,
+        images: project.images,
+        gallery: project.gallery,
+      });
+      
       const html = renderEditModal(project, categoryLabels);
       document.body.insertAdjacentHTML('beforeend', html);
       ensureLucide();
+      
+      // 모달 외부 클릭으로 닫히는 기능 비활성화 (저장 후에도 모달이 열려있도록)
+      const modalBackdrop = document.getElementById('editModalBackdrop');
+      if (modalBackdrop) {
+        // 외부 클릭으로 닫히는 기능 제거
+        modalBackdrop.onclick = null;
+        // 대신 더블클릭이나 특정 조건에서만 닫히도록 설정 (선택사항)
+        // 또는 완전히 제거
+      }
+      
+      // 업로드 함수가 전역에 정의되어 있는지 확인
+      console.log('📋 편집 모달 열기 - 업로드 함수 확인:', {
+        uploadPdfInEdit: typeof window.uploadPdfInEdit,
+        uploadFilesToS3: typeof window.uploadFilesToS3,
+        uploadImageInEdit: typeof window.uploadImageInEdit,
+        uploadPdfInEditExists: window.uploadPdfInEdit !== undefined,
+        uploadFilesToS3Exists: window.uploadFilesToS3 !== undefined
+      });
+      
+      // 업로드 버튼에 직접 이벤트 리스너 추가 (항상 실행, 여러 번 시도)
+      const bindUploadButtons = () => {
+        // 여러 방법으로 버튼 찾기
+        const designFileInput = document.getElementById('editDesignPdfFile');
+        const detailFileInput = document.getElementById('editDetailPdfFile');
+        
+        const designBtn = designFileInput?.parentElement?.querySelector('button[type="button"]')
+          || document.querySelector('button[onclick*="uploadPdfInEdit"][onclick*="design"]')
+          || designFileInput?.nextElementSibling;
+        const detailBtn = detailFileInput?.parentElement?.querySelector('button[type="button"]')
+          || document.querySelector('button[onclick*="uploadPdfInEdit"][onclick*="detail"]')
+          || detailFileInput?.nextElementSibling;
+        
+        console.log('🔧 업로드 버튼 찾기:', {
+          designFileInput: !!designFileInput,
+          detailFileInput: !!detailFileInput,
+          designBtn: !!designBtn,
+          detailBtn: !!detailBtn,
+          designBtnText: designBtn?.textContent,
+          detailBtnText: detailBtn?.textContent
+        });
+        
+        if (designBtn) {
+          console.log('🔧 Design PDF 업로드 버튼에 직접 이벤트 리스너 추가');
+          // 기존 onclick 제거하고 새로 바인딩
+          designBtn.removeAttribute('onclick');
+          designBtn.onclick = async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('🔘 Design PDF 업로드 버튼 클릭 (직접 바인딩)');
+            console.log('🔘 파일 입력 요소:', document.getElementById('editDesignPdfFile'));
+            console.log('🔘 선택된 파일:', document.getElementById('editDesignPdfFile')?.files);
+            if (typeof window.uploadPdfInEdit === 'function') {
+              try {
+                await window.uploadPdfInEdit('design');
+              } catch (err) {
+                console.error('❌ Design PDF 업로드 오류:', err);
+                alert(`PDF 업로드 실패: ${err.message || '알 수 없는 오류'}`);
+              }
+            } else {
+              console.error('❌ window.uploadPdfInEdit가 함수가 아닙니다:', typeof window.uploadPdfInEdit);
+              alert('업로드 함수를 찾을 수 없습니다. 페이지를 새로고침해주세요.');
+            }
+          };
+          console.log('✅ Design PDF 업로드 버튼 이벤트 리스너 추가 완료');
+        } else {
+          console.warn('⚠️ Design PDF 업로드 버튼을 찾을 수 없습니다!');
+        }
+        
+        if (detailBtn) {
+          console.log('🔧 Detail PDF 업로드 버튼에 직접 이벤트 리스너 추가');
+          // 기존 onclick 제거하고 새로 바인딩
+          detailBtn.removeAttribute('onclick');
+          detailBtn.onclick = async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('🔘 Detail PDF 업로드 버튼 클릭 (직접 바인딩)');
+            console.log('🔘 파일 입력 요소:', document.getElementById('editDetailPdfFile'));
+            console.log('🔘 선택된 파일:', document.getElementById('editDetailPdfFile')?.files);
+            if (typeof window.uploadPdfInEdit === 'function') {
+              try {
+                await window.uploadPdfInEdit('detail');
+              } catch (err) {
+                console.error('❌ Detail PDF 업로드 오류:', err);
+                alert(`PDF 업로드 실패: ${err.message || '알 수 없는 오류'}`);
+              }
+            } else {
+              console.error('❌ window.uploadPdfInEdit가 함수가 아닙니다:', typeof window.uploadPdfInEdit);
+              alert('업로드 함수를 찾을 수 없습니다. 페이지를 새로고침해주세요.');
+            }
+          };
+          console.log('✅ Detail PDF 업로드 버튼 이벤트 리스너 추가 완료');
+        } else {
+          console.warn('⚠️ Detail PDF 업로드 버튼을 찾을 수 없습니다!');
+        }
+      };
+      
+      // 즉시 시도
+      bindUploadButtons();
+      
+      // DOM이 완전히 렌더링될 때까지 대기 후 재시도
+      setTimeout(bindUploadButtons, 100);
+      setTimeout(bindUploadButtons, 300);
+      setTimeout(bindUploadButtons, 500);
 
-      let galleryList = Array.isArray(project.images) && project.images.length ? [...project.images] : [];
+      window.editGalleryList = Array.isArray(project.images) && project.images.length ? [...project.images] : [];
+      let galleryList = window.editGalleryList;
       let draggedGalleryIndex = null;
       let removeMainImage = false;
       let removeDesignPdf = false;
       let removeDetailPdf = false;
+      
+      // 기존 PDF 값 초기화 (편집 모달 열 때)
+      if (project.designPdf) {
+        const designPdfHidden = document.getElementById('editDesignPdf');
+        const designPdfStatus = document.getElementById('editDesignPdfStatus');
+        if (designPdfHidden) {
+          designPdfHidden.value = project.designPdf;
+          window.editDesignPdfUrl = project.designPdf;
+        }
+        if (designPdfStatus && !designPdfStatus.querySelector('a')) {
+          // Status 요소가 템플릿에서 초기화되지 않았을 경우를 대비
+          const fileName = project.designPdf.split('/').pop() || '파일';
+          designPdfStatus.innerHTML = `<a href="${project.designPdf}" target="_blank" class="text-blue-600 hover:text-blue-700 underline font-normal break-all">${fileName}</a>`;
+        }
+        console.log('✅ Design PDF 초기화:', project.designPdf);
+      }
+      
+      if (project.detailPdf) {
+        const detailPdfHidden = document.getElementById('editDetailPdf');
+        const detailPdfStatus = document.getElementById('editDetailPdfStatus');
+        if (detailPdfHidden) {
+          detailPdfHidden.value = project.detailPdf;
+          window.editDetailPdfUrl = project.detailPdf;
+        }
+        if (detailPdfStatus && !detailPdfStatus.querySelector('a')) {
+          // Status 요소가 템플릿에서 초기화되지 않았을 경우를 대비
+          const fileName = project.detailPdf.split('/').pop() || '파일';
+          detailPdfStatus.innerHTML = `<a href="${project.detailPdf}" target="_blank" class="text-blue-600 hover:text-blue-700 underline font-normal break-all">${fileName}</a>`;
+        }
+        console.log('✅ Detail PDF 초기화:', project.detailPdf);
+      }
+      
+      // PDF 값이 없으면 전역 변수도 초기화
+      if (!project.designPdf) {
+        window.editDesignPdfUrl = '';
+      }
+      if (!project.detailPdf) {
+        window.editDetailPdfUrl = '';
+      }
+      
+      console.log('📋 편집 모달 PDF 초기화 완료:', {
+        designPdf: project.designPdf,
+        detailPdf: project.detailPdf,
+        designPdfHidden: document.getElementById('editDesignPdf')?.value,
+        detailPdfHidden: document.getElementById('editDetailPdf')?.value,
+        designPdfStatus: document.getElementById('editDesignPdfStatus')?.innerHTML?.substring(0, 50),
+        detailPdfStatus: document.getElementById('editDetailPdfStatus')?.innerHTML?.substring(0, 50),
+      });
 
-      const refreshGalleryStatus = () => {
+      window.refreshEditGalleryStatus = () => {
         const container = document.getElementById('editGalleryImagesStatus');
         if (!container) return;
+        const currentGallery = window.editGalleryList || galleryList;
 
         // 갤러리 이미지 목록: 썸네일 + 파일명 + 드래그로 순서 변경 + 삭제
-        container.innerHTML = galleryList.map((img, idx) => `
+        container.innerHTML = currentGallery.map((img, idx) => `
           <div
             class="flex items-center gap-2 py-1 border border-gray-200 rounded-md px-2 bg-white"
             data-existing-gallery="${img}"
@@ -747,12 +930,14 @@
               return;
             }
 
-            const newList = [...galleryList];
+            const currentGallery = window.editGalleryList || galleryList;
+            const newList = [...currentGallery];
             const [moved] = newList.splice(draggedGalleryIndex, 1);
             newList.splice(targetIdx, 0, moved);
             galleryList = newList;
+            window.editGalleryList = newList;
             draggedGalleryIndex = null;
-            refreshGalleryStatus();
+            window.refreshEditGalleryStatus();
           });
 
           item.addEventListener('dragend', () => {
@@ -765,8 +950,11 @@
           btn.addEventListener('click', () => {
             const idx = Number(btn.getAttribute('data-remove-gallery'));
             if (!Number.isNaN(idx)) {
-              galleryList.splice(idx, 1);
-              refreshGalleryStatus();
+              const currentGallery = window.editGalleryList || galleryList;
+              currentGallery.splice(idx, 1);
+              galleryList = currentGallery;
+              window.editGalleryList = currentGallery;
+              window.refreshEditGalleryStatus();
             }
           });
         });
@@ -775,11 +963,14 @@
         container.querySelectorAll('[data-move-up]').forEach((btn) => {
           btn.addEventListener('click', () => {
             const idx = Number(btn.getAttribute('data-move-up'));
+            const currentGallery = window.editGalleryList || galleryList;
             if (!Number.isNaN(idx) && idx > 0) {
-              const tmp = galleryList[idx - 1];
-              galleryList[idx - 1] = galleryList[idx];
-              galleryList[idx] = tmp;
-              refreshGalleryStatus();
+              const tmp = currentGallery[idx - 1];
+              currentGallery[idx - 1] = currentGallery[idx];
+              currentGallery[idx] = tmp;
+              galleryList = currentGallery;
+              window.editGalleryList = currentGallery;
+              window.refreshEditGalleryStatus();
             }
           });
         });
@@ -788,22 +979,26 @@
         container.querySelectorAll('[data-move-down]').forEach((btn) => {
           btn.addEventListener('click', () => {
             const idx = Number(btn.getAttribute('data-move-down'));
-            if (!Number.isNaN(idx) && idx < galleryList.length - 1) {
-              const tmp = galleryList[idx + 1];
-              galleryList[idx + 1] = galleryList[idx];
-              galleryList[idx] = tmp;
-              refreshGalleryStatus();
+            const currentGallery = window.editGalleryList || galleryList;
+            if (!Number.isNaN(idx) && idx < currentGallery.length - 1) {
+              const tmp = currentGallery[idx + 1];
+              currentGallery[idx + 1] = currentGallery[idx];
+              currentGallery[idx] = tmp;
+              galleryList = currentGallery;
+              window.editGalleryList = currentGallery;
+              window.refreshEditGalleryStatus();
             }
           });
         });
       };
-      refreshGalleryStatus();
+      window.refreshEditGalleryStatus();
 
       const removeMainBtn = document.getElementById('removeMainImageBtn');
       if (removeMainBtn) {
         removeMainBtn.addEventListener('click', () => {
           removeMainImage = true;
           galleryList = galleryList.filter((img) => img !== project.image);
+          window.editGalleryList = galleryList;
           const status = document.getElementById('editMainImageStatus');
           if (status) status.textContent = '삭제됨';
         });
@@ -858,6 +1053,59 @@
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const fd = new FormData(form);
+        
+        // Hidden input에서 직접 값 가져오기 (FormData가 제대로 읽지 못할 수 있음)
+        const designPdfInput = document.getElementById('editDesignPdf');
+        const detailPdfInput = document.getElementById('editDetailPdf');
+        
+        console.log('📋 PDF Hidden Input 값 확인:', {
+          designPdfInput: designPdfInput ? designPdfInput.value : '요소 없음',
+          detailPdfInput: detailPdfInput ? detailPdfInput.value : '요소 없음',
+          formDataDesignPdf: fd.get('designPdf'),
+          formDataDetailPdf: fd.get('detailPdf'),
+        });
+        
+        // PDF 값 최종 확인 (한 번만 수행)
+        // 1. Hidden input에서 직접 읽기 (가장 확실)
+        // 2. 전역 변수에서 백업 확인
+        // 3. FormData에서 확인 (최후 수단)
+        const designPdfFromInput = document.getElementById('editDesignPdf')?.value?.trim() || '';
+        const detailPdfFromInput = document.getElementById('editDetailPdf')?.value?.trim() || '';
+        const designPdfFromBackup = (window.editDesignPdfUrl || '').trim();
+        const detailPdfFromBackup = (window.editDetailPdfUrl || '').trim();
+        const designPdfFromFormData = (fd.get('designPdf') || '').toString().trim();
+        const detailPdfFromFormData = (fd.get('detailPdf') || '').toString().trim();
+        
+        // 우선순위: Hidden input > 전역 변수 > FormData
+        const finalDesignPdfValue = designPdfFromInput || designPdfFromBackup || designPdfFromFormData;
+        const finalDetailPdfValue = detailPdfFromInput || detailPdfFromBackup || detailPdfFromFormData;
+        
+        // PDF 값이 있으면 삭제 플래그를 false로 리셋
+        const finalRemoveDesignPdf = finalDesignPdfValue ? false : removeDesignPdf;
+        const finalRemoveDetailPdf = finalDetailPdfValue ? false : removeDetailPdf;
+        
+        console.log('📋 PDF 값 최종 확인:', {
+          designPdf: {
+            fromInput: designPdfFromInput,
+            fromBackup: designPdfFromBackup,
+            fromFormData: designPdfFromFormData,
+            final: finalDesignPdfValue,
+            isEmpty: !finalDesignPdfValue
+          },
+          detailPdf: {
+            fromInput: detailPdfFromInput,
+            fromBackup: detailPdfFromBackup,
+            fromFormData: detailPdfFromFormData,
+            final: finalDetailPdfValue,
+            isEmpty: !finalDetailPdfValue
+          },
+          removeFlags: {
+            designPdf: finalRemoveDesignPdf,
+            detailPdf: finalRemoveDetailPdf
+          }
+        });
+        
+        // Payload 생성 (빈 문자열은 포함하지 않음)
         const payload = {
           title: fd.get('title'),
           subtitle: fd.get('subtitle') || '',
@@ -872,22 +1120,54 @@
           role: fd.get('role') || '',
           duration: fd.get('duration') || '',
           link: fd.get('link') || '',
-          designPdf: fd.get('designPdf') || '',
-          detailPdf: fd.get('detailPdf') || '',
           achievements: fd.get('achievements') ? fd.get('achievements').toString().split('\\n').map(a => a.trim()).filter(Boolean) : [],
-          startDate: fd.get('startDate') || '',
-          endDate: fd.get('endDate') || '',
-          images: galleryList,
-          gallery: galleryList,
           removeMainImage,
-          removeDesignPdf,
-          removeDetailPdf,
+          removeDesignPdf: finalRemoveDesignPdf,
+          removeDetailPdf: finalRemoveDetailPdf,
         };
+        
+        // PDF 값이 있으면만 payload에 추가 (빈 문자열은 제외)
+        if (finalDesignPdfValue) {
+          payload.designPdf = finalDesignPdfValue;
+        }
+        if (finalDetailPdfValue) {
+          payload.detailPdf = finalDetailPdfValue;
+        }
+        
+        console.log('📋 FormData에서 읽은 값:', {
+          designPdf: fd.get('designPdf'),
+          detailPdf: fd.get('detailPdf'),
+        });
+        console.log('📋 Hidden input에서 읽은 값:', {
+          designPdf: designPdfInput?.value,
+          detailPdf: detailPdfInput?.value,
+        });
+        console.log('📋 최종 PDF 값 (payload 생성 전):', {
+          designPdf: finalDesignPdfValue,
+          detailPdf: finalDetailPdfValue,
+          removeDesignPdf: finalRemoveDesignPdf,
+          removeDetailPdf: finalRemoveDetailPdf,
+        });
 
-        const mainImageFile = document.getElementById('editMainImageFile').files?.[0];
-        const galleryFiles = document.getElementById('editGalleryImagesFile').files;
+        const mainImageFile = document.getElementById('editMainImageFile')?.files?.[0];
+        const galleryFiles = document.getElementById('editGalleryImagesFile')?.files;
+        
+        // 갤러리 이미지: 이미 업로드된 것과 기존 것 합치기
+        // 먼저 기존 프로젝트의 갤러리를 가져옴
+        const existingGallery = (project.images && project.images.length > 0) 
+          ? project.images 
+          : (project.gallery && project.gallery.length > 0 ? project.gallery : []);
+        
+        // 이미 업로드된 갤러리 리스트 (업로드 버튼을 눌러서 업로드한 파일들)
+        const alreadyUploadedGallery = window.editGalleryList || [];
+        
+        // 현재 갤러리 = 기존 갤러리 + 이미 업로드된 갤러리
+        let currentGallery = [...existingGallery, ...alreadyUploadedGallery];
+        
+        // 중복 제거
+        currentGallery = [...new Set(currentGallery.filter(Boolean))];
 
-        // 업로드할 파일 개수 계산
+        // 업로드할 파일 개수 계산 (새로 선택한 파일만)
         const totalFiles = (mainImageFile ? 1 : 0) + (galleryFiles ? galleryFiles.length : 0);
 
         // 업로드 진행 상황 모달 표시
@@ -898,8 +1178,8 @@
         const projectId = project._id || project.id;
 
         try {
-          // S3 직접 업로드
-          let uploadedUrls = [];
+          // S3 직접 업로드 (새로 선택한 파일만)
+          let newUploadedUrls = [];
 
           if (totalFiles > 0) {
             const filesToUpload = [];
@@ -908,21 +1188,138 @@
               filesToUpload.push(...Array.from(galleryFiles));
             }
 
-            uploadedUrls = await uploadFilesToS3WithProgress(filesToUpload, 'projects');
+            newUploadedUrls = await uploadFilesToS3WithProgress(filesToUpload, 'projects');
 
-            // 업로드된 URL을 payload에 추가
-            if (mainImageFile) {
-              payload.image = uploadedUrls[0];
-              const newGalleryUrls = uploadedUrls.slice(1);
-              payload.images = [...galleryList, ...newGalleryUrls];
-              payload.gallery = [...galleryList, ...newGalleryUrls];
-            } else {
-              payload.images = [...galleryList, ...uploadedUrls];
-              payload.gallery = [...galleryList, ...uploadedUrls];
+            // 새로 업로드된 파일들을 payload에 추가
+            if (mainImageFile && newUploadedUrls.length > 0) {
+              // 대표 이미지: 새로 업로드한 것을 사용
+              payload.image = newUploadedUrls[0];
+              // 갤러리 이미지: 기존 + 이미 업로드된 것 + 새로 업로드된 것
+              const newGalleryUrls = newUploadedUrls.slice(1);
+              payload.images = [...currentGallery, ...newGalleryUrls].filter(Boolean);
+              payload.gallery = [...currentGallery, ...newGalleryUrls].filter(Boolean);
+            } else if (galleryFiles && galleryFiles.length > 0) {
+              // 갤러리만 새로 업로드한 경우
+              payload.images = [...currentGallery, ...newUploadedUrls].filter(Boolean);
+              payload.gallery = [...currentGallery, ...newUploadedUrls].filter(Boolean);
             }
+          } else {
+            // 새로 선택한 파일이 없는 경우
+            if (removeMainImage) {
+              // 삭제 플래그가 있으면 이미지를 null로 설정
+              payload.image = null;
+            } else if (window.editMainImageUrl) {
+              // 이미 업로드된 대표 이미지 URL이 있으면 사용
+              payload.image = window.editMainImageUrl;
+            } else if (project.image) {
+              // 기존 이미지가 있으면 유지
+              payload.image = project.image;
+            }
+            
+            // 갤러리 이미지: 기존 + 이미 업로드된 것
+            payload.images = currentGallery;
+            payload.gallery = currentGallery;
+          }
+          
+          // 이미 업로드된 이미지가 있으면 사용 (새 파일이 없고 삭제 플래그도 없는 경우)
+          if (!mainImageFile && !removeMainImage && window.editMainImageUrl) {
+            payload.image = window.editMainImageUrl;
           }
 
-          // 프로젝트 업데이트 (이미지 URL만 전송)
+          // 저장 직전 PDF 값 최종 재확인 및 강제 설정
+          // 이미지 업로드가 완료된 후이므로, 이 시점에 다시 확인
+          const finalDesignPdfCheck = document.getElementById('editDesignPdf')?.value?.trim() || '';
+          const finalDetailPdfCheck = document.getElementById('editDetailPdf')?.value?.trim() || '';
+          const finalDesignPdfBackup = (window.editDesignPdfUrl || '').trim();
+          const finalDetailPdfBackup = (window.editDetailPdfUrl || '').trim();
+          
+          console.log('🔍 저장 직전 PDF 값 최종 재확인:', {
+            designPdfHidden: finalDesignPdfCheck,
+            designPdfBackup: finalDesignPdfBackup,
+            detailPdfHidden: finalDetailPdfCheck,
+            detailPdfBackup: finalDetailPdfBackup,
+            payloadDesignPdf: payload.designPdf,
+            payloadDetailPdf: payload.detailPdf,
+          });
+          
+          // Hidden input이나 전역 변수에 값이 있으면 payload에 강제로 설정
+          const finalDesignPdfForPayload = finalDesignPdfCheck || finalDesignPdfBackup || payload.designPdf || '';
+          const finalDetailPdfForPayload = finalDetailPdfCheck || finalDetailPdfBackup || payload.detailPdf || '';
+          
+          if (finalDesignPdfForPayload) {
+            payload.designPdf = finalDesignPdfForPayload;
+            // Hidden input에도 다시 설정 (확실하게)
+            const designInput = document.getElementById('editDesignPdf');
+            if (designInput) {
+              designInput.value = finalDesignPdfForPayload;
+            }
+            console.log('✅ designPdf 최종 설정:', finalDesignPdfForPayload);
+          } else {
+            // 값이 없으면 payload에서 제거
+            delete payload.designPdf;
+            console.log('⚠️ designPdf 값 없음, payload에서 제거');
+          }
+          
+          if (finalDetailPdfForPayload) {
+            payload.detailPdf = finalDetailPdfForPayload;
+            // Hidden input에도 다시 설정 (확실하게)
+            const detailInput = document.getElementById('editDetailPdf');
+            if (detailInput) {
+              detailInput.value = finalDetailPdfForPayload;
+            }
+            console.log('✅ detailPdf 최종 설정:', finalDetailPdfForPayload);
+          } else {
+            // 값이 없으면 payload에서 제거
+            delete payload.detailPdf;
+            console.log('⚠️ detailPdf 값 없음, payload에서 제거');
+          }
+          
+          // 디버깅: payload 확인
+        console.log('📤 ========== 저장할 payload 확인 ==========');
+        console.log('📤 payload 전체:', JSON.stringify(payload, null, 2));
+        console.log('📤 PDF 값 상세:', {
+          designPdf: payload.designPdf,
+          detailPdf: payload.detailPdf,
+          removeDesignPdf: payload.removeDesignPdf,
+          removeDetailPdf: payload.removeDetailPdf,
+          designPdfExists: 'designPdf' in payload,
+          detailPdfExists: 'detailPdf' in payload,
+        });
+          console.log('📤 이미지 URL:', payload.image);
+          console.log('📤 갤러리 이미지:', payload.images);
+          console.log('📤 업로드 상태:', {
+            alreadyUploadedMain: window.editMainImageUrl,
+            alreadyUploadedGallery: window.editGalleryList,
+            newMainImageFile: mainImageFile?.name,
+            newGalleryFiles: galleryFiles ? Array.from(galleryFiles).map(f => f.name) : [],
+            totalNewFiles: totalFiles,
+            existingGallery: existingGallery
+          });
+
+          // 인증 상태 확인
+          const authCheck = await fetch('/bo-api/auth/check', {
+            method: 'GET',
+            credentials: 'include',
+          });
+          const authData = await authCheck.json();
+          console.log('🔐 인증 상태:', authData);
+          
+          if (!authData.authenticated) {
+            alert('세션이 만료되었습니다. 다시 로그인해주세요.');
+            window.location.href = '/admin/login';
+            return;
+          }
+
+          // Payload는 이미 정리되어 있음 (빈 문자열은 포함되지 않음)
+          // JSON.stringify는 undefined 필드를 자동으로 제거하므로 추가 정리 불필요
+          console.log('📤 최종 전송할 payload:', {
+            designPdf: payload.designPdf,
+            detailPdf: payload.detailPdf,
+            designPdfExists: 'designPdf' in payload,
+            detailPdfExists: 'detailPdf' in payload,
+          });
+          
+          // 프로젝트 업데이트
           const res = await fetch(`${API_URL}/projects/${projectId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
@@ -931,20 +1328,97 @@
           });
 
           const data = await res.json();
+          console.log('📥 서버 응답:', data);
+          console.log('📥 서버 응답 데이터 (프로젝트):', data.data);
+          console.log('📥 저장된 이미지:', data.data?.image);
+          console.log('📥 저장된 갤러리:', data.data?.images || data.data?.gallery);
+          console.log('📥 저장된 PDF:', { designPdf: data.data?.designPdf, detailPdf: data.data?.detailPdf });
 
-          if (data.success) {
+          if (res.status === 401 || (data.error && data.error.includes('인증'))) {
+            if (totalFiles > 0) hideUploadProgress();
+            alert('세션이 만료되었습니다. 다시 로그인해주세요.');
+            window.location.href = '/admin/login';
+            return;
+          }
+
+          if (data.success || data.data) {
+            // 저장 성공 후 전역 변수 초기화
+            window.editMainImageUrl = null;
+            window.editGalleryList = [];
+            
             if (totalFiles > 0) {
               updateUploadProgress(totalFiles, totalFiles, 100, '업로드 완료!');
             }
-            setTimeout(() => {
+            
+            // 저장된 데이터 확인
+            const savedProject = data.data;
+            const savedImage = savedProject?.image;
+            const savedImages = savedProject?.images || savedProject?.gallery || [];
+            const savedDesignPdf = savedProject?.designPdf;
+            const savedDetailPdf = savedProject?.detailPdf;
+            
+            console.log('✅ 저장 확인:', {
+              이미지: savedImage ? '저장됨' : '저장 안 됨',
+              갤러리: savedImages.length > 0 ? `${savedImages.length}개 저장됨` : '저장 안 됨',
+              설계서PDF: savedDesignPdf ? `저장됨 (${savedDesignPdf})` : '저장 안 됨',
+              상세PDF: savedDetailPdf ? `저장됨 (${savedDetailPdf})` : '저장 안 됨'
+            });
+            
+            // PDF 저장 여부 상세 확인
+            console.log('📄 PDF 저장 상세 비교:', {
+              전송한_designPdf: payload.designPdf,
+              저장된_designPdf: savedDesignPdf,
+              designPdf_일치: payload.designPdf === savedDesignPdf,
+              전송한_detailPdf: payload.detailPdf,
+              저장된_detailPdf: savedDetailPdf,
+              detailPdf_일치: payload.detailPdf === savedDetailPdf,
+            });
+            
+            // PDF가 저장되지 않은 경우 경고
+            if (payload.designPdf && !savedDesignPdf) {
+              console.error('❌ designPdf가 저장되지 않았습니다!', {
+                전송값: payload.designPdf,
+                저장값: savedDesignPdf,
+              });
+              alert('경고: 화면 설계서 PDF가 저장되지 않았을 수 있습니다. 콘솔을 확인해주세요.');
+            }
+            if (payload.detailPdf && !savedDetailPdf) {
+              console.error('❌ detailPdf가 저장되지 않았습니다!', {
+                전송값: payload.detailPdf,
+                저장값: savedDetailPdf,
+              });
+              alert('경고: 프로젝트 상세보기 PDF가 저장되지 않았을 수 있습니다. 콘솔을 확인해주세요.');
+            }
+            
+            setTimeout(async () => {
               if (totalFiles > 0) hideUploadProgress();
-              alert('수정되었습니다');
-              form.closest('.fixed').remove();
-              loadProjects();
+              // alert 제거 (모달이 닫히는 것을 방지하기 위해)
+              // 대신 모달 내부에 성공 메시지 표시
+              const successMessage = document.createElement('div');
+              successMessage.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+              successMessage.textContent = '✅ 수정되었습니다';
+              document.body.appendChild(successMessage);
+              setTimeout(() => successMessage.remove(), 3000);
+              // 모달은 닫지 않음 (사용자가 직접 닫을 수 있도록)
+              
+              // 프로젝트 목록 새로고침
+              await loadProjects();
+              
+              // 저장된 프로젝트 데이터 확인
+              const updatedProject = projects.find(p => (p.id || p._id) === projectId);
+              console.log('✅ 저장 후 프로젝트 데이터:', {
+                id: projectId,
+                image: updatedProject?.image,
+                images: updatedProject?.images,
+                gallery: updatedProject?.gallery,
+                designPdf: updatedProject?.designPdf,
+                detailPdf: updatedProject?.detailPdf,
+              });
             }, 500);
           } else {
             if (totalFiles > 0) hideUploadProgress();
-            alert(data.error || '수정 실패');
+            console.error('❌ 저장 실패:', data);
+            alert(data.error || data.message || '수정 실패');
           }
         } catch (e) {
           if (totalFiles > 0) hideUploadProgress();
@@ -952,28 +1426,6 @@
         }
       });
 
-      window.uploadPdfInEdit = async (kind) => {
-        const prefix = kind.charAt(0).toUpperCase() + kind.slice(1);
-        const fileInput = document.getElementById(`edit${prefix}PdfFile`);
-        const statusEl = document.getElementById(`edit${prefix}PdfStatus`);
-        const hiddenInput = document.getElementById(`edit${prefix}Pdf`);
-        if (!fileInput.files?.length) return alert('PDF 파일을 선택하세요.');
-        const file = fileInput.files[0];
-        statusEl.textContent = '업로드 중...';
-        try {
-          const fdUp = new FormData();
-          fdUp.append('file', file);
-          const resp = await fetch(`${API_URL}/upload-pdf`, { method:'POST', body: fdUp });
-          if (!resp.ok) throw new Error(await resp.text());
-          const result = await resp.json();
-          if (!result.success) throw new Error(result.error || '업로드 실패');
-          hiddenInput.value = result.path;
-          statusEl.innerHTML = `<a href="${result.path}" target="_blank" class="text-blue-600 underline text-sm">${result.filename}</a>`;
-          fileInput.value = '';
-        } catch (err) {
-          statusEl.textContent = '업로드 실패';
-        }
-      };
     }
 
     const getContactDate = (contact) => {
@@ -1621,35 +2073,197 @@
       }
     }
 
-    // S3 직접 업로드 함수들
+    // S3 직접 업로드 함수들 (먼저 정의) - 전역으로도 사용 가능하도록
     async function uploadFilesToS3(files, folder = 'projects') {
-      if (!files || files.length === 0) return [];
+      console.log(`🔄 ========== uploadFilesToS3 호출됨 ==========`);
+      console.log(`🔄 파일 개수:`, files?.length);
+      console.log(`🔄 폴더:`, folder);
+      
+      if (!files || files.length === 0) {
+        console.error('❌ 업로드할 파일이 없습니다.');
+        throw new Error('업로드할 파일이 없습니다.');
+      }
 
       // 1. Presigned URL 요청
       const fileInfos = Array.from(files).map(file => ({
         filename: file.name,
         contentType: file.type
       }));
+      
+      console.log(`📤 Presigned URL 요청:`, { fileInfos, folder });
 
-      const response = await fetch(`/api/upload/presigned-urls`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ files: fileInfos, folder }),
-        credentials: 'include'
-      });
-
-      if (!response.ok) {
-        throw new Error('Presigned URL 생성 실패');
+      let response;
+      try {
+        response = await fetch(`/api/upload/presigned-urls`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ files: fileInfos, folder }),
+          credentials: 'include'
+        });
+        console.log(`📥 Presigned URL 응답 상태:`, response.status, response.statusText);
+      } catch (fetchError) {
+        console.error('❌ Presigned URL 요청 중 네트워크 오류:', fetchError);
+        throw new Error(`Presigned URL 요청 실패: ${fetchError.message}`);
       }
 
-      const { data: presignedData } = await response.json();
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Presigned URL API 오류:', response.status, errorText);
+        throw new Error(`Presigned URL 생성 실패 (${response.status}): ${errorText.substring(0, 100)}`);
+      }
 
-      // 2. 각 파일을 S3로 업로드
+      let result;
+      try {
+        result = await response.json();
+        console.log(`✅ Presigned URL 응답:`, result);
+      } catch (jsonError) {
+        console.error('❌ JSON 파싱 오류:', jsonError);
+        throw new Error('서버 응답을 파싱할 수 없습니다.');
+      }
+      
+      if (!result.success) {
+        console.error('❌ Presigned URL 생성 실패:', result.error);
+        throw new Error(result.error || 'Presigned URL 생성 실패');
+      }
+
+      const { data: presignedData } = result;
+
+      // 2. 각 파일을 S3/Vercel Blob/로컬로 업로드
       const uploadPromises = Array.from(files).map(async (file, index) => {
-        const { uploadUrl, fileUrl } = presignedData[index];
+        if (!presignedData[index]) {
+          throw new Error(`파일 ${index + 1} (${file.name})에 대한 presigned URL 데이터가 없습니다.`);
+        }
+        
+        const { uploadUrl, fileUrl, method = 'PUT' } = presignedData[index];
+        
+        if (!uploadUrl || !fileUrl) {
+          throw new Error(`파일 ${index + 1} (${file.name})에 대한 uploadUrl 또는 fileUrl이 없습니다.`);
+        }
+        
+        console.log(`📤 파일 ${index + 1}/${files.length} 업로드 시작:`, {
+          파일명: file.name,
+          크기: file.size,
+          타입: file.type,
+          uploadUrl,
+          fileUrl,
+          method,
+          localMode: result.localMode
+        });
 
+        // 로컬 모드인 경우 다른 방식으로 처리
+        if (result.localMode) {
+          console.log(`📤 ========== 로컬 모드 파일 업로드 시작 ==========`);
+          console.log(`📤 파일명: ${file.name}`);
+          console.log(`📤 파일 크기: ${file.size} bytes`);
+          console.log(`📤 파일 타입: ${file.type}`);
+          console.log(`📤 업로드 URL: ${uploadUrl}`);
+          console.log(`📤 예상 파일 URL: ${fileUrl}`);
+          console.log(`📤 presignedData:`, JSON.stringify(presignedData[index], null, 2));
+          
+          // 로컬 파일 업로드: PUT 메서드로 파일 직접 업로드
+          let uploadResponse;
+          try {
+            // uploadUrl이 상대 경로인 경우 절대 경로로 변환
+            const absoluteUploadUrl = uploadUrl.startsWith('http') 
+              ? uploadUrl 
+              : `${window.location.origin}${uploadUrl}`;
+            
+            console.log(`📤 로컬 업로드 요청 준비:`, {
+              원본URL: uploadUrl,
+              절대URL: absoluteUploadUrl,
+              origin: window.location.origin,
+              파일명: file.name,
+              파일크기: file.size,
+              타입: file.type
+            });
+            
+            console.log(`📤 fetch 요청 시작...`);
+            uploadResponse = await fetch(absoluteUploadUrl, {
+              method: 'PUT',
+              body: file,
+              headers: {
+                'Content-Type': file.type || 'application/pdf',
+              },
+              credentials: 'include'
+            });
+            
+            console.log(`📥 로컬 업로드 응답 받음:`, {
+              status: uploadResponse.status,
+              statusText: uploadResponse.statusText,
+              ok: uploadResponse.ok,
+              headers: Object.fromEntries(uploadResponse.headers.entries())
+            });
+          } catch (fetchError) {
+            console.error('❌ ========== 로컬 파일 업로드 요청 실패 ==========');
+            console.error('❌ fetch 오류:', fetchError);
+            console.error('❌ 오류 메시지:', fetchError.message);
+            console.error('❌ 오류 스택:', fetchError.stack);
+            console.error('❌ 오류 이름:', fetchError.name);
+            throw new Error(`파일 업로드 요청 실패: ${fetchError.message}`);
+          }
+
+          if (!uploadResponse.ok) {
+            let errorText;
+            try {
+              errorText = await uploadResponse.text();
+              console.error('❌ 에러 응답 본문:', errorText);
+            } catch (e) {
+              errorText = `응답 읽기 실패: ${e.message}`;
+            }
+            console.error('❌ 로컬 파일 업로드 오류:', {
+              status: uploadResponse.status,
+              statusText: uploadResponse.statusText,
+              errorText: errorText.substring(0, 500)
+            });
+            throw new Error(`파일 업로드 실패: ${file.name} (${uploadResponse.status}) - ${errorText.substring(0, 200)}`);
+          }
+
+          let uploadResult;
+          try {
+            const responseText = await uploadResponse.text();
+            console.log(`📥 로컬 업로드 응답 텍스트 (원본):`, responseText);
+            console.log(`📥 응답 텍스트 길이:`, responseText?.length || 0);
+            
+            if (!responseText || responseText.trim() === '') {
+              console.error('❌ 응답 본문이 비어있습니다!');
+              throw new Error('서버 응답이 비어있습니다.');
+            }
+            
+            uploadResult = JSON.parse(responseText);
+            console.log(`📥 로컬 업로드 응답 (파싱됨):`, uploadResult);
+            
+            // 응답 구조 확인
+            if (!uploadResult.success) {
+              throw new Error(uploadResult.error || '업로드 실패');
+            }
+          } catch (parseError) {
+            console.error('❌ JSON 파싱 오류:', parseError);
+            console.error('❌ 파싱 실패한 응답:', uploadResponse);
+            throw new Error(`서버 응답 파싱 실패: ${parseError.message}`);
+          }
+          
+          // API 응답에서 fileUrl을 가져오거나, 기본 fileUrl 사용
+          const finalUrl = uploadResult.fileUrl || uploadResult.url || fileUrl;
+          console.log(`✅ 최종 파일 URL:`, {
+            finalUrl,
+            uploadResultFileUrl: uploadResult.fileUrl,
+            uploadResultUrl: uploadResult.url,
+            presignedFileUrl: fileUrl,
+            최종선택: finalUrl
+          });
+          
+          if (!finalUrl || finalUrl.trim() === '') {
+            console.error('❌ 최종 파일 URL이 비어있습니다!');
+            console.error('❌ 응답 객체:', uploadResult);
+            throw new Error('파일 URL을 받지 못했습니다.');
+          }
+          
+          return finalUrl;
+        }
+
+        // S3 또는 Vercel Blob 업로드
         const uploadResponse = await fetch(uploadUrl, {
-          method: 'PUT',
+          method: method || 'PUT',
           body: file,
           headers: {
             'Content-Type': file.type,
@@ -1657,14 +2271,484 @@
         });
 
         if (!uploadResponse.ok) {
-          throw new Error(`파일 업로드 실패: ${file.name}`);
+          const errorText = await uploadResponse.text();
+          console.error('파일 업로드 오류:', uploadResponse.status, errorText);
+          throw new Error(`파일 업로드 실패: ${file.name} (${uploadResponse.status})`);
         }
 
+        console.log(`✅ 파일 ${index + 1}/${files.length} 업로드 완료:`, fileUrl);
         return fileUrl;
       });
 
-      return Promise.all(uploadPromises);
+      console.log(`⏳ 모든 파일 업로드 대기 중... (${uploadPromises.length}개)`);
+      const results = await Promise.all(uploadPromises);
+      console.log(`✅ 모든 파일 업로드 완료:`, results);
+      
+      // 결과 검증
+      if (!results || results.length === 0) {
+        throw new Error('업로드된 파일 URL이 없습니다.');
+      }
+      
+      const invalidResults = results.filter(url => !url || typeof url !== 'string');
+      if (invalidResults.length > 0) {
+        throw new Error(`일부 파일의 URL이 유효하지 않습니다: ${invalidResults.length}개`);
+      }
+      
+      return results;
     }
+    
+    // 전역에서도 접근 가능하도록
+    window.uploadFilesToS3 = uploadFilesToS3;
+
+    // 편집 모달용 업로드 함수들 (전역으로 정의)
+    window.uploadPdfInEdit = async (kind) => {
+      console.log(`🚀 ========== uploadPdfInEdit 호출됨 ==========`);
+      console.log(`🚀 kind: ${kind}`);
+      console.log(`🚀 window.uploadFilesToS3 존재 여부:`, typeof window.uploadFilesToS3);
+      console.log(`🚀 현재 시간:`, new Date().toISOString());
+      
+      try {
+        const prefix = kind.charAt(0).toUpperCase() + kind.slice(1);
+        const fileInputId = `edit${prefix}PdfFile`;
+        const statusElId = `edit${prefix}PdfStatus`;
+        const hiddenInputId = `edit${prefix}Pdf`;
+        
+        console.log(`📄 요소 ID:`, { fileInputId, statusElId, hiddenInputId });
+        
+        const fileInput = document.getElementById(fileInputId);
+        const statusEl = document.getElementById(statusElId);
+        const hiddenInput = document.getElementById(hiddenInputId);
+        
+        console.log(`📄 요소 찾기 결과:`, {
+          fileInput: fileInput ? `찾음 (${fileInputId})` : `없음 (${fileInputId})`,
+          statusEl: statusEl ? `찾음 (${statusElId})` : `없음 (${statusElId})`,
+          hiddenInput: hiddenInput ? `찾음 (${hiddenInputId})` : `없음 (${hiddenInputId})`,
+          fileInputFiles: fileInput?.files?.length || 0
+        });
+        
+        if (!fileInput) {
+          console.error(`❌ 파일 입력 요소를 찾을 수 없습니다: ${fileInputId}`);
+          alert(`파일 입력 요소를 찾을 수 없습니다: ${fileInputId}`);
+          return;
+        }
+        
+        if (!statusEl) {
+          console.error(`❌ 상태 요소를 찾을 수 없습니다: ${statusElId}`);
+          alert(`상태 요소를 찾을 수 없습니다: ${statusElId}`);
+          return;
+        }
+        
+        if (!hiddenInput) {
+          console.error(`❌ Hidden input 요소를 찾을 수 없습니다: ${hiddenInputId}`);
+          alert(`Hidden input 요소를 찾을 수 없습니다: ${hiddenInputId}`);
+          return;
+        }
+        
+        if (!fileInput.files || fileInput.files.length === 0) {
+          console.warn('⚠️ 파일이 선택되지 않음');
+          alert('PDF 파일을 선택하세요.');
+          return;
+        }
+        
+        const file = fileInput.files[0];
+        console.log(`📄 선택된 파일:`, {
+          name: file.name,
+          size: file.size,
+          type: file.type
+        });
+        
+        if (statusEl) {
+          statusEl.innerHTML = '<span class="text-blue-600">업로드 중...</span>';
+        }
+        
+        console.log(`📤 uploadFilesToS3 호출 시작...`);
+        console.log(`📤 파일 정보:`, { name: file.name, size: file.size, type: file.type });
+        
+        // uploadFilesToS3 함수가 정의되어 있는지 확인 (전역 또는 로컬)
+        const uploadFn = window.uploadFilesToS3 || (typeof uploadFilesToS3 !== 'undefined' ? uploadFilesToS3 : null);
+        if (!uploadFn || typeof uploadFn !== 'function') {
+          console.error('❌ uploadFilesToS3 함수를 찾을 수 없습니다.');
+          console.error('   window.uploadFilesToS3:', typeof window.uploadFilesToS3);
+          console.error('   uploadFilesToS3:', typeof uploadFilesToS3);
+          console.error('   사용 가능한 전역 함수:', Object.keys(window).filter(k => k.includes('upload')));
+          alert('업로드 함수를 찾을 수 없습니다. 페이지를 새로고침해주세요.');
+          if (statusEl) {
+            statusEl.innerHTML = '<span class="text-red-600">업로드 함수 오류 - 페이지를 새로고침하세요</span>';
+          }
+          return;
+        }
+        
+        console.log(`✅ uploadFilesToS3 함수 확인 완료`);
+        
+        // S3로 직접 업로드 (이미지와 동일한 방식)
+        console.log(`📤 파일 업로드 시작: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`);
+        let uploadedUrls;
+        
+        try {
+          console.log(`📤 uploadFilesToS3 함수 호출 시작...`);
+          console.log(`📤 폴더: projects/pdfs`);
+          console.log(`📤 파일: ${file.name} (${file.size} bytes, ${file.type})`);
+          
+          // PDF 업로드 (이미지와 동일한 방식)
+          uploadedUrls = await uploadFn([file], 'projects/pdfs');
+          console.log(`📄 업로드 완료 - 반환된 URL:`, uploadedUrls);
+          console.log(`📄 업로드 결과 타입:`, typeof uploadedUrls);
+          console.log(`📄 업로드 결과 배열 여부:`, Array.isArray(uploadedUrls));
+          
+          if (!uploadedUrls) {
+            throw new Error('업로드 함수가 null 또는 undefined를 반환했습니다.');
+          }
+          
+          if (!Array.isArray(uploadedUrls)) {
+            throw new Error(`업로드 함수가 배열이 아닌 값을 반환했습니다: ${typeof uploadedUrls}`);
+          }
+          
+          if (uploadedUrls.length === 0) {
+            throw new Error('업로드된 URL 배열이 비어있습니다.');
+          }
+          
+          if (!uploadedUrls[0] || typeof uploadedUrls[0] !== 'string') {
+            throw new Error(`업로드된 첫 번째 URL이 유효하지 않습니다: ${uploadedUrls[0]}`);
+          }
+          
+          console.log(`✅ 업로드 검증 완료: ${uploadedUrls[0]}`);
+        } catch (uploadError) {
+          console.error('❌ ========== 파일 업로드 중 오류 발생 ==========');
+          console.error('❌ 오류 객체:', uploadError);
+          console.error('❌ 오류 메시지:', uploadError.message);
+          console.error('❌ 오류 스택:', uploadError.stack);
+          console.error('❌ 오류 이름:', uploadError.name);
+          console.error('❌ 전체 오류:', JSON.stringify(uploadError, Object.getOwnPropertyNames(uploadError)));
+          
+          if (statusEl) {
+            statusEl.innerHTML = `<span class="text-red-600">업로드 실패: ${uploadError.message || '알 수 없는 오류'}</span>`;
+          }
+          
+          const errorMsg = uploadError.message || '알 수 없는 오류';
+          alert(`파일 업로드에 실패했습니다!\n\n오류: ${errorMsg}\n\n콘솔(F12)을 열어 자세한 내용을 확인해주세요.`);
+          return; // 에러 발생 시 함수 종료
+        }
+        
+        // 업로드 성공 처리 (이미지 업로드와 동일한 패턴)
+        if (!uploadedUrls || uploadedUrls.length === 0) {
+          console.error('❌ 업로드된 URL이 없습니다:', uploadedUrls);
+          throw new Error('업로드된 URL을 받지 못했습니다.');
+        }
+        
+        const pdfUrl = uploadedUrls[0];
+        
+        if (!pdfUrl || typeof pdfUrl !== 'string' || pdfUrl.trim() === '') {
+          console.error('❌ PDF URL이 유효하지 않습니다:', pdfUrl);
+          throw new Error('유효하지 않은 PDF URL을 받았습니다.');
+        }
+        
+        console.log(`✅ PDF 업로드 성공: ${pdfUrl}`);
+        
+        // Hidden input에 URL 저장
+        if (!hiddenInput) {
+          console.error(`❌ Hidden input을 찾을 수 없습니다: ${hiddenInputId}`);
+          alert(`Hidden input을 찾을 수 없습니다: ${hiddenInputId}`);
+          return;
+        }
+        
+        hiddenInput.value = pdfUrl;
+        console.log(`✅ Hidden input 설정: ${hiddenInputId} = ${pdfUrl}`);
+        
+        // 실제로 설정되었는지 확인
+        const verifyHidden = document.getElementById(hiddenInputId);
+        if (verifyHidden && verifyHidden.value !== pdfUrl) {
+          console.error(`❌ Hidden input 값 설정 실패!`, {
+            expected: pdfUrl,
+            actual: verifyHidden.value
+          });
+          // 강제로 다시 설정
+          verifyHidden.value = pdfUrl;
+        }
+        
+        // Status 요소 업데이트
+        if (!statusEl) {
+          console.error(`❌ Status 요소를 찾을 수 없습니다: ${statusElId}`);
+          alert(`Status 요소를 찾을 수 없습니다: ${statusElId}`);
+          return;
+        }
+        
+        const fileName = file.name.length > 30 ? file.name.substring(0, 30) + '...' : file.name;
+        
+        // Status 요소 업데이트 (파일명 링크)
+        statusEl.innerHTML = `<a href="${pdfUrl}" target="_blank" class="text-blue-600 hover:text-blue-700 underline font-normal break-all">${fileName}</a>`;
+        console.log(`✅ Status 요소 업데이트: ${file.name}`);
+        console.log(`✅ Status 요소 확인:`, {
+          statusEl: !!statusEl,
+          statusElId: statusElId,
+          innerHTML: statusEl.innerHTML.substring(0, 100),
+          parentElement: !!statusEl.parentElement,
+        });
+        
+        // 삭제 버튼 추가 (없으면)
+        const removeBtnId = `remove${prefix}PdfBtn`;
+        let removeBtn = document.getElementById(removeBtnId);
+        
+        console.log(`🔍 삭제 버튼 확인:`, {
+          removeBtnId: removeBtnId,
+          existingBtn: !!removeBtn,
+          statusElParent: !!statusEl.parentElement,
+          statusElParentClass: statusEl.parentElement?.className,
+        });
+        
+        if (!removeBtn) {
+          // Status 요소의 부모 요소 찾기 (flex items-center gap-3 flex-wrap)
+          const parentContainer = statusEl.parentElement;
+          
+          if (parentContainer) {
+            removeBtn = document.createElement('button');
+            removeBtn.id = removeBtnId;
+            removeBtn.type = 'button';
+            removeBtn.className = 'px-2 py-1 text-xs text-red-600 border border-red-200 rounded hover:bg-red-50 transition-colors flex-shrink-0 ml-2';
+            removeBtn.textContent = '삭제';
+            removeBtn.onclick = () => {
+              const hidden = document.getElementById(hiddenInputId);
+              const status = document.getElementById(statusElId);
+              if (hidden) hidden.value = '';
+              if (status) status.innerHTML = '<span class="text-gray-400">선택된 파일 없음</span>';
+              removeBtn.remove();
+              if (kind === 'design') window.removeDesignPdf = true;
+              if (kind === 'detail') window.removeDetailPdf = true;
+            };
+            parentContainer.appendChild(removeBtn);
+            console.log(`✅ 삭제 버튼 추가 완료: ${removeBtnId}`, {
+              parentContainer: parentContainer.className,
+              buttonAdded: !!document.getElementById(removeBtnId),
+            });
+          } else {
+            console.error(`❌ Status 요소의 부모 요소를 찾을 수 없습니다: ${statusElId}`);
+          }
+        } else {
+          console.log(`ℹ️ 삭제 버튼이 이미 존재합니다: ${removeBtnId}`);
+        }
+        
+        // 삭제 플래그 초기화
+        if (kind === 'design') {
+          window.removeDesignPdf = false;
+        } else if (kind === 'detail') {
+          window.removeDetailPdf = false;
+        }
+        
+        // 파일 입력 초기화
+        fileInput.value = '';
+        
+        // 전역 변수에도 저장 (백업)
+        if (kind === 'design') {
+          window.editDesignPdfUrl = pdfUrl;
+        } else if (kind === 'detail') {
+          window.editDetailPdfUrl = pdfUrl;
+        }
+        console.log(`✅ 전역 변수 저장:`, {
+          design: window.editDesignPdfUrl,
+          detail: window.editDetailPdfUrl
+        });
+        
+        // 최종 확인 및 재검증
+        let finalHiddenValue = document.getElementById(hiddenInputId)?.value;
+        console.log(`✅ 최종 확인 - Hidden input 값 (1차):`, finalHiddenValue);
+        
+        // 값이 없거나 다르면 강제로 다시 설정
+        if (!finalHiddenValue || finalHiddenValue.trim() === '' || finalHiddenValue !== pdfUrl) {
+          console.warn(`⚠️ Hidden input 값 문제! 강제 재설정...`, {
+            현재값: finalHiddenValue,
+            예상값: pdfUrl
+          });
+          
+          const retryHidden = document.getElementById(hiddenInputId);
+          if (retryHidden) {
+            retryHidden.value = pdfUrl;
+            finalHiddenValue = document.getElementById(hiddenInputId)?.value;
+            console.log(`✅ 재설정 후 값:`, finalHiddenValue);
+          }
+        }
+        
+        // Status 요소도 다시 확인하고 강제로 업데이트
+        const finalStatusEl = document.getElementById(statusElId);
+        if (finalStatusEl) {
+          const fileName = file.name.length > 30 ? file.name.substring(0, 30) + '...' : file.name;
+          const expectedHTML = `<a href="${pdfUrl}" target="_blank" class="text-blue-600 hover:text-blue-700 underline font-normal break-all">${fileName}</a>`;
+          
+          // Status 요소가 제대로 업데이트되었는지 확인
+          if (!finalStatusEl.innerHTML.includes(fileName) || !finalStatusEl.innerHTML.includes(pdfUrl)) {
+            console.warn(`⚠️ Status 요소가 제대로 업데이트되지 않음! 강제 재설정...`, {
+              현재HTML: finalStatusEl.innerHTML.substring(0, 100),
+              예상HTML: expectedHTML.substring(0, 100)
+            });
+            finalStatusEl.innerHTML = expectedHTML;
+          }
+          
+          // 삭제 버튼도 다시 확인
+          const finalRemoveBtn = document.getElementById(removeBtnId);
+          if (!finalRemoveBtn && finalStatusEl.parentElement) {
+            const newRemoveBtn = document.createElement('button');
+            newRemoveBtn.id = removeBtnId;
+            newRemoveBtn.type = 'button';
+            newRemoveBtn.className = 'px-2 py-1 text-xs text-red-600 border border-red-200 rounded hover:bg-red-50 transition-colors flex-shrink-0 ml-2';
+            newRemoveBtn.textContent = '삭제';
+            newRemoveBtn.onclick = () => {
+              const hidden = document.getElementById(hiddenInputId);
+              const status = document.getElementById(statusElId);
+              if (hidden) hidden.value = '';
+              if (status) status.innerHTML = '<span class="text-gray-400">선택된 파일 없음</span>';
+              newRemoveBtn.remove();
+              if (kind === 'design') window.removeDesignPdf = true;
+              if (kind === 'detail') window.removeDetailPdf = true;
+            };
+            finalStatusEl.parentElement.appendChild(newRemoveBtn);
+            console.log(`✅ 삭제 버튼 재추가 완료: ${removeBtnId}`);
+          }
+        }
+        
+        console.log(`✅ 최종 확인 - Hidden input 값 (최종):`, finalHiddenValue);
+        console.log(`✅ 최종 확인 - Status 요소:`, finalStatusEl?.innerHTML?.substring(0, 100));
+        console.log(`✅ 최종 확인 - 삭제 버튼:`, !!document.getElementById(removeBtnId));
+        console.log(`✅ 최종 확인 - 전역 변수:`, kind === 'design' ? window.editDesignPdfUrl : window.editDetailPdfUrl);
+        
+        if (!finalHiddenValue || finalHiddenValue.trim() === '') {
+          console.error(`❌ 최종 검증 실패! Hidden input이 비어있습니다.`);
+          alert(`경고: PDF URL이 저장되지 않았을 수 있습니다.\n\n업로드된 URL: ${pdfUrl}\n\n콘솔을 확인해주세요.`);
+        } else {
+          console.log(`✅ 최종 검증 성공: ${finalHiddenValue}`);
+          // alert 제거 (모달이 닫히는 것을 방지)
+          // 대신 Status 요소에 성공 표시
+          if (finalStatusEl) {
+            const fileName = file.name.length > 30 ? file.name.substring(0, 30) + '...' : file.name;
+            finalStatusEl.innerHTML = `<a href="${pdfUrl}" target="_blank" class="text-green-600 hover:text-green-700 underline font-normal break-all">✅ ${fileName}</a>`;
+            setTimeout(() => {
+              if (finalStatusEl) {
+                const fileName = file.name.length > 30 ? file.name.substring(0, 30) + '...' : file.name;
+                finalStatusEl.innerHTML = `<a href="${pdfUrl}" target="_blank" class="text-blue-600 hover:text-blue-700 underline font-normal break-all">${fileName}</a>`;
+              }
+            }, 2000);
+          }
+        }
+      } catch (err) {
+        console.error('❌ PDF 업로드 오류:', err);
+        console.error('❌ 오류 상세:', err.message);
+        console.error('❌ 오류 스택:', err.stack);
+        
+        const prefix = kind.charAt(0).toUpperCase() + kind.slice(1);
+        const statusElId = `edit${prefix}PdfStatus`;
+        const statusEl = document.getElementById(statusElId);
+        
+        if (statusEl) {
+          statusEl.innerHTML = '<span class="text-red-600">업로드 실패: ' + (err.message || '알 수 없는 오류') + '</span>';
+        }
+        
+        const errorMessage = err.message || '알 수 없는 오류';
+        alert(`PDF 업로드에 실패했습니다: ${errorMessage}\n\n콘솔을 확인해주세요.`);
+      }
+    };
+
+    window.uploadImageInEdit = async (kind) => {
+      console.log(`🖼️ uploadImageInEdit 호출됨: kind=${kind}`);
+      
+      try {
+        if (kind === 'main') {
+          const fileInput = document.getElementById('editMainImageFile');
+          const statusEl = document.getElementById('editMainImageStatus');
+          
+          console.log(`🖼️ 대표 이미지 업로드:`, {
+            fileInput: fileInput ? '찾음' : '없음',
+            statusEl: statusEl ? '찾음' : '없음',
+            filesCount: fileInput?.files?.length || 0
+          });
+          
+          if (!fileInput) {
+            alert('파일 입력 요소를 찾을 수 없습니다: editMainImageFile');
+            return;
+          }
+          
+          if (!fileInput.files || fileInput.files.length === 0) {
+            alert('이미지 파일을 선택하세요.');
+            return;
+          }
+          
+          const file = fileInput.files[0];
+          console.log(`🖼️ 선택된 파일:`, { name: file.name, size: file.size, type: file.type });
+          
+          if (statusEl) statusEl.innerHTML = '<span class="text-blue-600">업로드 중...</span>';
+          
+          console.log(`📤 uploadFilesToS3 호출 시작...`);
+          const uploadedUrls = await uploadFilesToS3([file], 'projects');
+          console.log(`🖼️ 업로드된 URL:`, uploadedUrls);
+          
+          if (uploadedUrls && uploadedUrls.length > 0) {
+            const imageUrl = uploadedUrls[0];
+            if (statusEl) statusEl.innerHTML = `<a href="${imageUrl}" target="_blank" class="text-blue-600 hover:text-blue-700 underline font-medium">${file.name}</a>`;
+            window.editMainImageUrl = imageUrl;
+            fileInput.value = '';
+            alert('대표 이미지가 업로드되었습니다. 저장 버튼을 눌러주세요.');
+          } else {
+            throw new Error('업로드된 URL을 받지 못했습니다.');
+          }
+        } else if (kind === 'gallery') {
+          const fileInput = document.getElementById('editGalleryImagesFile');
+          const statusContainer = document.getElementById('editGalleryImagesStatus');
+          
+          console.log(`🖼️ 갤러리 이미지 업로드:`, {
+            fileInput: fileInput ? '찾음' : '없음',
+            statusContainer: statusContainer ? '찾음' : '없음',
+            filesCount: fileInput?.files?.length || 0
+          });
+          
+          if (!fileInput) {
+            alert('파일 입력 요소를 찾을 수 없습니다: editGalleryImagesFile');
+            return;
+          }
+          
+          if (!fileInput.files || fileInput.files.length === 0) {
+            alert('이미지 파일을 선택하세요.');
+            return;
+          }
+          
+          const files = Array.from(fileInput.files);
+          console.log(`🖼️ 선택된 파일들:`, files.map(f => ({ name: f.name, size: f.size, type: f.type })));
+          
+          if (statusContainer) statusContainer.innerHTML = '<p class="text-blue-600">업로드 중...</p>';
+          
+          console.log(`📤 uploadFilesToS3 호출 시작...`);
+          const uploadedUrls = await uploadFilesToS3(files, 'projects');
+          console.log(`🖼️ 업로드된 URL:`, uploadedUrls);
+          
+          if (uploadedUrls && uploadedUrls.length > 0) {
+            if (!window.editGalleryList) window.editGalleryList = [];
+            window.editGalleryList = [...window.editGalleryList, ...uploadedUrls];
+            if (window.refreshEditGalleryStatus) {
+              window.refreshEditGalleryStatus();
+            } else {
+              const container = document.getElementById('editGalleryImagesStatus');
+              if (container) {
+                container.innerHTML = window.editGalleryList.map((img, idx) => `
+                  <div class="flex items-center gap-2 py-2 px-3 bg-gray-50 rounded-lg border border-gray-200" data-existing-gallery="${img}">
+                    <span class="truncate flex-1 text-xs font-medium" title="${img}">${img.split('/').pop()}</span>
+                    <button type="button" class="px-2 py-1 text-xs text-red-600 border border-red-200 rounded hover:bg-red-50 transition-colors flex-shrink-0" data-remove-gallery="${idx}">삭제</button>
+                  </div>
+                `).join('');
+              }
+            }
+            fileInput.value = '';
+            alert(`${uploadedUrls.length}개의 이미지가 업로드되었습니다. 저장 버튼을 눌러주세요.`);
+          } else {
+            throw new Error('업로드된 URL을 받지 못했습니다.');
+          }
+        }
+      } catch (err) {
+        console.error('❌ 이미지 업로드 오류:', err);
+        console.error('❌ 오류 스택:', err.stack);
+        const statusEl = kind === 'main' 
+          ? document.getElementById('editMainImageStatus')
+          : document.getElementById('editGalleryImagesStatus');
+        if (statusEl) {
+          statusEl.innerHTML = '<span class="text-red-600">업로드 실패: ' + err.message + '</span>';
+        }
+        alert('이미지 업로드에 실패했습니다: ' + err.message);
+      }
+    };
 
     async function uploadFilesToS3WithProgress(files, folder = 'projects') {
       if (!files || files.length === 0) return [];

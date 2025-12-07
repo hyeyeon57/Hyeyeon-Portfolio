@@ -154,14 +154,14 @@ export const renderDetailModal = (project, files, categoryLabels, isAuthenticate
   };
   return `
     <div class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="this.remove()">
-      <div class="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[85vh] overflow-y-auto" onclick="event.stopPropagation()">
-        <div class="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
+      <div class="bg-white rounded-2xl shadow-xl max-w-xl w-full max-h-[90vh] flex flex-col overflow-hidden" onclick="event.stopPropagation()">
+        <div class="flex-shrink-0 bg-white border-b px-6 py-4 flex justify-between items-center">
           <h2 class="text-2xl font-bold text-gray-900">${project.title}</h2>
           <button onclick="this.closest('.fixed').remove()" class="p-2 hover:bg-gray-100 rounded-full transition">
             <i data-lucide="x" class="w-6 h-6"></i>
           </button>
         </div>
-        <div class="p-6 space-y-6">
+        <div class="flex-1 p-6 space-y-6" style="overflow-y: auto; overflow-x: hidden; flex: 1 1 auto; min-height: 0; scrollbar-width: thin; scrollbar-color: #cbd5e0 #f7fafc; -webkit-overflow-scrolling: touch;">
           <div>
             <h3 class="text-sm font-medium text-gray-500 mb-1">부제목</h3>
             <p class="text-lg text-gray-900">${project.subtitle || ''}</p>
@@ -236,7 +236,7 @@ export const renderDetailModal = (project, files, categoryLabels, isAuthenticate
             </div>
           </div>
         </div>
-        <div class="sticky bottom-0 bg-white border-t px-6 py-4 flex justify-end gap-3">
+        <div class="flex-shrink-0 bg-white border-t px-6 py-4 flex justify-end gap-3" style="flex-shrink: 0;">
           ${
             isAuthenticated
               ? `<button onclick="editProject('${project.id}'); this.closest('.fixed').remove();" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
@@ -255,15 +255,15 @@ export const renderDetailModal = (project, files, categoryLabels, isAuthenticate
 
 export const renderEditModal = (project, categoryLabels) => {
   return `
-    <div class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="this.remove()">
-      <div class="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[85vh] overflow-y-auto" onclick="event.stopPropagation()">
-        <div class="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
-          <h2 class="text-2xl font-bold text-gray-900">프로젝트 수정</h2>
+    <div class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" id="editModalBackdrop">
+      <div class="bg-white rounded-2xl shadow-xl max-w-xl w-full max-h-[90vh] flex flex-col" onclick="event.stopPropagation()">
+        <div class="flex-shrink-0 bg-white border-b px-6 py-4 flex justify-between items-center rounded-t-2xl">
+          <h2 class="text-xl font-bold text-gray-900">프로젝트 수정</h2>
           <button onclick="this.closest('.fixed').remove()" class="p-2 hover:bg-gray-100 rounded-full transition">
-            <i data-lucide="x" class="w-6 h-6"></i>
+            <i data-lucide="x" class="w-5 h-5"></i>
           </button>
         </div>
-        <form id="editForm" class="p-6 space-y-6">
+        <form id="editForm" class="flex-1 overflow-y-auto p-6 space-y-4" style="scrollbar-width: thin; scrollbar-color: #cbd5e0 #f7fafc;">
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">제목 *</label>
             <input type="text" name="title" value="${project.title || ''}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg" />
@@ -327,18 +327,22 @@ export const renderEditModal = (project, categoryLabels) => {
             <label class="block text-sm font-medium text-gray-700 mb-2">주요 성과 (줄바꿈으로 구분)</label>
             <textarea name="achievements" rows="5" class="w-full px-4 py-2 border border-gray-300 rounded-lg">${(project.achievements || []).join('\\n')}</textarea>
           </div>
-          <div class="space-y-4 border rounded-lg p-4 bg-gray-50">
+          <div class="space-y-3 border rounded-lg p-3 bg-gray-50">
             <div class="flex items-center gap-2">
               <i data-lucide="file-text" class="w-4 h-4 text-gray-600"></i>
-              <h3 class="text-lg font-semibold text-gray-800">PDF 업로드</h3>
-              <span class="text-sm text-gray-500">(업로드 후 URL 자동 저장)</span>
+              <h3 class="text-base font-semibold text-gray-800">PDF 업로드</h3>
+              <span class="text-xs text-gray-500">(업로드 후 URL 자동 저장)</span>
             </div>
             <div class="space-y-2">
               <label class="block text-sm font-medium text-gray-700">화면 설계서 PDF</label>
               <div class="flex items-center gap-3 flex-wrap">
                 <input type="file" accept="application/pdf" id="editDesignPdfFile" class="text-sm" />
-                <button type="button" onclick="uploadPdfInEdit('design')" class="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">업로드</button>
-                <span id="editDesignPdfStatus" class="text-sm text-gray-600">${project.designPdf ? `<a href="${project.designPdf}" target="_blank" class="text-blue-600 underline">${truncate(project.designPdf.split('/').pop())}</a>` : ''}</span>
+                <button type="button" onclick="console.log('🔘 Design PDF 업로드 버튼 클릭'); if (window.uploadPdfInEdit) { window.uploadPdfInEdit('design'); } else { console.error('❌ window.uploadPdfInEdit가 정의되지 않았습니다!'); alert('업로드 함수를 찾을 수 없습니다. 페이지를 새로고침해주세요.'); }" class="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">업로드</button>
+                <span id="editDesignPdfStatus" class="text-sm text-gray-600">
+                  ${project.designPdf 
+                    ? `<a href="${project.designPdf}" target="_blank" class="text-blue-600 underline">${truncate(project.designPdf.split('/').pop())}</a>` 
+                    : '<span class="text-gray-400">선택된 파일 없음</span>'}
+                </span>
                 ${project.designPdf ? `<button type="button" id="removeDesignPdfBtn" class="px-2 py-1 text-xs text-red-600 border border-red-200 rounded">삭제</button>` : ''}
               </div>
               <input type="hidden" name="designPdf" id="editDesignPdf" value="${project.designPdf || ''}" />
@@ -347,18 +351,22 @@ export const renderEditModal = (project, categoryLabels) => {
               <label class="block text-sm font-medium text-gray-700">프로젝트 상세보기 PDF</label>
               <div class="flex items-center gap-3 flex-wrap">
                 <input type="file" accept="application/pdf" id="editDetailPdfFile" class="text-sm" />
-                <button type="button" onclick="uploadPdfInEdit('detail')" class="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">업로드</button>
-                <span id="editDetailPdfStatus" class="text-sm text-gray-600">${project.detailPdf ? `<a href="${project.detailPdf}" target="_blank" class="text-blue-600 underline">${truncate(project.detailPdf.split('/').pop())}</a>` : ''}</span>
+                <button type="button" onclick="console.log('🔘 Detail PDF 업로드 버튼 클릭'); if (window.uploadPdfInEdit) { window.uploadPdfInEdit('detail'); } else { console.error('❌ window.uploadPdfInEdit가 정의되지 않았습니다!'); alert('업로드 함수를 찾을 수 없습니다. 페이지를 새로고침해주세요.'); }" class="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">업로드</button>
+                <span id="editDetailPdfStatus" class="text-sm text-gray-600">
+                  ${project.detailPdf 
+                    ? `<a href="${project.detailPdf}" target="_blank" class="text-blue-600 underline">${truncate(project.detailPdf.split('/').pop())}</a>` 
+                    : '<span class="text-gray-400">선택된 파일 없음</span>'}
+                </span>
                 ${project.detailPdf ? `<button type="button" id="removeDetailPdfBtn" class="px-2 py-1 text-xs text-red-600 border border-red-200 rounded">삭제</button>` : ''}
               </div>
               <input type="hidden" name="detailPdf" id="editDetailPdf" value="${project.detailPdf || ''}" />
             </div>
           </div>
-          <div class="space-y-4 border rounded-lg p-4 bg-gray-50">
+          <div class="space-y-3 border rounded-lg p-3 bg-gray-50">
             <div class="flex items-center gap-2">
               <i data-lucide="image" class="w-4 h-4 text-gray-600"></i>
-              <h3 class="text-lg font-semibold text-gray-800">이미지 업로드</h3>
-              <span class="text-sm text-gray-500">(대표 1개, 갤러리 여러 개)</span>
+              <h3 class="text-base font-semibold text-gray-800">이미지 업로드</h3>
+              <span class="text-xs text-gray-500">(대표 1개, 갤러리 여러 개)</span>
             </div>
             <div class="space-y-2">
               <label class="block text-sm font-medium text-gray-700">대표 이미지</label>
@@ -379,11 +387,11 @@ export const renderEditModal = (project, categoryLabels) => {
               </div>
             </div>
           </div>
-          <div class="flex gap-4 pt-4">
-            <button type="submit" class="flex-1 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition font-medium">
+          <div class="flex gap-3 pt-4 pb-2 sticky bottom-0 bg-white border-t -mx-6 px-6 py-4 mt-4">
+            <button type="submit" class="flex-1 bg-blue-600 text-white py-2.5 rounded-lg hover:bg-blue-700 transition font-medium text-sm">
               수정 완료
             </button>
-            <button type="button" onclick="this.closest('.fixed').remove()" class="px-8 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
+            <button type="button" onclick="this.closest('.fixed').remove()" class="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition text-sm">
               취소
             </button>
           </div>

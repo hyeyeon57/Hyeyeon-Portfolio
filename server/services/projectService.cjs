@@ -164,6 +164,83 @@ const updateProject = async ({ id, payload, files }) => {
   }
 
   const projectData = payload.project ? JSON.parse(payload.project) : payload;
+  
+  // 디버깅: 받은 payload 확인
+  console.log('[projectService] 받은 payload에서 PDF 필드 확인:', {
+    designPdf: projectData.designPdf,
+    detailPdf: projectData.detailPdf,
+    designPdfType: typeof projectData.designPdf,
+    detailPdfType: typeof projectData.detailPdf,
+    designPdfExists: 'designPdf' in projectData,
+    detailPdfExists: 'detailPdf' in projectData,
+    designPdfLength: projectData.designPdf ? projectData.designPdf.length : 0,
+    detailPdfLength: projectData.detailPdf ? projectData.detailPdf.length : 0,
+    removeDesignPdf: projectData.removeDesignPdf,
+    removeDetailPdf: projectData.removeDetailPdf,
+  });
+  
+  // 삭제 플래그 처리
+  if (projectData.removeMainImage === true) {
+    projectData.image = null;
+    delete projectData.removeMainImage;
+  }
+  
+  // PDF 필드 처리 (단순화)
+  // 1. 삭제 플래그가 있으면 null로 설정
+  // 2. 값이 있으면 그대로 사용
+  // 3. 값이 없거나 빈 문자열이면 필드 제거 (기존 값 유지)
+  
+  if (projectData.removeDesignPdf === true || projectData.removeDesignPdf === 'true') {
+    projectData.designPdf = null;
+    console.log('[projectService] designPdf 삭제 플래그 감지, null로 설정');
+    delete projectData.removeDesignPdf;
+  } else if (projectData.designPdf && typeof projectData.designPdf === 'string' && projectData.designPdf.trim() !== '') {
+    // 유효한 값이 있으면 그대로 사용
+    console.log('[projectService] designPdf 저장:', projectData.designPdf);
+    console.log('[projectService] designPdf 값 검증:', {
+      value: projectData.designPdf,
+      type: typeof projectData.designPdf,
+      length: projectData.designPdf.length,
+      trimmed: projectData.designPdf.trim(),
+      trimmedLength: projectData.designPdf.trim().length,
+      isEmpty: projectData.designPdf.trim() === ''
+    });
+  } else {
+    // 값이 없거나 빈 문자열이면 필드 제거 (기존 값 유지)
+    console.log('[projectService] designPdf 값 없음, 필드 제거 (기존 값 유지)', {
+      value: projectData.designPdf,
+      type: typeof projectData.designPdf,
+      exists: 'designPdf' in projectData
+    });
+    delete projectData.designPdf;
+  }
+  
+  if (projectData.removeDetailPdf === true || projectData.removeDetailPdf === 'true') {
+    projectData.detailPdf = null;
+    console.log('[projectService] detailPdf 삭제 플래그 감지, null로 설정');
+    delete projectData.removeDetailPdf;
+  } else if (projectData.detailPdf && typeof projectData.detailPdf === 'string' && projectData.detailPdf.trim() !== '') {
+    // 유효한 값이 있으면 그대로 사용
+    console.log('[projectService] detailPdf 저장:', projectData.detailPdf);
+    console.log('[projectService] detailPdf 값 검증:', {
+      value: projectData.detailPdf,
+      type: typeof projectData.detailPdf,
+      length: projectData.detailPdf.length,
+      trimmed: projectData.detailPdf.trim(),
+      trimmedLength: projectData.detailPdf.trim().length,
+      isEmpty: projectData.detailPdf.trim() === ''
+    });
+  } else {
+    // 값이 없거나 빈 문자열이면 필드 제거 (기존 값 유지)
+    console.log('[projectService] detailPdf 값 없음, 필드 제거 (기존 값 유지)', {
+      value: projectData.detailPdf,
+      type: typeof projectData.detailPdf,
+      exists: 'detailPdf' in projectData
+    });
+    delete projectData.detailPdf;
+  }
+  
+  // 파일 업로드 처리 (files 파라미터가 있는 경우만)
   if (files) {
     if (files.mainImage && files.mainImage.length > 0) {
       const [mainImagePath] = await saveFiles(files.mainImage, 'img');
@@ -179,13 +256,79 @@ const updateProject = async ({ id, payload, files }) => {
       projectData.gallery = merged;
     }
   }
-  projectData.id = project.id || id;
-
+  
+  // images와 gallery 배열이 빈 배열인 경우 처리
+  if (Array.isArray(projectData.images) && projectData.images.length === 0) {
+    projectData.images = [];
+    projectData.gallery = [];
+  }
+  
+  // undefined/null 필드와 remove 플래그 제거 (MongoDB $set에 포함되지 않도록)
+  const cleanedProjectData = {};
+  for (const [key, value] of Object.entries(projectData)) {
+    // undefined, null이 아닌 값만 포함 (단, null은 명시적 삭제이므로 포함)
+    if (value !== undefined) {
+      cleanedProjectData[key] = value;
+    }
+  }
+  
+  // id는 항상 포함
+  cleanedProjectData.id = project.id || id;
+  
+  // remove 플래그는 제거 (이미 처리됨)
+  delete cleanedProjectData.removeMainImage;
+  delete cleanedProjectData.removeDesignPdf;
+  delete cleanedProjectData.removeDetailPdf;
+  
+  // 디버깅: PDF 필드가 cleanedProjectData에 포함되었는지 확인
+  console.log('[projectService] 정리된 프로젝트 데이터:', {
+    id: cleanedProjectData.id,
+    image: cleanedProjectData.image,
+    images: cleanedProjectData.images,
+    gallery: cleanedProjectData.gallery,
+    designPdf: cleanedProjectData.designPdf,
+    detailPdf: cleanedProjectData.detailPdf,
+    designPdfInObject: 'designPdf' in cleanedProjectData,
+    detailPdfInObject: 'detailPdf' in cleanedProjectData,
+    designPdfBeforeClean: projectData.designPdf,
+    detailPdfBeforeClean: projectData.detailPdf,
+    designPdfInProjectData: 'designPdf' in projectData,
+    detailPdfInProjectData: 'detailPdf' in projectData,
+  });
+  
+  // PDF 필드가 projectData에 있었는데 cleanedProjectData에 없으면 경고
+  if ('designPdf' in projectData && !('designPdf' in cleanedProjectData)) {
+    console.error('[projectService] ⚠️ designPdf가 projectData에 있었는데 cleanedProjectData에서 사라졌습니다!', {
+      projectDataValue: projectData.designPdf,
+      projectDataType: typeof projectData.designPdf,
+      isUndefined: projectData.designPdf === undefined,
+      isNull: projectData.designPdf === null,
+    });
+  }
+  if ('detailPdf' in projectData && !('detailPdf' in cleanedProjectData)) {
+    console.error('[projectService] ⚠️ detailPdf가 projectData에 있었는데 cleanedProjectData에서 사라졌습니다!', {
+      projectDataValue: projectData.detailPdf,
+      projectDataType: typeof projectData.detailPdf,
+      isUndefined: projectData.detailPdf === undefined,
+      isNull: projectData.detailPdf === null,
+    });
+  }
+  
+  console.log('[projectService] MongoDB 업데이트 시작...');
   const updatedProject = await Project.findOneAndUpdate(
     { _id: project._id },
-    { $set: projectData },
+    { $set: cleanedProjectData },
     { new: true, runValidators: true }
   );
+
+  console.log('[projectService] MongoDB 업데이트 완료:', {
+    id: updatedProject?.id || updatedProject?._id,
+    image: updatedProject?.image,
+    images: updatedProject?.images,
+    gallery: updatedProject?.gallery,
+    designPdf: updatedProject?.designPdf,
+    detailPdf: updatedProject?.detailPdf,
+  });
 
   return { ok: true, data: updatedProject };
 };

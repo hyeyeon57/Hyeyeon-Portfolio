@@ -20,6 +20,7 @@
     "@aws-sdk/client-s3": "^3.757.0",
     "@aws-sdk/s3-request-presigner": "^3.943.0",
     "@emailjs/browser": "^4.4.1",
+    "@vercel/blob": "^0.19.2",
     "@vercel/speed-insights": "^1.2.0",
     "clsx": "^2.1.1",
     "connect-mongo": "^6.0.0",

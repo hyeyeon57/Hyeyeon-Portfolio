@@ -17,8 +17,6 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
 
   // UI 상태만 관리
   const [selectedProject, setSelectedProject] = useState<typeof projects[0] | null>(null);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [imageDirection, setImageDirection] = useState(0); // 상세 이미지 슬라이드 방향
   const [showGalleryModal, setShowGalleryModal] = useState(false);
   const [galleryProject, setGalleryProject] = useState<typeof projects[0] | null>(null);
   const [galleryIndex, setGalleryIndex] = useState(0);
@@ -28,7 +26,6 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
   const [isHoveringFirstImage, setIsHoveringFirstImage] = useState(false); // 팝업 내 대표 이미지 hover 상태
   const [showLightboxTooltip, setShowLightboxTooltip] = useState(false); // 라이트박스 자동 툴팁 (최초 1회)
   const [hasShownLightboxTooltip, setHasShownLightboxTooltip] = useState(false); // 이 세션에서 이미 한 번 보여줬는지 여부
-  const [isHoveringLightboxImage, setIsHoveringLightboxImage] = useState(false); // 라이트박스 이미지 hover 상태 (자동 툴팁 이후에는 사용하지 않음)
 
   // 키보드로 라이트박스 제어 (ESC: 닫기, ← →: 이미지 이동)
   useEffect(() => {
@@ -36,11 +33,12 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
     
     // 라이트박스용 이미지 목록 구성
     const lightboxImages: string[] = [];
-    const backendImages = (selectedProject as any)?.images;
+    const projectWithExtras = selectedProject as typeof selectedProject & { images?: string[]; gallery?: string[] };
+    const backendImages = projectWithExtras?.images;
     if (backendImages && Array.isArray(backendImages)) {
       lightboxImages.push(...backendImages.filter(Boolean));
-    } else if ((selectedProject as any)?.gallery && Array.isArray((selectedProject as any).gallery)) {
-      lightboxImages.push(...((selectedProject as any).gallery as string[]).filter(Boolean));
+    } else if (projectWithExtras?.gallery && Array.isArray(projectWithExtras.gallery)) {
+      lightboxImages.push(...projectWithExtras.gallery.filter(Boolean));
     }
     if (selectedProject?.image) {
       const main = selectedProject.image as string;
@@ -85,7 +83,6 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
   useEffect(() => {
     if (!lightboxImage) {
       setShowLightboxTooltip(false);
-      setIsHoveringLightboxImage(false);
       return;
     }
 
@@ -154,7 +151,6 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
     // 에러 타입별 분류
     const is500Error = error.includes('500') || error.includes('Internal Server Error');
     const is503Error = error.includes('503') || error.includes('Service Unavailable');
-    const is504Error = error.includes('504') || error.includes('Gateway Timeout');
     const isMongoDBError = error.includes('MongoDB') || error.includes('연결');
     const isNetworkError = error.includes('fetch failed') || error.includes('ECONNREFUSED') || error.includes('연결할 수 없습니다');
     const isTimeoutError = error.includes('타임아웃') || error.includes('timeout');
@@ -305,8 +301,6 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
               className="group cursor-pointer"
               onClick={() => {
                 setSelectedProject(project);
-                setCurrentImageIndex(0);
-                setImageDirection(0);
               }}
             >
               <div className="bg-white rounded-2xl overflow-hidden border border-line-light hover:border-brand-main/50 transition-all duration-300 hover:shadow-xl h-full flex flex-col">
@@ -440,8 +434,9 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                   try {
                     const images: string[] = [];
                     if (selectedProject?.image) images.push(selectedProject.image as string);
-                    if ((selectedProject as any)?.gallery && Array.isArray((selectedProject as any).gallery)) {
-                      images.push(...((selectedProject as any).gallery as string[]).filter(Boolean));
+                    const projectWithExtras = selectedProject as typeof selectedProject & { gallery?: string[] };
+                    if (projectWithExtras?.gallery && Array.isArray(projectWithExtras.gallery)) {
+                      images.push(...projectWithExtras.gallery.filter(Boolean));
                     }
                     const total = images.length;
                     if (total === 0) return null;
@@ -599,7 +594,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                     회고
                   </h3>
                   <p className="text-text-secondary leading-relaxed whitespace-pre-line">
-                    {(selectedProject as any).retrospective || '회고 내용이 없습니다.'}
+                    {(selectedProject as typeof selectedProject & { retrospective?: string }).retrospective || '회고 내용이 없습니다.'}
                   </p>
                 </div>
 
@@ -607,7 +602,8 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                 <div className="mt-8 pt-8 border-t border-line-light flex flex-wrap gap-3">
                   {/* 프로젝트 상세보기 - PDF 우선, 없으면 링크 */}
                   {(() => {
-                    const detailPdf = (selectedProject as any).detailPdf;
+                    const projectWithExtras = selectedProject as typeof selectedProject & { detailPdf?: string };
+                    const detailPdf = projectWithExtras.detailPdf;
                     const link = selectedProject.link;
                     
                     if (detailPdf) {
@@ -649,8 +645,14 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                   
                   {/* 화면 설계서 보기 - PDF 우선, 없으면 링크 */}
                   {(() => {
-                    const designPdf = (selectedProject as any).designPdf;
-                    const designLink = (selectedProject as any).designLink || (selectedProject as any).figmaLink || (selectedProject as any).designFile;
+                    const projectWithExtras = selectedProject as typeof selectedProject & {
+                      designPdf?: string;
+                      designLink?: string;
+                      figmaLink?: string;
+                      designFile?: string;
+                    };
+                    const designPdf = projectWithExtras.designPdf;
+                    const designLink = projectWithExtras.designLink || projectWithExtras.figmaLink || projectWithExtras.designFile;
                     
                     if (designPdf) {
                       return (
@@ -754,9 +756,10 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
               <div className="p-6 overflow-y-auto custom-scrollbar max-h-[calc(90vh-80px)]">
                 {(() => {
                   const galleryImages: string[] = [];
-                  if ((galleryProject as any).image) galleryImages.push((galleryProject as any).image);
-                  if ((galleryProject as any).gallery && Array.isArray((galleryProject as any).gallery)) {
-                    galleryImages.push(...(galleryProject as any).gallery.filter(Boolean));
+                  const projectWithExtras = galleryProject as typeof galleryProject & { gallery?: string[] };
+                  if (galleryProject?.image) galleryImages.push(galleryProject.image as string);
+                  if (projectWithExtras.gallery && Array.isArray(projectWithExtras.gallery)) {
+                    galleryImages.push(...projectWithExtras.gallery.filter(Boolean));
                   }
                   if (!galleryImages.length) {
                     return (
@@ -837,12 +840,13 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
             const lightboxImages: string[] = [];
 
             // 백엔드에서 normalize된 images 배열 우선 사용
-            const backendImages = (selectedProject as any)?.images;
+            const projectWithExtras = selectedProject as typeof selectedProject & { images?: string[]; gallery?: string[] };
+            const backendImages = projectWithExtras?.images;
             if (backendImages && Array.isArray(backendImages)) {
               lightboxImages.push(...backendImages.filter(Boolean));
-            } else if ((selectedProject as any)?.gallery && Array.isArray((selectedProject as any).gallery)) {
+            } else if (projectWithExtras?.gallery && Array.isArray(projectWithExtras.gallery)) {
               // 구 버전 데이터용 fallback
-              lightboxImages.push(...((selectedProject as any).gallery as string[]).filter(Boolean));
+              lightboxImages.push(...projectWithExtras.gallery.filter(Boolean));
             }
 
             // 메인 이미지가 따로 있고, 배열에 포함되어 있지 않으면 선두에 추가
