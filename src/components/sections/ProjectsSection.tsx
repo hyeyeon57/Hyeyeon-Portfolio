@@ -430,7 +430,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
               </div>
 
               {/* Modal Content */}
-              <div className="p-8 md:p-10">
+              <div className="p-0">
                 {/* 이미지 세로 스크롤 - 크게 표시 */}
                 {(() => {
                   try {
@@ -447,7 +447,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                       <div className="mb-8 rounded-2xl overflow-hidden border border-line-light bg-white">
                         {/* 스크롤 가능한 이미지 영역 */}
                         <div className="max-h-[70vh] overflow-y-auto custom-scrollbar">
-                          <div className="space-y-6 p-6">
+                          <div className="space-y-0">
                             {images.map((image, index) => {
                               if (!image) return null;
                               return (
@@ -456,7 +456,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                                   initial={{ opacity: 0, y: 20 }}
                                   animate={{ opacity: 1, y: 0 }}
                                   transition={{ duration: 0.3, delay: index * 0.05 }}
-                                  className="relative w-full rounded-lg overflow-hidden border border-line-light bg-bg-light cursor-pointer hover:opacity-90 transition-opacity"
+                                  className="relative w-full overflow-hidden bg-bg-light cursor-pointer hover:opacity-90 transition-opacity"
                                   style={{ minHeight: '500px', maxHeight: '80vh' }}
                                   onClick={() => handleImageClickForLightbox(image, index)}
                                 >
@@ -472,13 +472,6 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                                     }}
                                     unoptimized={image?.startsWith('http') || image?.startsWith('//')}
                                   />
-                                  
-                                  {/* 이미지 번호 표시 */}
-                                  {total > 1 && (
-                                    <div className="absolute top-4 right-4 bg-black/50 text-white px-3 py-1.5 rounded-full text-sm font-medium backdrop-blur-sm z-10">
-                                      {index + 1} / {total}
-                                    </div>
-                                  )}
                                   
                                   {/* 클릭 안내 툴팁 (첫 번째 이미지에만) */}
                                   {index === 0 && (
@@ -505,7 +498,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                 })()}
 
                 {/* Project Info Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 px-8 pt-8">
                   <div className="bg-bg-light rounded-xl p-4 border border-line-light">
                     <p className="text-xs text-text-secondary mb-1 font-medium">진행 기간</p>
                     <p className="text-sm font-semibold text-text-main">
@@ -550,7 +543,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                 </div>
 
                 {/* Tags */}
-                <div className="flex flex-wrap gap-2 mb-8">
+                <div className="flex flex-wrap gap-2 mb-8 px-8">
                   {selectedProject.tags.map((tag, i) => (
                     <span
                       key={i}
@@ -562,7 +555,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                 </div>
 
                 {/* Description */}
-                <div className="mb-8">
+                <div className="mb-8 px-8">
                   <h3 className="text-xl font-bold text-text-main mb-4 flex items-center gap-2">
                     <span className="text-brand-main">📋</span>
                     프로젝트 개요
@@ -574,7 +567,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
 
                 {/* Achievements */}
                 {selectedProject.achievements && selectedProject.achievements.length > 0 && (
-                  <div className="mb-8">
+                  <div className="mb-8 px-8">
                     <h3 className="text-xl font-bold text-text-main mb-4 flex items-center gap-2">
                       <span className="text-brand-main">🎯</span>
                       주요 성과
@@ -591,7 +584,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                 )}
 
                 {/* Retrospective */}
-                <div className="mb-8">
+                <div className="mb-8 px-8">
                   <h3 className="text-xl font-bold text-text-main mb-4 flex items-center gap-2">
                     <span className="text-brand-main">💭</span>
                     회고
@@ -602,7 +595,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                 </div>
 
                 {/* External Links */}
-                <div className="mt-8 pt-8 border-t border-line-light flex flex-wrap gap-3">
+                <div className="mt-8 pt-8 pb-8 border-t border-line-light flex flex-wrap gap-3 px-8">
                   {/* 프로젝트 상세보기 - PDF 우선, 없으면 링크 */}
                   {(() => {
                     const projectWithExtras = selectedProject as typeof selectedProject & { detailPdf?: string };
