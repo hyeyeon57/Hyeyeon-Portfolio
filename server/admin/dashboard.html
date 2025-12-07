@@ -56,14 +56,13 @@
             <div id="resume-status" class="mb-4">
               <!-- 현재 파일 정보가 여기에 표시됩니다 -->
             </div>
-            <div class="flex items-center gap-3">
-              <label for="resume-upload" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer text-sm font-medium transition-colors">
-                <i data-lucide="upload" class="w-4 h-4 inline-block mr-2"></i>
-                파일 선택
-              </label>
-              <input type="file" id="resume-upload" accept=".pdf" class="hidden" />
-              <button id="resume-delete" class="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 text-sm font-medium transition-colors" style="display:none;">
-                <i data-lucide="trash-2" class="w-4 h-4 inline-block mr-2"></i>
+            <div class="flex items-center gap-3 flex-wrap">
+              <input type="file" id="resume-upload" accept=".pdf" class="text-sm" />
+              <button type="button" id="resume-upload-btn" class="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">업로드</button>
+              <span id="resume-status-text" class="text-sm text-gray-600">
+                <span class="text-gray-400">선택된 파일 없음</span>
+              </span>
+              <button id="resume-delete" class="px-2 py-1 text-xs text-red-600 border border-red-200 rounded hover:bg-red-50 transition-colors flex-shrink-0 ml-2" style="display:none;">
                 삭제
               </button>
               <span id="resume-upload-status" class="text-sm text-gray-500"></span>
@@ -84,14 +83,13 @@
             <div id="coverletter-status" class="mb-4">
               <!-- 현재 파일 정보가 여기에 표시됩니다 -->
             </div>
-            <div class="flex items-center gap-3">
-              <label for="coverletter-upload" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 cursor-pointer text-sm font-medium transition-colors">
-                <i data-lucide="upload" class="w-4 h-4 inline-block mr-2"></i>
-                파일 선택
-              </label>
-              <input type="file" id="coverletter-upload" accept=".pdf" class="hidden" />
-              <button id="coverletter-delete" class="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 text-sm font-medium transition-colors" style="display:none;">
-                <i data-lucide="trash-2" class="w-4 h-4 inline-block mr-2"></i>
+            <div class="flex items-center gap-3 flex-wrap">
+              <input type="file" id="coverletter-upload" accept=".pdf" class="text-sm" />
+              <button type="button" id="coverletter-upload-btn" class="px-3 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 text-sm">업로드</button>
+              <span id="coverletter-status-text" class="text-sm text-gray-600">
+                <span class="text-gray-400">선택된 파일 없음</span>
+              </span>
+              <button id="coverletter-delete" class="px-2 py-1 text-xs text-red-600 border border-red-200 rounded hover:bg-red-50 transition-colors flex-shrink-0 ml-2" style="display:none;">
                 삭제
               </button>
               <span id="coverletter-upload-status" class="text-sm text-gray-500"></span>
@@ -379,65 +377,64 @@
       const typeId = type === 'coverLetter' ? 'coverletter' : type;
       
       const statusEl = document.getElementById(`${typeId}-status`);
+      const statusTextEl = document.getElementById(`${typeId}-status-text`);
       const deleteBtn = document.getElementById(`${typeId}-delete`);
       const uploadStatus = document.getElementById(`${typeId}-upload-status`);
-      const uploadLabel = document.querySelector(`label[for="${typeId}-upload"]`);
       
-      // 요소가 없으면 에러 로그만 출력하고 종료
-      if (!statusEl) {
-        console.error(`문서 상태 요소를 찾을 수 없습니다: ${typeId}-status`);
+      // statusTextEl이 없으면 statusEl 사용 (하위 호환성)
+      const targetStatusEl = statusTextEl || statusEl;
+      
+      if (!targetStatusEl) {
+        console.error(`문서 상태 요소를 찾을 수 없습니다: ${typeId}-status-text 또는 ${typeId}-status`);
         return;
       }
       
       if (docData && docData.url) {
         const fileName = docData.fileName || docData.url.split('/').pop();
-        const updatedAt = docData.updatedAt ? new Date(docData.updatedAt).toLocaleDateString('ko-KR') : '';
+        const truncatedFileName = fileName.length > 30 ? fileName.substring(0, 30) + '...' : fileName;
         
-        statusEl.innerHTML = `
-          <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-            <i data-lucide="file-text" class="w-5 h-5 text-gray-600"></i>
-            <div class="flex-1">
-              <p class="text-sm font-medium text-gray-900">${fileName}</p>
-              <p class="text-xs text-gray-500">업로드일: ${updatedAt}</p>
+        // 프로젝트 PDF와 동일한 형식으로 표시
+        if (statusTextEl) {
+          statusTextEl.innerHTML = `<a href="${docData.url}" target="_blank" class="text-blue-600 hover:text-blue-700 underline font-normal break-all">${truncatedFileName}</a>`;
+        } else if (statusEl) {
+          // 기존 형식 유지 (하위 호환성)
+          const updatedAt = docData.updatedAt ? new Date(docData.updatedAt).toLocaleDateString('ko-KR') : '';
+          statusEl.innerHTML = `
+            <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+              <i data-lucide="file-text" class="w-5 h-5 text-gray-600"></i>
+              <div class="flex-1">
+                <p class="text-sm font-medium text-gray-900">${fileName}</p>
+                <p class="text-xs text-gray-500">업로드일: ${updatedAt}</p>
+              </div>
+              <a href="${docData.url}" target="_blank" class="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 text-sm font-medium transition-colors">
+                <i data-lucide="eye" class="w-4 h-4 inline-block mr-1"></i>
+                보기
+              </a>
             </div>
-            <a href="${docData.url}" target="_blank" class="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 text-sm font-medium transition-colors">
-              <i data-lucide="eye" class="w-4 h-4 inline-block mr-1"></i>
-              보기
-            </a>
-          </div>
-        `;
-        if (deleteBtn) deleteBtn.style.display = 'inline-flex';
-        if (uploadStatus) uploadStatus.textContent = '';
-        // 파일 선택 버튼 텍스트를 현재 파일명으로 변경
-        if (uploadLabel) {
-          uploadLabel.innerHTML = `
-            <i data-lucide="upload" class="w-4 h-4 inline-block mr-2"></i>
-            ${fileName}
           `;
         }
+        
+        if (deleteBtn) deleteBtn.style.display = 'block';
+        if (uploadStatus) uploadStatus.textContent = '';
       } else {
-        statusEl.innerHTML = `
-          <div class="text-center py-4 text-gray-400">
-            <i data-lucide="file-x" class="w-8 h-8 mx-auto mb-2"></i>
-            <p class="text-sm">업로드된 파일이 없습니다</p>
-          </div>
-        `;
+        if (statusTextEl) {
+          statusTextEl.innerHTML = '<span class="text-gray-400">선택된 파일 없음</span>';
+        } else if (statusEl) {
+          statusEl.innerHTML = `
+            <div class="text-center py-4 text-gray-400">
+              <i data-lucide="file-x" class="w-8 h-8 mx-auto mb-2"></i>
+              <p class="text-sm">업로드된 파일이 없습니다</p>
+            </div>
+          `;
+        }
         if (deleteBtn) deleteBtn.style.display = 'none';
         if (uploadStatus) uploadStatus.textContent = '';
-        // 파일 선택 버튼 텍스트를 기본값으로 복원
-        if (uploadLabel) {
-          uploadLabel.innerHTML = `
-            <i data-lucide="upload" class="w-4 h-4 inline-block mr-2"></i>
-            파일 선택
-          `;
-        }
       }
       ensureLucide();
     }
 
-    // 문서 관리 함수 비활성화
+    // 문서 관리 함수 (프로젝트 PDF 업로드와 동일한 방식)
     async function uploadDocument(type, file) {
-      return; // 함수 비활성화
       if (!file) return;
       
       if (file.type !== 'application/pdf') {
@@ -448,34 +445,91 @@
       // 타입을 HTML ID 형식으로 변환 (coverLetter -> coverletter)
       const typeId = type === 'coverLetter' ? 'coverletter' : type;
 
+      const statusEl = document.getElementById(`${typeId}-status`);
+      const statusTextEl = document.getElementById(`${typeId}-status-text`);
       const uploadStatus = document.getElementById(`${typeId}-upload-status`);
-      const uploadBtn = document.querySelector(`label[for="${typeId}-upload"]`);
+      const uploadBtn = document.getElementById(`${typeId}-upload-btn`);
+      
+      console.log(`📄 문서 업로드 시작: ${type}`, {
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: file.type,
+        statusEl: !!statusEl,
+        statusTextEl: !!statusTextEl,
+        uploadStatus: !!uploadStatus
+      });
       
       try {
+        if (statusTextEl) {
+          statusTextEl.innerHTML = '<span class="text-blue-600">업로드 중...</span>';
+        }
         if (uploadStatus) uploadStatus.textContent = '업로드 중...';
         if (uploadBtn) uploadBtn.style.pointerEvents = 'none';
         if (uploadBtn) uploadBtn.style.opacity = '0.5';
 
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('type', type);
+        // uploadFilesToS3 함수 사용 (프로젝트 PDF와 동일)
+        if (!window.uploadFilesToS3 || typeof window.uploadFilesToS3 !== 'function') {
+          throw new Error('업로드 함수를 찾을 수 없습니다. 페이지를 새로고침해주세요.');
+        }
 
+        console.log(`📤 uploadFilesToS3 호출 시작...`);
+        const uploadedUrls = await window.uploadFilesToS3([file], 'documents');
+        console.log(`📄 업로드 완료 - 반환된 URL:`, uploadedUrls);
+
+        if (!uploadedUrls || !Array.isArray(uploadedUrls) || uploadedUrls.length === 0) {
+          throw new Error('업로드된 URL을 받지 못했습니다.');
+        }
+
+        const pdfUrl = uploadedUrls[0];
+        if (!pdfUrl || typeof pdfUrl !== 'string' || pdfUrl.trim() === '') {
+          throw new Error('유효하지 않은 PDF URL을 받았습니다.');
+        }
+
+        console.log(`✅ 문서 업로드 성공: ${pdfUrl}`);
+
+        // 서버에 URL 저장 (JSON으로 전송)
         const res = await fetch(`${API_URL}/documents/${type}`, {
           method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
-          body: formData,
+          body: JSON.stringify({
+            url: pdfUrl,
+            fileName: file.name
+          }),
         });
 
         const data = await res.json();
 
         if (data.success) {
-          if (uploadStatus) uploadStatus.textContent = '업로드 완료!';
-          if (uploadStatus) uploadStatus.className = 'text-sm text-green-600';
-          // 문서 상태 업데이트 (파일 선택 버튼 텍스트도 함께 업데이트됨)
+          // Status 요소 업데이트 (파일명 링크)
+          const fileName = file.name.length > 30 ? file.name.substring(0, 30) + '...' : file.name;
+          if (statusTextEl) {
+            statusTextEl.innerHTML = `<a href="${pdfUrl}" target="_blank" class="text-blue-600 hover:text-blue-700 underline font-normal break-all">${fileName}</a>`;
+          }
+          
+          // 삭제 버튼 표시
+          const deleteBtn = document.getElementById(`${typeId}-delete`);
+          if (deleteBtn) {
+            deleteBtn.style.display = 'block';
+          }
+          
+          // 파일 입력 초기화
+          const fileInput = document.getElementById(`${typeId}-upload`);
+          if (fileInput) fileInput.value = '';
+          
+          if (uploadStatus) {
+            uploadStatus.textContent = '업로드 완료!';
+            uploadStatus.className = 'text-sm text-green-600';
+          }
+          
+          // 문서 상태 업데이트
           await loadDocuments();
+          
           setTimeout(() => {
-            if (uploadStatus) uploadStatus.textContent = '';
-            if (uploadStatus) uploadStatus.className = 'text-sm text-gray-500';
+            if (uploadStatus) {
+              uploadStatus.textContent = '';
+              uploadStatus.className = 'text-sm text-gray-500';
+            }
           }, 2000);
         } else {
           throw new Error(data.error || '업로드 실패');
@@ -483,14 +537,18 @@
       } catch (error) {
         console.error('문서 업로드 실패:', error);
         alert(`업로드 실패: ${error.message}`);
-        if (uploadStatus) uploadStatus.textContent = '업로드 실패';
-        if (uploadStatus) uploadStatus.className = 'text-sm text-red-600';
+        if (statusTextEl) {
+          statusTextEl.innerHTML = '<span class="text-red-600">업로드 실패</span>';
+        }
+        if (uploadStatus) {
+          uploadStatus.textContent = '업로드 실패';
+          uploadStatus.className = 'text-sm text-red-600';
+        }
       } finally {
-        if (uploadBtn) uploadBtn.style.pointerEvents = 'auto';
-        if (uploadBtn) uploadBtn.style.opacity = '1';
-        // 파일 입력 초기화
-        const fileInput = document.getElementById(`${typeId}-upload`);
-        if (fileInput) fileInput.value = '';
+        if (uploadBtn) {
+          uploadBtn.style.pointerEvents = 'auto';
+          uploadBtn.style.opacity = '1';
+        }
       }
     }
 
@@ -537,23 +595,47 @@
       }
     }
 
-    // 문서 관리 이벤트 리스너
-    document.getElementById('resume-upload')?.addEventListener('change', (e) => {
-      const file = e.target.files?.[0];
-      if (file) uploadDocument('resume', file);
+    // 문서 관리 이벤트 리스너 (프로젝트 PDF와 동일한 방식)
+    document.getElementById('resume-upload-btn')?.addEventListener('click', async () => {
+      const fileInput = document.getElementById('resume-upload');
+      const file = fileInput?.files?.[0];
+      if (file) {
+        await uploadDocument('resume', file);
+      } else {
+        alert('PDF 파일을 선택하세요.');
+      }
     });
 
-    document.getElementById('coverletter-upload')?.addEventListener('change', (e) => {
-      const file = e.target.files?.[0];
-      if (file) uploadDocument('coverLetter', file);
+    document.getElementById('coverletter-upload-btn')?.addEventListener('click', async () => {
+      const fileInput = document.getElementById('coverletter-upload');
+      const file = fileInput?.files?.[0];
+      if (file) {
+        await uploadDocument('coverLetter', file);
+      } else {
+        alert('PDF 파일을 선택하세요.');
+      }
     });
 
-    document.getElementById('resume-delete')?.addEventListener('click', () => {
-      deleteDocument('resume');
+    document.getElementById('resume-delete')?.addEventListener('click', async () => {
+      await deleteDocument('resume');
+      // 삭제 후 Status 요소 업데이트
+      const statusTextEl = document.getElementById('resume-status-text');
+      if (statusTextEl) {
+        statusTextEl.innerHTML = '<span class="text-gray-400">선택된 파일 없음</span>';
+      }
+      const deleteBtn = document.getElementById('resume-delete');
+      if (deleteBtn) deleteBtn.style.display = 'none';
     });
 
-    document.getElementById('coverletter-delete')?.addEventListener('click', () => {
-      deleteDocument('coverLetter');
+    document.getElementById('coverletter-delete')?.addEventListener('click', async () => {
+      await deleteDocument('coverLetter');
+      // 삭제 후 Status 요소 업데이트
+      const statusTextEl = document.getElementById('coverletter-status-text');
+      if (statusTextEl) {
+        statusTextEl.innerHTML = '<span class="text-gray-400">선택된 파일 없음</span>';
+      }
+      const deleteBtn = document.getElementById('coverletter-delete');
+      if (deleteBtn) deleteBtn.style.display = 'none';
     });
 
     async function checkAuth() {

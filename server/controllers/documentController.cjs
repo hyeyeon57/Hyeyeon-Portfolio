@@ -52,63 +52,83 @@ const updateDocument = async (req, res) => {
     await connectDB();
     
     const { type } = req.params; // URL 파라미터에서 가져오기
-    const file = req.file; // multer로 업로드된 파일
     
     if (!type || !['resume', 'coverLetter'].includes(type)) {
       return fail(res, 400, '문서 타입이 올바르지 않습니다. (resume 또는 coverLetter)');
     }
     
-    if (!file) {
-      return fail(res, 400, '파일이 업로드되지 않았습니다.');
-    }
+    let url, fileName;
     
-    // PDF 파일만 허용
-    if (file.mimetype !== 'application/pdf') {
-      return fail(res, 400, 'PDF 파일만 업로드 가능합니다.');
-    }
-    
-    // documents 폴더에 저장
-    const documentsDir = path.join(PUBLIC_DIR, 'documents');
-    await fs.mkdir(documentsDir, { recursive: true });
-    
-    // 원본 파일명 사용 (확장자 포함)
-    const originalFileName = file.originalname || `document_${Date.now()}.pdf`;
-    const fileExt = path.extname(originalFileName) || '.pdf';
-    const baseFileName = path.basename(originalFileName, fileExt);
-    
-    // 파일명 생성: 타입별 접두사 + 원본 파일명
-    const fileName = `${type === 'resume' ? 'resume_' : 'coverletter_'}${baseFileName}${fileExt}`;
-    const filePath = path.join(documentsDir, fileName);
-    
-    // 기존 파일이 있으면 삭제 (같은 타입의 모든 파일 삭제)
-    try {
-      const existingDocs = await Document.find({ type });
-      for (const doc of existingDocs) {
-        const oldFilePath = path.join(PUBLIC_DIR, doc.url);
-        try {
-          await fs.access(oldFilePath);
-          await fs.unlink(oldFilePath);
-        } catch (err) {
-          // 파일이 없으면 무시
-        }
+    // JSON으로 URL을 받는 경우 (클라이언트에서 uploadFilesToS3로 업로드한 후)
+    if (req.headers['content-type']?.includes('application/json')) {
+      const body = req.body;
+      url = body.url;
+      fileName = body.fileName || `document_${Date.now()}.pdf`;
+      
+      if (!url || typeof url !== 'string') {
+        return fail(res, 400, 'URL이 제공되지 않았습니다.');
       }
-    } catch (err) {
-      // 기존 파일 삭제 실패는 무시
+      
+      console.log('[documentController] JSON으로 URL 받음:', { type, url, fileName });
+    } else {
+      // 기존 방식: multer로 파일을 받는 경우
+      const file = req.file;
+      
+      if (!file) {
+        return fail(res, 400, '파일이 업로드되지 않았습니다.');
+      }
+      
+      // PDF 파일만 허용
+      if (file.mimetype !== 'application/pdf') {
+        return fail(res, 400, 'PDF 파일만 업로드 가능합니다.');
+      }
+      
+      // documents 폴더에 저장
+      const documentsDir = path.join(PUBLIC_DIR, 'documents');
+      await fs.mkdir(documentsDir, { recursive: true });
+      
+      // 원본 파일명 사용 (확장자 포함)
+      const originalFileName = file.originalname || `document_${Date.now()}.pdf`;
+      const fileExt = path.extname(originalFileName) || '.pdf';
+      const baseFileName = path.basename(originalFileName, fileExt);
+      
+      // 파일명 생성: 타입별 접두사 + 원본 파일명
+      fileName = `${type === 'resume' ? 'resume_' : 'coverletter_'}${baseFileName}${fileExt}`;
+      const filePath = path.join(documentsDir, fileName);
+      
+      // 기존 파일이 있으면 삭제 (같은 타입의 모든 파일 삭제)
+      try {
+        const existingDocs = await Document.find({ type });
+        for (const doc of existingDocs) {
+          const oldFilePath = path.join(PUBLIC_DIR, doc.url);
+          try {
+            await fs.access(oldFilePath);
+            await fs.unlink(oldFilePath);
+          } catch (err) {
+            // 파일이 없으면 무시
+          }
+        }
+      } catch (err) {
+        // 기존 파일 삭제 실패는 무시
+      }
+      
+      // 새 파일 저장
+      await fs.rename(file.path, filePath);
+      
+      // URL 생성 (public 경로 기준)
+      url = `/documents/${fileName}`;
+      fileName = originalFileName;
+      
+      console.log('[documentController] 파일로 업로드:', { type, url, fileName });
     }
     
-    // 새 파일 저장
-    await fs.rename(file.path, filePath);
-    
-    // URL 생성 (public 경로 기준)
-    const url = `/documents/${fileName}`;
-    
-    // MongoDB에 저장 또는 업데이트 (원본 파일명 저장)
+    // MongoDB에 저장 또는 업데이트
     const document = await Document.findOneAndUpdate(
       { type },
       {
         type,
         url,
-        fileName: originalFileName, // 원본 파일명 저장
+        fileName: fileName, // 원본 파일명 저장
         updatedAt: new Date(),
       },
       {
@@ -116,6 +136,12 @@ const updateDocument = async (req, res) => {
         new: true,
       }
     );
+    
+    console.log('[documentController] 문서 저장 완료:', {
+      type: document.type,
+      url: document.url,
+      fileName: document.fileName
+    });
     
     return ok(res, {
       data: {

@@ -52,10 +52,20 @@ const upload = multer({
 router.get('/', asyncHandler(getDocuments));
 
 // PUT /api/documents/:type - 문서 업로드/업데이트
+// JSON으로 URL을 받거나, FormData로 파일을 받을 수 있음
 router.put(
   '/:type',
   requireAuth,
-  upload.single('file'),
+  // Content-Type이 application/json이면 multer 미들웨어를 건너뛰고, 그렇지 않으면 파일 업로드
+  (req, res, next) => {
+    if (req.headers['content-type']?.includes('application/json')) {
+      // JSON 요청이면 multer 없이 다음 미들웨어로
+      return next();
+    } else {
+      // FormData 요청이면 multer 사용
+      return upload.single('file')(req, res, next);
+    }
+  },
   asyncHandler(updateDocument)
 );
 
