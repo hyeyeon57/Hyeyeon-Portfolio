@@ -3,6 +3,10 @@ import { NextRequest, NextResponse } from 'next/server';
 // 이 라우트는 동적이므로 정적 생성하지 않음
 export const dynamic = 'force-dynamic';
 
+// 백오피스 저장 실패 시 에러를 반환할지 여부 (true: 실패 시 500, false: 실패해도 200)
+// 기본값: true (저장 실패 시 클라이언트에 에러 표시)
+const CONTACT_SAVE_STRICT = process.env.CONTACT_SAVE_STRICT !== 'false';
+
 // 백오피스 서버 URL 설정 (통합 배포 지원)
 const getBackofficeUrl = () => {
   // 환경 변수가 설정되어 있으면 우선 사용 (별도 배포 시)
@@ -51,21 +55,8 @@ export async function POST(request: NextRequest) {
     try {
       const backofficeUrl = getBackofficeUrl();
       
-      // 같은 프로젝트 내에서 실행 중인지 확인
-      const isSameProject = !process.env.NEXT_PUBLIC_BACKOFFICE_URL 
-        && !process.env.BACKOFFICE_API_URL
-        && process.env.VERCEL;
-      
-      let fetchUrl;
-      if (isSameProject) {
-        // 같은 프로젝트: 상대 경로 사용
-        fetchUrl = `/bo-api/contacts`;
-      } else {
-        // 별도 프로젝트: 절대 URL 사용
-        fetchUrl = `${backofficeUrl}/bo-api/contacts`;
-      }
-      
-      console.log('📧 백오피스 연락 정보 저장 시도:', { fetchUrl, backofficeUrl, isSameProject });
+      const fetchUrl = `${backofficeUrl}/bo-api/contacts`;
+      console.log('📧 백오피스 연락 정보 저장 시도:', { fetchUrl, backofficeUrl });
       
       const contactResponse = await fetch(fetchUrl, {
         method: 'POST',
@@ -82,10 +73,12 @@ export async function POST(request: NextRequest) {
           console.log('✅ 백오피스 연락 정보 저장 성공');
         } else {
           console.warn('⚠️ 백오피스 연락 정보 저장 실패:', contactResult.error);
-          return NextResponse.json(
-            { error: '메시지 저장에 실패했습니다. 다시 시도해주세요.' },
-            { status: 500 }
-          );
+          if (CONTACT_SAVE_STRICT) {
+            return NextResponse.json(
+              { error: '메시지 저장에 실패했습니다. 다시 시도해주세요.' },
+              { status: 500 }
+            );
+          }
         }
       } else {
         const errorText = await contactResponse.text();
@@ -94,10 +87,12 @@ export async function POST(request: NextRequest) {
           statusText: contactResponse.statusText,
           error: errorText
         });
-        return NextResponse.json(
-          { error: '메시지 저장에 실패했습니다. 다시 시도해주세요.' },
-          { status: 500 }
-        );
+        if (CONTACT_SAVE_STRICT) {
+          return NextResponse.json(
+            { error: '메시지 저장에 실패했습니다. 다시 시도해주세요.' },
+            { status: 500 }
+          );
+        }
       }
     } catch (error: any) {
       console.error('❌ 백오피스 연락 정보 저장 오류:', {
@@ -105,16 +100,20 @@ export async function POST(request: NextRequest) {
         name: error.name,
         stack: error.stack
       });
-      return NextResponse.json(
-        { error: '메시지 저장 중 오류가 발생했습니다. 다시 시도해주세요.' },
-        { status: 500 }
-      );
+      if (CONTACT_SAVE_STRICT) {
+        return NextResponse.json(
+          { error: '메시지 저장 중 오류가 발생했습니다. 다시 시도해주세요.' },
+          { status: 500 }
+        );
+      }
     }
 
-    // 이메일 전송을 건너뛰고, 저장 성공 시 바로 성공 응답
+    // 이메일 전송을 건너뛰고, 저장 결과에 따라 응답
     return NextResponse.json(
       { 
-        message: '메시지가 저장되었습니다.',
+        message: contactSaved
+          ? '메시지가 저장되었습니다.'
+          : '메시지를 접수했습니다. (저장 서버에 연결하지 못했습니다)',
         saved: contactSaved,
         emailSent: false,
         error: null
