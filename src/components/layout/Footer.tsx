@@ -11,6 +11,7 @@ export const Footer: React.FC = () => {
   const [isMounted, setIsMounted] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const pathname = usePathname();
+  const [policyModal, setPolicyModal] = useState<null | 'privacy' | 'cookie'>(null);
 
   useEffect(() => {
     setIsMounted(true);
@@ -278,6 +279,78 @@ export const Footer: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const closePolicyModal = () => setPolicyModal(null);
+
+  const renderPolicyContent = () => {
+    if (policyModal === 'privacy') {
+      return (
+        <div className="space-y-2 text-sm leading-relaxed text-text-secondary">
+          <h3 className="text-xl font-semibold text-text-main mb-2">Privacy Policy</h3>
+          <ul className="space-y-1 list-disc list-inside">
+            <li>본 웹사이트는 개인 식별이 불가능한 형태의 방문 통계 데이터를 수집합니다.</li>
+            <li>수집된 정보는 서비스 품질 개선 및 내부 분석 목적으로만 사용되며, 공개되지 않습니다.</li>
+          </ul>
+          <div className="font-semibold text-text-main pt-1">1. 수집하는 정보</div>
+          <ul className="space-y-1 list-disc list-inside">
+            <li>익명 식별값(visitorId: UUID)</li>
+            <li>접속 로그(IP 주소, 브라우저(User-Agent) 정보, 방문 시간, 방문 경로 등)</li>
+          </ul>
+          <div className="font-semibold text-text-main pt-1">2. 수집 목적</div>
+          <ul className="space-y-1 list-disc list-inside">
+            <li>방문자 수 분석 및 서비스 품질 개선</li>
+            <li>오류 분석 및 보안 유지</li>
+            <li>내부 관리용 통계 확인</li>
+          </ul>
+          <div className="font-semibold text-text-main pt-1">3. 사용 및 제공 범위</div>
+          <ul className="space-y-1 list-disc list-inside">
+            <li>개인 식별 목적에 사용하지 않습니다.</li>
+            <li>내부 분석용으로만 사용되며 외부에 공개되지 않습니다.</li>
+            <li>제3자에게 판매하거나 마케팅 목적으로 제공하지 않습니다.</li>
+          </ul>
+          <div className="font-semibold text-text-main pt-1">4. 보관 기간</div>
+          <p>목적 범위 내에서 보관하며, 목적 달성 후 삭제될 수 있습니다.</p>
+          <div className="font-semibold text-text-main pt-1">5. 사용자 권리</div>
+          <p>로그 수집에 대한 문의 및 삭제 요청이 가능하며, 가능한 범위 내에서 처리합니다.</p>
+          <div className="font-semibold text-text-main pt-1">6. 보안 조치</div>
+          <p>외부 공유 없이 안전하게 저장·관리합니다.</p>
+          <div className="font-semibold text-text-main pt-1">7. 정책 변경</div>
+          <p>서비스 운영/법령 변경 시 본 페이지에 공지합니다. 최종 업데이트: 2025-12-10</p>
+        </div>
+      );
+    }
+
+    if (policyModal === 'cookie') {
+      return (
+        <div className="space-y-2 text-sm leading-relaxed text-text-secondary">
+          <h3 className="text-xl font-semibold text-text-main mb-2">Cookie Policy</h3>
+          <p>방문자 수 통계를 위해 익명 식별값(visitorId)을 쿠키 또는 로컬스토리지에 저장합니다.</p>
+          <div className="font-semibold text-text-main pt-1">1. 저장되는 정보</div>
+          <ul className="space-y-1 list-disc list-inside">
+            <li>익명 방문자 식별값(visitorId: UUID)</li>
+            <li>쿠키 또는 로컬스토리지 기록</li>
+          </ul>
+          <div className="font-semibold text-text-main pt-1">2. 사용 목적</div>
+          <ul className="space-y-1 list-disc list-inside">
+            <li>반복 방문 여부 확인</li>
+            <li>방문자 수 통계 분석</li>
+            <li>서비스 개선 및 내부 분석</li>
+          </ul>
+          <div className="font-semibold text-text-main pt-1">3. 사용하지 않는 목적</div>
+          <ul className="space-y-1 list-disc list-inside">
+            <li>광고 및 맞춤 추천</li>
+            <li>개인 식별 또는 행동 추적</li>
+            <li>제3자 제공 또는 판매</li>
+          </ul>
+          <div className="font-semibold text-text-main pt-1">4. 차단 방법</div>
+          <p>브라우저 설정에서 쿠키/로컬스토리지 저장을 제한하거나 삭제할 수 있습니다. 차단 시 통계 정확도가 저하될 수 있습니다.</p>
+          <div className="font-semibold text-text-main pt-1">5. 정책 변경</div>
+          <p>쿠키 사용 목적 변경 시 본 페이지에 고지합니다. 최종 업데이트: 2025-12-10</p>
+        </div>
+      );
+    }
+
+    return null;
+  };
   const scrollToBottom = () => {
     window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
   };
@@ -369,22 +442,15 @@ export const Footer: React.FC = () => {
 
           {/* Footer 하단 */}
           <div className="flex flex-col gap-4">
-            {/* Admin Viewer 안내 텍스트 */}
-            <div className="text-right">
-              <p className="text-sm text-text-secondary mb-2 leading-tight">
-                Admin Viewer에서 관리자 화면도 구경해보세요!
-              </p>
-            </div>
-            <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-              <p className="text-sm text-text-secondary">
-                © 2025 Jang Haeyeon Portfolio All rights reserved.
-              </p>
-              <div className="flex items-center gap-4">
+            {/* Admin 안내 + 링크 한 행 (우측 정렬) */}
+            <div className="flex flex-col md:items-end md:justify-end gap-2 text-right">
+              <div className="flex flex-wrap items-center justify-end gap-3 text-sm text-text-secondary leading-tight">
+                <span className="text-brand-main font-semibold">Admin Viewer에서 관리자 화면도 구경해보세요! ▶</span>
                 <a
                   href="/admin/viewer"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm text-text-secondary hover:text-brand-main transition-colors underline"
+                  className="underline hover:text-brand-main transition-colors"
                 >
                   Admin Viewer
                 </a>
@@ -392,10 +458,31 @@ export const Footer: React.FC = () => {
                   href="/admin/login"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm text-text-secondary hover:text-brand-main transition-colors underline"
+                  className="underline hover:text-brand-main transition-colors"
                 >
                   Admin Login
                 </a>
+              </div>
+            </div>
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-text-secondary">
+              <p className="text-sm text-text-secondary">
+                © 2025 Jang Haeyeon Portfolio All rights reserved.
+              </p>
+              <div className="flex flex-row items-center gap-4">
+                <button
+                  type="button"
+                  onClick={() => setPolicyModal('privacy')}
+                  className="underline hover:text-brand-main transition-colors"
+                >
+                  Privacy Policy
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPolicyModal('cookie')}
+                  className="underline hover:text-brand-main transition-colors"
+                >
+                  Cookie Policy
+                </button>
               </div>
             </div>
           </div>
@@ -414,6 +501,22 @@ export const Footer: React.FC = () => {
       >
         {isAtTop ? <ChevronDown className="w-5 h-5" /> : <ChevronUp className="w-5 h-5" />}
       </motion.button>
+
+      {/* Policy Modal */}
+      {policyModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full p-6 relative">
+            <button
+              onClick={closePolicyModal}
+              className="absolute top-4 right-4 text-text-secondary hover:text-text-main"
+              aria-label="Close"
+            >
+              ✕
+            </button>
+            {renderPolicyContent()}
+          </div>
+        </div>
+      )}
     </footer>
   );
 };
