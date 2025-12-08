@@ -1,20 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Resend } from 'resend';
 
 // 이 라우트는 동적이므로 정적 생성하지 않음
 export const dynamic = 'force-dynamic';
-
-// 이메일 전송 비활성화 플래그 (기본: false)
-// SEND_EMAIL_DISABLED=true 로 설정하면 이메일 전송을 건너뛰고 저장만 수행
-const EMAIL_DISABLED = process.env.SEND_EMAIL_DISABLED === 'true';
-
-// Resend API 키 확인
-const resendApiKey = process.env.RESEND_API_KEY;
-if (!EMAIL_DISABLED && (!resendApiKey || resendApiKey === 'dummy-key-for-build')) {
-  console.warn('⚠️ RESEND_API_KEY가 설정되지 않았습니다. 이메일 전송이 실패할 수 있습니다.');
-}
-
-const resend = new Resend(resendApiKey || 'dummy-key-for-build');
 
 // 백오피스 서버 URL 설정 (통합 배포 지원)
 const getBackofficeUrl = () => {
@@ -95,6 +82,10 @@ export async function POST(request: NextRequest) {
           console.log('✅ 백오피스 연락 정보 저장 성공');
         } else {
           console.warn('⚠️ 백오피스 연락 정보 저장 실패:', contactResult.error);
+          return NextResponse.json(
+            { error: '메시지 저장에 실패했습니다. 다시 시도해주세요.' },
+            { status: 500 }
+          );
         }
       } else {
         const errorText = await contactResponse.text();
@@ -103,98 +94,30 @@ export async function POST(request: NextRequest) {
           statusText: contactResponse.statusText,
           error: errorText
         });
+        return NextResponse.json(
+          { error: '메시지 저장에 실패했습니다. 다시 시도해주세요.' },
+          { status: 500 }
+        );
       }
     } catch (error: any) {
-      // 백오피스 저장 실패는 로그만 남기고 계속 진행 (이메일 전송은 시도)
       console.error('❌ 백오피스 연락 정보 저장 오류:', {
         message: error.message,
         name: error.name,
         stack: error.stack
       });
-    }
-
-    // 이메일 전송 비활성화 시: 백오피스 저장만 진행하고 바로 성공 응답
-    if (EMAIL_DISABLED) {
-      console.log('✉️ 이메일 전송 비활성화 상태로 응답:', { contactSaved, emailSent: false });
       return NextResponse.json(
-        {
-          message: '메시지가 저장되었습니다. (이메일 전송은 비활성화됨)',
-          saved: contactSaved,
-          emailSent: false,
-          error: null,
-        },
-        { status: 200 }
-      );
-    }
-
-    // Resend를 사용한 실제 이메일 전송
-    const { data, error } = await resend.emails.send({
-      from: 'Portfolio Contact <onboarding@resend.dev>',
-      to: ['janghaeyo0507@gmail.com'],
-      subject: `포트폴리오 문의: ${name}`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #FFD700; border-bottom: 2px solid #FFD700; padding-bottom: 10px;">
-            새로운 포트폴리오 문의가 도착했습니다
-          </h2>
-          
-          <div style="background-color: #1E1E1E; padding: 20px; border-radius: 10px; margin: 20px 0;">
-            <h3 style="color: #FFD700; margin-top: 0;">문의자 정보</h3>
-            <p style="color: #FFFFFF; margin: 5px 0;"><strong>이름:</strong> ${name}</p>
-            <p style="color: #FFFFFF; margin: 5px 0;"><strong>이메일:</strong> ${email}</p>
-          </div>
-          
-          <div style="background-color: #1E1E1E; padding: 20px; border-radius: 10px; margin: 20px 0;">
-            <h3 style="color: #FFD700; margin-top: 0;">메시지 내용</h3>
-            <p style="color: #FFFFFF; line-height: 1.6; white-space: pre-wrap;">${message}</p>
-          </div>
-          
-          <div style="text-align: center; margin-top: 30px; padding: 20px; background-color: #121212; border-radius: 10px;">
-            <p style="color: #B0B0B0; margin: 0;">이 메일은 포트폴리오 사이트의 연락처 폼을 통해 전송되었습니다.</p>
-            <p style="color: #B0B0B0; margin: 5px 0 0 0;">전송 시간: ${new Date().toLocaleString('ko-KR')}</p>
-          </div>
-        </div>
-      `,
-    });
-
-    if (error) {
-      console.error('❌ Resend 이메일 전송 오류:', error);
-      console.error('❌ Resend 에러 상세:', JSON.stringify(error, null, 2));
-      
-      // 백오피스에는 저장되었지만 이메일 전송이 실패한 경우
-      if (contactSaved) {
-        console.log('✅ 백오피스에는 저장되었지만 이메일 전송 실패');
-        return NextResponse.json(
-          { 
-            message: '메시지가 저장되었습니다. 이메일 전송에 실패했지만 나중에 확인하겠습니다.',
-            saved: true,
-            emailError: true,
-            error: null // error 필드를 null로 명시적으로 설정
-          },
-          { status: 200 }
-        );
-      }
-      
-      // 둘 다 실패한 경우
-      const errorMessage = error?.message || '이메일 전송에 실패했습니다. 다시 시도해주세요.';
-      return NextResponse.json(
-        { 
-          error: errorMessage,
-          details: error
-        },
+        { error: '메시지 저장 중 오류가 발생했습니다. 다시 시도해주세요.' },
         { status: 500 }
       );
     }
 
-    console.log('✅ 이메일 전송 성공:', data);
-    console.log('📊 연락 정보 저장 상태:', { contactSaved, emailSent: true });
-
+    // 이메일 전송을 건너뛰고, 저장 성공 시 바로 성공 응답
     return NextResponse.json(
       { 
-        message: '메시지가 성공적으로 전송되었습니다.',
+        message: '메시지가 저장되었습니다.',
         saved: contactSaved,
-        emailSent: true,
-        error: null // 명시적으로 error 필드를 null로 설정
+        emailSent: false,
+        error: null
       },
       { status: 200 }
     );
