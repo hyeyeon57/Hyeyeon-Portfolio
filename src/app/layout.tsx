@@ -5,6 +5,20 @@ import "./globals.css";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 
+// Pretendard 폰트 - Variable Font 사용 (모든 weight 지원)
+const pretendard = localFont({
+  src: [
+    {
+      path: "./fonts/PretendardVariable.woff2",
+      weight: "100 900",
+      style: "normal",
+    },
+  ],
+  variable: "--font-pretendard",
+  display: "swap", // 폰트 로딩 중에도 fallback 폰트 즉시 표시
+  preload: true, // 폰트 미리 로드
+});
+
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",
@@ -29,7 +43,7 @@ export default function RootLayout({
   return (
     <html lang="ko" className="scroll-smooth">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${pretendard.variable} ${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Header />
         {children}
