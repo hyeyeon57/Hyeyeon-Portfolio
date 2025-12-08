@@ -8,7 +8,7 @@ const {
 } = require('../services/visitorService.cjs');
 
 const postVisitor = async (req, res) => {
-  const { ip, userAgent, path } = req.body;
+  const { ip, userAgent, path, visitorId } = req.body;
 
   // 프록시 환경에서의 실제 클라이언트 IP 추출
   const forwardedFor = (req.headers['x-forwarded-for'] || '').split(',').map(s => s.trim()).filter(Boolean);
@@ -23,7 +23,7 @@ const postVisitor = async (req, res) => {
   const clientUserAgent = userAgent || req.get('user-agent');
   const clientPath = path || '/';
 
-  const result = await logVisit({ ip: clientIp, userAgent: clientUserAgent, path: clientPath });
+  const result = await logVisit({ visitorId, ip: clientIp, userAgent: clientUserAgent, path: clientPath });
   if (!result.ok) {
     return res.json({ success: false, error: result.message });
   }

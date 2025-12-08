@@ -3,7 +3,7 @@ const Visitor = require('../models/Visitor.cjs');
 
 const isConnected = () => mongoose.connection.readyState === 1;
 
-const logVisit = async ({ ip, userAgent, path }) => {
+const logVisit = async ({ visitorId, ip, userAgent, path }) => {
   if (!isConnected()) {
     return { ok: false, message: 'MongoDB에 연결되지 않았습니다.' };
   }
@@ -11,9 +11,13 @@ const logVisit = async ({ ip, userAgent, path }) => {
   const now = new Date();
   const fiveSecondsAgo = new Date(now.getTime() - 5000);
 
+  // visitorId가 있으면 visitorId를 우선 기준으로 중복 체크, 없으면 IP/UA 기준
+  const baseFilter = visitorId
+    ? { visitorId }
+    : { ip, userAgent };
+
   const existingVisit = await Visitor.findOne({
-    ip,
-    userAgent,
+    ...baseFilter,
     path,
     $or: [
       { date: { $gte: fiveSecondsAgo } },
@@ -25,7 +29,7 @@ const logVisit = async ({ ip, userAgent, path }) => {
     return { ok: true, duplicated: true };
   }
 
-  await Visitor.create({ ip, userAgent, path, date: now });
+  await Visitor.create({ visitorId, ip, userAgent, path, date: now });
   return { ok: true, duplicated: false };
 };
 

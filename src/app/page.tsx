@@ -22,10 +22,8 @@ export default function Home() {
   useEffect(() => {
     setIsMounted(true);
     
-    // 방문자 로그 저장 (중복 방지)
+    // 방문자 로그 저장 (visitorId 생성 및 중복 방지)
     const logVisit = async () => {
-      // 세션 스토리지를 사용하여 중복 방지
-      const visitKey = `visit_${window.location.pathname}_${Date.now()}`;
       const lastVisitTime = sessionStorage.getItem('lastVisitTime');
       const now = Date.now();
       
@@ -35,6 +33,16 @@ export default function Home() {
       }
       
       sessionStorage.setItem('lastVisitTime', now.toString());
+
+      // visitorId 생성/로드 (localStorage)
+      const VISITOR_KEY = 'visitorId';
+      let visitorId = localStorage.getItem(VISITOR_KEY);
+      if (!visitorId) {
+        visitorId = (typeof crypto !== 'undefined' && crypto.randomUUID)
+          ? crypto.randomUUID()
+          : `vid_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+        localStorage.setItem(VISITOR_KEY, visitorId);
+      }
       
       try {
         // 백오피스 API URL 사용 (통합 API 설정)
@@ -47,6 +55,7 @@ export default function Home() {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
+            visitorId,
             path: window.location.pathname,
             userAgent: navigator.userAgent,
           }),
