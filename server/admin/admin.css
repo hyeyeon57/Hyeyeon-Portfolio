@@ -9,3 +9,89 @@ body {
   font-family: 'Pretendard', sans-serif;
 }
 
+/* 탭 버튼 스타일 - 보라색 테마 */
+.tab-btn {
+  padding: 1rem 1rem;
+  border-bottom: 2px solid transparent;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #6b7280;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  position: relative;
+  background: transparent;
+}
+
+.tab-btn:hover {
+  color: #374151;
+  border-bottom-color: #d1d5db;
+}
+
+.tab-btn.active {
+  border-bottom-color: #7A68F6 !important;
+  border-bottom-width: 3px !important;
+  color: #7A68F6 !important;
+  font-weight: 700 !important;
+}
+
+.tab-btn:hover:not(.active) {
+  border-bottom-color: #C4B5FD;
+  color: #7A68F6;
+}
+
+/* 날짜 피커 보라색 테마 */
+input[type="date"] {
+  accent-color: #7A68F6;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: invert(38%) sepia(95%) saturate(2000%) hue-rotate(240deg) brightness(98%) contrast(95%);
+  opacity: 1;
+}
+
+/* 정렬 선택 보라색 테마 */
+select:focus {
+  outline: none;
+  border-color: #7A68F6 !important;
+  box-shadow: 0 0 0 2px rgba(122, 104, 246, 0.2) !important;
+}
+
+/* 날짜 입력 및 정렬 선택 focus 색상 통일 (#7A68F6) */
+input[type="date"]:focus,
+select:focus {
+  border-color: #7A68F6 !important;
+  box-shadow: 0 0 0 2px rgba(122, 104, 246, 0.2) !important;
+  outline: none !important;
+}
+
+/* Tailwind purple-500를 #7A68F6로 오버라이드 */
+.focus\:ring-purple-500:focus {
+  --tw-ring-color: #7A68F6 !important;
+  box-shadow: 0 0 0 2px rgba(122, 104, 246, 0.2) !important;
+}
+
+.focus\:border-purple-500:focus {
+  border-color: #7A68F6 !important;
+}
+
+/* 방문자 기록 섹션의 날짜 및 정렬 필드 - 검색 버튼과 동일한 보라색 */
+#visitor-start-date:focus,
+#visitor-end-date:focus,
+#visitor-sort:focus,
+#contact-start-date:focus,
+#contact-end-date:focus,
+#contact-sort:focus {
+  border-color: #7A68F6 !important;
+  box-shadow: 0 0 0 2px rgba(122, 104, 246, 0.2) !important;
+  outline: none !important;
+}
+
+/* Tailwind 클래스와 함께 사용되는 경우에도 강제 적용 */
+input[type="date"].focus\:ring-purple-500:focus,
+select.focus\:ring-purple-500:focus {
+  border-color: #7A68F6 !important;
+  box-shadow: 0 0 0 2px rgba(122, 104, 246, 0.2) !important;
+  outline: none !important;
+}
+

@@ -249,7 +249,7 @@ export const renderDetailModal = (project, files, categoryLabels, isAuthenticate
         <div class="flex-shrink-0 bg-white border-t px-6 py-4 flex justify-end gap-3" style="flex-shrink: 0;">
           ${
             isAuthenticated
-              ? `<button onclick="editProject('${project.id}'); this.closest('.fixed').remove();" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+              ? `<button onclick="editProject('${project.id}'); this.closest('.fixed').remove();" class="px-4 py-2 text-white rounded-lg transition" style="background-color: #7A68F6;" onmouseover="this.style.backgroundColor='#6B5AE5'" onmouseout="this.style.backgroundColor='#7A68F6'">
             수정하기
           </button>`
               : ''
@@ -274,80 +274,86 @@ export const renderEditModal = (project, categoryLabels) => {
           </button>
         </div>
         <form id="editForm" class="flex-1 overflow-y-auto p-6 space-y-4" style="scrollbar-width: thin; scrollbar-color: #cbd5e0 #f7fafc;">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">제목 *</label>
-            <input type="text" name="title" value="${project.title || ''}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">부제목</label>
-            <input type="text" name="subtitle" value="${project.subtitle || ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">설명 *</label>
-            <textarea name="description" required rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg">${project.description || ''}</textarea>
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">상세 설명</label>
-            <textarea name="fullDescription" rows="5" class="w-full px-4 py-2 border border-gray-300 rounded-lg">${project.fullDescription || ''}</textarea>
-          </div>
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">카테고리 *</label>
-              <select name="category" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
-                ${Object.entries(categoryLabels).map(([key, label]) => `<option value="${key}" ${project.category === key ? 'selected' : ''}>${label}</option>`).join('')}
-              </select>
+          <div class="space-y-4 border border-gray-300 rounded-lg p-4 bg-white">
+            <div class="flex items-center gap-2 mb-3">
+              <i data-lucide="file-edit" class="w-4 h-4 text-gray-600"></i>
+              <h3 class="text-base font-semibold text-gray-900">프로젝트 설명</h3>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">태그 (쉼표로 구분)</label>
-              <input type="text" name="tags" value="${(project.tags || []).join(', ')}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+              <label class="block text-sm font-medium text-gray-900 mb-2">제목 *</label>
+              <input type="text" name="title" value="${project.title || ''}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-xs text-gray-700" />
             </div>
-          </div>
-          <div class="space-y-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">팀 구성</label>
-              <input type="text" name="team" value="${project.team || ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+              <label class="block text-sm font-medium text-gray-900 mb-2">부제목</label>
+              <input type="text" name="subtitle" value="${project.subtitle || ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-xs text-gray-700" />
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-900 mb-2">설명 *</label>
+              <textarea name="description" required rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-xs text-gray-700">${project.description || ''}</textarea>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-900 mb-2">상세 설명</label>
+              <textarea name="fullDescription" rows="5" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-xs text-gray-700">${project.fullDescription || ''}</textarea>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">시작일</label>
-                <input type="date" name="startDate" id="editStartDate" value="${project.startDate || ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+                <label class="block text-sm font-medium text-gray-900 mb-2">카테고리 *</label>
+                <select name="category" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-xs text-gray-700">
+                  ${Object.entries(categoryLabels).map(([key, label]) => `<option value="${key}" ${project.category === key ? 'selected' : ''}>${label}</option>`).join('')}
+                </select>
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">종료일</label>
-                <input type="date" name="endDate" id="editEndDate" value="${project.endDate || ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+                <label class="block text-sm font-medium text-gray-900 mb-2">태그 (쉼표로 구분)</label>
+                <input type="text" name="tags" value="${(project.tags || []).join(', ')}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-xs text-gray-700" />
+              </div>
+            </div>
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-900 mb-2">팀 구성</label>
+                <input type="text" name="team" value="${project.team || ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-xs text-gray-700" />
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-900 mb-2">시작일</label>
+                  <input type="date" name="startDate" id="editStartDate" value="${project.startDate || ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-xs text-gray-700" />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-900 mb-2">종료일</label>
+                  <input type="date" name="endDate" id="editEndDate" value="${project.endDate || ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-xs text-gray-700" />
+                </div>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-900 mb-2">기간 (자동 계산)</label>
+                <input type="text" name="duration" id="editDuration" value="${project.duration || ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-xs text-gray-600" readonly />
+                <p class="text-xs text-gray-500 mt-1">시작일/종료일을 선택하면 자동 계산됩니다.</p>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-900 mb-2">역할</label>
+                <input type="text" name="role" value="${project.role || ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-xs text-gray-700" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-900 mb-2">링크</label>
+                <input type="text" name="link" value="${project.link || ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-xs text-gray-700" />
               </div>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">기간 (자동 계산)</label>
-              <input type="text" name="duration" id="editDuration" value="${project.duration || ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50" readonly />
-              <p class="text-xs text-gray-500 mt-1">시작일/종료일을 선택하면 자동 계산됩니다.</p>
+              <label class="block text-sm font-medium text-gray-900 mb-2">주요 성과 (줄바꿈으로 구분)</label>
+              <textarea name="achievements" rows="5" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-xs text-gray-700">${(project.achievements || []).join('\\n')}</textarea>
             </div>
           </div>
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">역할</label>
-              <input type="text" name="role" value="${project.role || ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">링크</label>
-              <input type="text" name="link" value="${project.link || ''}" class="w-full px-4 py-2 border border-gray-300 rounded-lg" />
-            </div>
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">주요 성과 (줄바꿈으로 구분)</label>
-            <textarea name="achievements" rows="5" class="w-full px-4 py-2 border border-gray-300 rounded-lg">${(project.achievements || []).join('\\n')}</textarea>
-          </div>
-          <div class="space-y-3 border rounded-lg p-3 bg-gray-50">
+          <div class="space-y-3 border border-gray-300 rounded-lg p-3 bg-white">
             <div class="flex items-center gap-2">
               <i data-lucide="file-text" class="w-4 h-4 text-gray-600"></i>
-              <h3 class="text-base font-semibold text-gray-800">PDF 업로드</h3>
+              <h3 class="text-base font-semibold text-gray-900">PDF 업로드</h3>
               <span class="text-xs text-gray-500">(업로드 후 URL 자동 저장)</span>
             </div>
             <div class="space-y-2">
-              <label class="block text-sm font-medium text-gray-700">화면 설계서 PDF</label>
+              <label class="block text-sm font-medium text-gray-900">화면 설계서 PDF</label>
               <div class="flex items-center gap-3 flex-wrap">
                 <input type="file" accept="application/pdf" id="editDesignPdfFile" class="text-sm" />
-                <button type="button" onclick="console.log('🔘 Design PDF 업로드 버튼 클릭'); if (window.uploadPdfInEdit) { window.uploadPdfInEdit('design'); } else { console.error('❌ window.uploadPdfInEdit가 정의되지 않았습니다!'); alert('업로드 함수를 찾을 수 없습니다. 페이지를 새로고침해주세요.'); }" class="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">업로드</button>
+                <button type="button" onclick="console.log('🔘 Design PDF 업로드 버튼 클릭'); if (window.uploadPdfInEdit) { window.uploadPdfInEdit('design'); } else { console.error('❌ window.uploadPdfInEdit가 정의되지 않았습니다!'); alert('업로드 함수를 찾을 수 없습니다. 페이지를 새로고침해주세요.'); }" class="px-3 py-2 text-white rounded text-sm" style="background-color: #2563eb;" onmouseover="this.style.backgroundColor='#1D4ED8'" onmouseout="this.style.backgroundColor='#2563eb'">업로드</button>
                 <span id="editDesignPdfStatus" class="text-sm text-gray-600">
                   ${project.designPdf 
                     ? `<a href="${project.designPdf}" target="_blank" class="text-blue-600 underline">${truncate(project.designPdf.split('/').pop())}</a>` 
@@ -358,10 +364,10 @@ export const renderEditModal = (project, categoryLabels) => {
               <input type="hidden" name="designPdf" id="editDesignPdf" value="${project.designPdf || ''}" />
             </div>
             <div class="space-y-2">
-              <label class="block text-sm font-medium text-gray-700">프로젝트 상세보기 PDF</label>
+              <label class="block text-sm font-medium text-gray-900">프로젝트 상세보기 PDF</label>
               <div class="flex items-center gap-3 flex-wrap">
                 <input type="file" accept="application/pdf" id="editDetailPdfFile" class="text-sm" />
-                <button type="button" onclick="console.log('🔘 Detail PDF 업로드 버튼 클릭'); if (window.uploadPdfInEdit) { window.uploadPdfInEdit('detail'); } else { console.error('❌ window.uploadPdfInEdit가 정의되지 않았습니다!'); alert('업로드 함수를 찾을 수 없습니다. 페이지를 새로고침해주세요.'); }" class="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">업로드</button>
+                <button type="button" onclick="console.log('🔘 Detail PDF 업로드 버튼 클릭'); if (window.uploadPdfInEdit) { window.uploadPdfInEdit('detail'); } else { console.error('❌ window.uploadPdfInEdit가 정의되지 않았습니다!'); alert('업로드 함수를 찾을 수 없습니다. 페이지를 새로고침해주세요.'); }" class="px-3 py-2 text-white rounded text-sm" style="background-color: #2563eb;" onmouseover="this.style.backgroundColor='#1D4ED8'" onmouseout="this.style.backgroundColor='#2563eb'">업로드</button>
                 <span id="editDetailPdfStatus" class="text-sm text-gray-600">
                   ${project.detailPdf 
                     ? `<a href="${project.detailPdf}" target="_blank" class="text-blue-600 underline">${truncate(project.detailPdf.split('/').pop())}</a>` 
@@ -372,22 +378,22 @@ export const renderEditModal = (project, categoryLabels) => {
               <input type="hidden" name="detailPdf" id="editDetailPdf" value="${project.detailPdf || ''}" />
             </div>
           </div>
-          <div class="space-y-3 border rounded-lg p-3 bg-gray-50">
+          <div class="space-y-3 border border-gray-300 rounded-lg p-3 bg-white">
             <div class="flex items-center gap-2">
               <i data-lucide="image" class="w-4 h-4 text-gray-600"></i>
-              <h3 class="text-base font-semibold text-gray-800">이미지 업로드</h3>
+              <h3 class="text-base font-semibold text-gray-900">이미지 업로드</h3>
               <span class="text-xs text-gray-500">(대표 1개, 갤러리 여러 개)</span>
             </div>
             <div class="space-y-2">
-              <label class="block text-sm font-medium text-gray-700">대표 이미지</label>
+              <label class="block text-sm font-medium text-gray-900">대표 이미지</label>
               <input type="file" accept="image/png, image/jpeg" id="editMainImageFile" class="text-sm" />
               <div class="flex items-center gap-2" id="editMainImageStatusWrapper">
-                <div id="editMainImageStatus" class="text-sm text-gray-600">${project.image ? `<a href="${project.image}" target="_blank" class="text-blue-600 underline">${truncate(project.image.split('/').pop())}</a>` : ''}</div>
+                <div id="editMainImageStatus" class="text-sm" style="color: #15803d;">${project.image ? `<a href="${project.image}" target="_blank" class="text-green-600 underline">${truncate(project.image.split('/').pop())}</a>` : ''}</div>
                 ${project.image ? `<button type="button" id="removeMainImageBtn" class="px-2 py-1 text-xs text-red-600 border border-red-200 rounded">삭제</button>` : ''}
               </div>
             </div>
             <div class="space-y-2">
-              <label class="block text-sm font-medium text-gray-700">갤러리 이미지 (다중 선택)</label>
+              <label class="block text-sm font-medium text-gray-900">갤러리 이미지 (다중 선택)</label>
               <input type="file" accept="image/png, image/jpeg" id="editGalleryImagesFile" class="text-sm" multiple />
               <div id="editGalleryImagesStatus" class="text-sm text-gray-600 space-y-1">
                 ${(project.images || []).map((img, idx) => `<div class="flex items-center gap-2" data-existing-gallery="${img}">
@@ -407,7 +413,7 @@ export const renderEditModal = (project, categoryLabels) => {
             </div>
           </div>
           <div class="flex gap-3 pt-4 pb-2 sticky bottom-0 bg-white border-t -mx-6 px-6 py-4 mt-4">
-            <button type="submit" class="flex-1 bg-blue-600 text-white py-2.5 rounded-lg hover:bg-blue-700 transition font-medium text-sm">
+            <button type="submit" class="flex-1 text-white py-2.5 rounded-lg transition font-medium text-sm" style="background-color: #16a34a;" onmouseover="this.style.backgroundColor='#15803d'" onmouseout="this.style.backgroundColor='#16a34a'">
               수정 완료
             </button>
             <button type="button" onclick="this.closest('.fixed').remove()" class="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition text-sm">

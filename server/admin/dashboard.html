@@ -19,7 +19,10 @@
           <span class="w-2 h-2 rounded-full bg-gray-400 animate-pulse"></span>
           <span class="text-gray-600">MongoDB 확인 중...</span>
         </div>
-        <button id="logoutBtn" class="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition flex items-center gap-2" style="display:none;">
+        <a href="/" class="px-4 py-2 rounded-lg transition flex items-center gap-2" style="background-color: #E8E4FF; color: #7A68F6;" onmouseover="this.style.backgroundColor='#D8D0FF'" onmouseout="this.style.backgroundColor='#E8E4FF'">
+          <i data-lucide="home" class="w-4 h-4"></i> 홈으로 가기
+        </a>
+        <button id="logoutBtn" class="px-4 py-2 rounded-lg transition flex items-center gap-2" style="display:none; background-color: #E8E4FF; color: #7A68F6;" onmouseover="this.style.backgroundColor='#D8D0FF'" onmouseout="this.style.backgroundColor='#E8E4FF'">
           <i data-lucide="log-out" class="w-4 h-4"></i> 로그아웃
         </button>
       </div>
@@ -47,7 +50,7 @@
             <div class="flex items-center justify-between mb-4">
               <div>
                 <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                  <i data-lucide="file-text" class="w-5 h-5 text-blue-600"></i>
+                  <i data-lucide="file-text" class="w-5 h-5" style="color: #7A68F6;"></i>
                   이력서
                 </h3>
                 <p class="text-sm text-gray-500 mt-1">포트폴리오에 표시될 이력서 PDF 파일</p>
@@ -58,7 +61,7 @@
             </div>
             <div class="flex items-center gap-3 flex-wrap mb-4">
               <input type="file" id="resume-upload" accept=".pdf" class="text-sm" />
-              <button type="button" id="resume-upload-btn" class="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">파일 선택</button>
+              <button type="button" id="resume-upload-btn" class="px-3 py-2 text-white rounded text-sm" style="background-color: #7A68F6;" onmouseover="this.style.backgroundColor='#6B5AE5'" onmouseout="this.style.backgroundColor='#7A68F6'">파일 선택</button>
               <span id="resume-status-text" class="text-sm text-gray-600">
                 <span class="text-gray-400">선택된 파일 없음</span>
               </span>
@@ -68,7 +71,7 @@
               <span id="resume-upload-status" class="text-sm text-gray-500"></span>
             </div>
             <div class="mt-4 pt-4 border-t border-gray-200">
-              <button type="button" id="resume-save-btn" class="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors">
+              <button type="button" id="resume-save-btn" class="w-full px-6 py-3 text-white rounded-lg font-medium transition-colors" style="background-color: #7A68F6;" onmouseover="this.style.backgroundColor='#6B5AE5'" onmouseout="this.style.backgroundColor='#7A68F6'">
                 저장
               </button>
             </div>
@@ -79,7 +82,7 @@
             <div class="flex items-center justify-between mb-4">
               <div>
                 <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                  <i data-lucide="file-text" class="w-5 h-5 text-purple-600"></i>
+                  <i data-lucide="file-text" class="w-5 h-5" style="color: #7A68F6;"></i>
                   자기소개서
                 </h3>
                 <p class="text-sm text-gray-500 mt-1">포트폴리오에 표시될 자기소개서 PDF 파일</p>
@@ -90,7 +93,7 @@
             </div>
             <div class="flex items-center gap-3 flex-wrap mb-4">
               <input type="file" id="coverletter-upload" accept=".pdf" class="text-sm" />
-              <button type="button" id="coverletter-upload-btn" class="px-3 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 text-sm">파일 선택</button>
+              <button type="button" id="coverletter-upload-btn" class="px-3 py-2 text-white rounded text-sm" style="background-color: #7A68F6;" onmouseover="this.style.backgroundColor='#6B5AE5'" onmouseout="this.style.backgroundColor='#7A68F6'">파일 선택</button>
               <span id="coverletter-status-text" class="text-sm text-gray-600">
                 <span class="text-gray-400">선택된 파일 없음</span>
               </span>
@@ -100,7 +103,7 @@
               <span id="coverletter-upload-status" class="text-sm text-gray-500"></span>
             </div>
             <div class="mt-4 pt-4 border-t border-gray-200">
-              <button type="button" id="coverletter-save-btn" class="w-full px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium transition-colors">
+              <button type="button" id="coverletter-save-btn" class="w-full px-6 py-3 text-white rounded-lg font-medium transition-colors" style="background-color: #7A68F6;" onmouseover="this.style.backgroundColor='#6B5AE5'" onmouseout="this.style.backgroundColor='#7A68F6'">
                 저장
               </button>
             </div>
@@ -113,7 +116,7 @@
       <div class="bg-white border rounded-xl shadow-sm">
         <div class="px-6 py-4 border-b flex items-center justify-between">
           <h2 class="text-xl font-semibold text-gray-900">프로젝트 목록</h2>
-          <a href="/admin/create" id="createBtn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium" style="display:none;">프로젝트 추가</a>
+          <a href="/admin/create" id="createBtn" class="px-4 py-2 text-white rounded-lg text-sm font-medium" style="display:none; background-color: #7A68F6;" onmouseover="this.style.backgroundColor='#6B5AE5'" onmouseout="this.style.backgroundColor='#7A68F6'">프로젝트 추가</a>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full">
@@ -147,20 +150,20 @@
                   <input
                     type="date"
                     id="contact-start-date"
-                    class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                   />
                   <span class="text-gray-500">~</span>
                   <input
                     type="date"
                     id="contact-end-date"
-                    class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                   />
                 </div>
                 <div class="flex items-center gap-2">
                   <label class="text-sm font-medium text-gray-700 whitespace-nowrap" for="contact-sort">정렬</label>
                   <select
                     id="contact-sort"
-                    class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                   >
                     <option value="newest" selected>최신순</option>
                     <option value="oldest">오래된순</option>
@@ -168,7 +171,10 @@
                 </div>
                 <button
                   onclick="applyContactFilters()"
-                  class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-2"
+                  class="px-4 py-2 text-white rounded-lg transition-colors text-sm font-medium flex items-center gap-2"
+                  style="background-color: #7A68F6;"
+                  onmouseover="this.style.backgroundColor='#6B5AE5'"
+                  onmouseout="this.style.backgroundColor='#7A68F6'"
                 >
                   <i data-lucide="search" class="w-4 h-4"></i>
                   검색
@@ -215,7 +221,10 @@
             <div class="flex items-center gap-2">
               <button
                 onclick="clearVisitors()"
-                class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium flex items-center gap-2"
+                class="px-4 py-2 text-white rounded-lg transition-colors text-sm font-medium flex items-center gap-2"
+                style="background-color: #7A68F6;"
+                onmouseover="this.style.backgroundColor='#6B5AE5'"
+                onmouseout="this.style.backgroundColor='#7A68F6'"
                 id="clearVisitorsBtn"
               >
                 <i data-lucide="trash-2" class="w-4 h-4"></i>
@@ -230,14 +239,14 @@
               <input
                 type="date"
                 id="visitor-start-date"
-                class="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                class="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 onchange="updateDateConstraints()"
               />
               <span class="text-gray-500">~</span>
               <input
                 type="date"
                 id="visitor-end-date"
-                class="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                class="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 onchange="updateDateConstraints()"
               />
             </div>
@@ -245,15 +254,30 @@
               <label class="text-sm font-medium text-gray-700 whitespace-nowrap">정렬:</label>
               <select
                 id="visitor-sort"
-                class="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                class="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
               >
                 <option value="newest">최신순</option>
                 <option value="oldest">오래된순</option>
               </select>
             </div>
+            <div class="flex items-center gap-2">
+              <label class="text-sm font-medium text-gray-700 whitespace-nowrap">IP 제외:</label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  id="visitor-exclude-ip"
+                  class="w-4 h-4 border-gray-300 rounded text-purple-600 focus:ring-purple-500"
+                  style="accent-color: #7A68F6;"
+                />
+                <span class="text-sm text-gray-700">로컬/Vercel/내 IP 제외</span>
+              </label>
+            </div>
             <button
               onclick="searchVisitors()"
-              class="px-4 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-2 whitespace-nowrap"
+              class="px-4 py-1.5 text-white rounded-lg transition-colors text-sm font-medium flex items-center gap-2 whitespace-nowrap"
+              style="background-color: #7A68F6;"
+              onmouseover="this.style.backgroundColor='#6B5AE5'"
+              onmouseout="this.style.backgroundColor='#7A68F6'"
             >
               <i data-lucide="search" class="w-4 h-4"></i>
               검색
@@ -341,6 +365,41 @@
     // Next.js API 라우트(/bo-api)가 Express 서버로 프록시함
     const API_URL = '/bo-api';
 
+    // 방문자 로그 저장 (어드민/어드민 뷰어 구분)
+    (async () => {
+      try {
+        const pathname = window.location.pathname;
+        // 경로 구분: /admin/viewer -> "어드민 뷰어", /admin -> "어드민"
+        const pathLabel = pathname.includes('/admin/viewer') ? '어드민 뷰어' : '어드민';
+        
+        // visitorId 생성/로드 (localStorage)
+        const VISITOR_KEY = 'visitorId';
+        let visitorId = localStorage.getItem(VISITOR_KEY);
+        if (!visitorId) {
+          visitorId = (typeof crypto !== 'undefined' && crypto.randomUUID)
+            ? crypto.randomUUID()
+            : `vid_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+          localStorage.setItem(VISITOR_KEY, visitorId);
+        }
+        
+        await fetch(`${API_URL}/visitors`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            visitorId,
+            path: pathLabel,
+            userAgent: navigator.userAgent,
+          }),
+        });
+      } catch (error) {
+        // 방문자 로그 저장 실패는 무시
+        console.error('방문자 로그 저장 실패:', error);
+      }
+    })();
+
     let projects = [];
     let contacts = [];
     const contactFilters = { sort: 'newest', startDate: '', endDate: '' };
@@ -356,8 +415,6 @@
       tabButtons.forEach(btn => {
         const active = btn.dataset.tab === tab;
         btn.classList.toggle('active', active);
-        btn.classList.toggle('border-blue-600', active);
-        btn.classList.toggle('text-blue-600', active);
       });
       tabContents.forEach(content => {
         content.classList.toggle('hidden', content.id !== `content-${tab}`);
@@ -899,20 +956,26 @@
             <td class="px-6 py-3 text-sm text-gray-600">${(p.tags || []).slice(0,3).join(', ')}</td>
             <td class="px-6 py-3 text-center">
               ${!window.isViewerMode ? `
-                <button class="inline-flex items-center justify-center p-1 hover:bg-gray-100 rounded" onclick="toggleFeatured('${projectId}')" title="${isFeatured ? '대표 해제' : '대표 설정'}">
-                  <i data-lucide="${isFeatured ? 'pin' : 'pin-off'}" class="w-4 h-4 ${isFeatured ? 'text-yellow-600' : 'text-gray-400'}" fill="${isFeatured ? 'currentColor' : 'none'}"></i>
+                <button class="inline-flex items-center justify-center p-1 hover:bg-purple-50 rounded" onclick="toggleFeatured('${projectId}')" title="${isFeatured ? '대표 해제' : '대표 설정'}">
+                  <i data-lucide="${isFeatured ? 'pin' : 'pin-off'}" class="w-4 h-4" style="color: #7A68F6;" fill="${isFeatured ? 'currentColor' : 'none'}"></i>
                 </button>
               ` : `
                 <div class="inline-flex items-center justify-center p-1 opacity-50" title="Viewer 모드에서는 대표 설정 불가">
-                  <i data-lucide="${isFeatured ? 'pin' : 'pin-off'}" class="w-4 h-4 ${isFeatured ? 'text-yellow-600' : 'text-gray-400'}" fill="${isFeatured ? 'currentColor' : 'none'}"></i>
+                  <i data-lucide="${isFeatured ? 'pin' : 'pin-off'}" class="w-4 h-4" style="color: #7A68F6;" fill="${isFeatured ? 'currentColor' : 'none'}"></i>
                 </div>
               `}
             </td>
             <td class="px-6 py-3 text-right space-x-2">
-              <button class="text-blue-600 hover:underline" onclick="viewDetail('${projectId}')" title="상세 보기">🔍</button>
+              <button class="inline-flex items-center justify-center p-1.5 hover:bg-purple-50 rounded transition-colors" style="color: #7A68F6;" onclick="viewDetail('${projectId}')" title="상세 보기">
+                <i data-lucide="search" class="w-4 h-4"></i>
+              </button>
               ${isAuthenticated && !window.isViewerMode ? `
-                <button class="text-emerald-600 hover:underline" onclick="editProject('${projectId}')" title="수정하기">✏️</button>
-                <button class="text-red-600 hover:underline" onclick="deleteProject('${projectId}')" title="삭제하기">🗑️</button>
+                <button class="inline-flex items-center justify-center p-1.5 hover:bg-purple-50 rounded transition-colors" style="color: #7A68F6;" onclick="editProject('${projectId}')" title="수정하기">
+                  <i data-lucide="pencil" class="w-4 h-4"></i>
+                </button>
+                <button class="inline-flex items-center justify-center p-1.5 hover:bg-purple-50 rounded transition-colors" style="color: #7A68F6;" onclick="deleteProject('${projectId}')" title="삭제하기">
+                  <i data-lucide="trash-2" class="w-4 h-4"></i>
+                </button>
               ` : ''}
             </td>
           </tr>
@@ -2027,7 +2090,7 @@
         <div class="p-4 rounded-xl border shadow-sm flex items-center justify-between">
           <div>
             <p class="text-sm text-gray-500">총 연락 수</p>
-            <p class="text-2xl font-semibold text-gray-900 mt-1">${total}</p>
+            <p class="text-2xl font-semibold mt-1" style="color: #2563eb;">${total}</p>
           </div>
           <div class="p-3 bg-blue-50 text-blue-600 rounded-lg">
             <i data-lucide="inbox" class="w-6 h-6"></i>
@@ -2036,7 +2099,7 @@
         <div class="p-4 rounded-xl border shadow-sm flex items-center justify-between">
           <div>
             <p class="text-sm text-gray-500">읽지 않음</p>
-            <p class="text-2xl font-semibold text-blue-700 mt-1">${unread}</p>
+            <p class="text-2xl font-semibold mt-1" style="color: #7A68F6;">${unread}</p>
           </div>
           <div class="p-3 bg-indigo-50 text-indigo-600 rounded-lg">
             <i data-lucide="mail" class="w-6 h-6"></i>
@@ -2067,7 +2130,7 @@
         <div class="p-4 rounded-xl border shadow-sm flex items-center justify-between">
           <div>
             <p class="text-sm text-gray-500">총 연락 수</p>
-            <p class="text-2xl font-semibold text-gray-900 mt-1">${total}</p>
+            <p class="text-2xl font-semibold mt-1" style="color: #2563eb;">${total}</p>
           </div>
           <div class="p-3 bg-blue-50 text-blue-600 rounded-lg">
             <i data-lucide="inbox" class="w-6 h-6"></i>
@@ -2076,7 +2139,7 @@
         <div class="p-4 rounded-xl border shadow-sm flex items-center justify-between">
           <div>
             <p class="text-sm text-gray-500">읽지 않음</p>
-            <p class="text-2xl font-semibold text-blue-700 mt-1">${unread}</p>
+            <p class="text-2xl font-semibold mt-1" style="color: #7A68F6;">${unread}</p>
           </div>
           <div class="p-3 bg-indigo-50 text-indigo-600 rounded-lg">
             <i data-lucide="mail" class="w-6 h-6"></i>
@@ -2130,10 +2193,11 @@
         });
         const message = contact.message || '';
         const statusLabel = contact.read ? '읽음' : '읽지 않음';
-        const statusClasses = contact.read ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700';
+        const statusClasses = contact.read ? 'bg-green-100 text-green-700' : '';
+        const statusStyle = contact.read ? '' : 'background-color: #E8E4FF; color: #7A68F6; border: 1px solid #C4B5FD;';
 
         return `
-          <tr class="hover:bg-gray-50 ${contact.read ? '' : 'bg-blue-50/50'}">
+          <tr class="hover:bg-gray-50 ${contact.read ? '' : 'bg-purple-50/50'}">
             <td class="px-6 py-3 text-sm text-gray-600 whitespace-nowrap">${formattedDate}</td>
             <td class="px-6 py-3 text-sm font-medium text-gray-900">${contact.name || '-'}</td>
             <td class="px-6 py-3 text-sm text-gray-600">${contact.email || '-'}</td>
@@ -2141,12 +2205,15 @@
               <div class="line-clamp-2" title="${message}">${message}</div>
             </td>
             <td class="px-6 py-3 text-sm">
-              <span class="px-2.5 py-1 rounded-full text-xs font-medium ${statusClasses}">${statusLabel}</span>
+              <span class="px-2.5 py-1 rounded-full text-xs font-medium ${statusClasses}" style="${statusStyle}">${statusLabel}</span>
             </td>
             <td class="px-6 py-3 text-right text-sm space-x-2 whitespace-nowrap">
               ${contact.read ? '' : `
                 <button
-                  class="inline-flex items-center gap-1 px-3 py-1.5 border border-blue-200 text-blue-700 rounded-lg hover:bg-blue-50 transition-colors text-xs"
+                  class="inline-flex items-center gap-1 px-3 py-1.5 border rounded-lg transition-colors text-xs"
+                  style="border-color: #C4B5FD; color: #7A68F6;"
+                  onmouseover="this.style.backgroundColor='#E8E4FF'"
+                  onmouseout="this.style.backgroundColor='transparent'"
                   onclick="markContactRead('${contactId}')"
                   title="읽음 처리"
                 >
@@ -2155,7 +2222,10 @@
                 </button>
               `}
               <button
-                class="inline-flex items-center gap-1 px-3 py-1.5 border border-red-200 text-red-700 rounded-lg hover:bg-red-50 transition-colors text-xs"
+                class="inline-flex items-center gap-1 px-3 py-1.5 border rounded-lg transition-colors text-xs"
+                style="border-color: #C4B5FD; color: #7A68F6;"
+                onmouseover="this.style.backgroundColor='#E8E4FF'"
+                onmouseout="this.style.backgroundColor='transparent'"
                 onclick="deleteContact('${contactId}')"
                 title="삭제"
               >
@@ -2557,6 +2627,7 @@
       sort: 'newest',
       page: 1,
       limit: 20,
+      excludeIp: false
     };
     let totalVisitorsCount = 0;
 
@@ -2640,7 +2711,51 @@
     function renderVisitors(visitors, total = 0, currentPage = visitorFilters.page, limit = visitorFilters.limit) {
       const tbody = document.getElementById('visitorsTable');
 
-      if (!visitors || visitors.length === 0) {
+      // IP 제외 필터 적용
+      let filteredVisitors = visitors || [];
+      if (visitorFilters.excludeIp) {
+        // 제외할 IP 목록: 로컬, Vercel, 사용자 IP
+        const excludeIps = [
+          '127.0.0.1',
+          'localhost',
+          '::1',
+          '0.0.0.0'
+        ];
+        
+        // Vercel IP 범위 (일반적인 Vercel IP 패턴)
+        const vercelPatterns = [
+          /^76\.76\./, // Vercel IP 범위
+          /^146\.190\./, // Vercel IP 범위
+          /^159\.223\./, // Vercel IP 범위
+          /^164\.90\./, // Vercel IP 범위
+          /^134\.199\./, // Vercel IP 범위
+          /^vercel/i // User-Agent에 vercel이 포함된 경우
+        ];
+        
+        filteredVisitors = filteredVisitors.filter(visitor => {
+          const ip = (visitor.ip || '').toString().trim();
+          const userAgent = (visitor.userAgent || '').toString().toLowerCase();
+          
+          // 로컬 IP 제외
+          if (excludeIps.includes(ip)) {
+            return false;
+          }
+          
+          // Vercel IP 제외
+          if (vercelPatterns.some(pattern => pattern.test(ip) || pattern.test(userAgent))) {
+            return false;
+          }
+          
+          // vercel-screenshot User-Agent 제외
+          if (userAgent.includes('vercel-screenshot') || userAgent.includes('vercel-bot')) {
+            return false;
+          }
+          
+          return true;
+        });
+      }
+
+      if (!filteredVisitors || filteredVisitors.length === 0) {
         tbody.innerHTML = `
           <tr>
             <td colspan="4" class="px-6 py-12 text-center">
@@ -2655,7 +2770,7 @@
         return;
       }
 
-      tbody.innerHTML = visitors.map(visitor => {
+      tbody.innerHTML = filteredVisitors.map(visitor => {
         const visitDate = new Date(visitor.date || visitor.createdAt);
         const formattedDate = visitDate.toLocaleString('ko-KR', {
           year: 'numeric',
@@ -2726,7 +2841,7 @@
       }
 
       for (let i = startPage; i <= endPage; i++) {
-        html += `<button onclick="changeVisitorPage(${i})" class="px-3 py-1 rounded-lg ${i === currentPage ? 'bg-blue-600 text-white' : 'hover:bg-gray-100 transition-colors'}">
+        html += `<button onclick="changeVisitorPage(${i})" class="px-3 py-1 rounded-lg ${i === currentPage ? 'text-white' : 'hover:bg-gray-100 transition-colors'}" ${i === currentPage ? `style="background-color: #7A68F6;"` : ''}>
           ${i}
         </button>`;
       }
@@ -2771,6 +2886,11 @@
 
     // 방문자 검색
     async function searchVisitors(keepPage = false) {
+      // IP 제외 체크박스 상태 읽기
+      const excludeIpCheckbox = document.getElementById('visitor-exclude-ip');
+      if (excludeIpCheckbox) {
+        visitorFilters.excludeIp = excludeIpCheckbox.checked;
+      }
       const startDateInput = document.getElementById('visitor-start-date');
       const endDateInput = document.getElementById('visitor-end-date');
       const sortSelect = document.getElementById('visitor-sort');

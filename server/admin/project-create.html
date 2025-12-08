@@ -18,11 +18,11 @@
             <p class="text-gray-500 mt-1">프로젝트 정보를 입력하세요</p>
           </div>
           <div class="flex gap-3">
-            <a href="/admin" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition flex items-center gap-2">
+            <a href="/admin" class="px-4 py-2 rounded-lg transition flex items-center gap-2" style="background-color: #E8E4FF; color: #7A68F6;" onmouseover="this.style.backgroundColor='#D8D0FF'" onmouseout="this.style.backgroundColor='#E8E4FF'">
               <i data-lucide="arrow-left" class="w-4 h-4"></i>
               돌아가기
             </a>
-            <button onclick="logout()" class="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition flex items-center gap-2">
+            <button onclick="logout()" class="px-4 py-2 rounded-lg transition flex items-center gap-2" style="background-color: #E8E4FF; color: #7A68F6;" onmouseover="this.style.backgroundColor='#D8D0FF'" onmouseout="this.style.backgroundColor='#E8E4FF'">
               <i data-lucide="log-out" class="w-4 h-4"></i>
               로그아웃
             </button>
@@ -43,7 +43,7 @@
             type="text"
             name="title"
             required
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             placeholder="프로젝트 제목을 입력하세요"
           />
         </div>
@@ -54,7 +54,7 @@
           <input
             type="text"
             name="subtitle"
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             placeholder="부제목을 입력하세요"
           />
         </div>
@@ -68,7 +68,7 @@
             name="description"
             required
             rows="3"
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             placeholder="프로젝트 짧은 설명을 입력하세요"
           ></textarea>
         </div>
@@ -79,7 +79,7 @@
           <textarea
             name="fullDescription"
             rows="5"
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             placeholder="프로젝트 상세 설명을 입력하세요"
           ></textarea>
         </div>
@@ -93,7 +93,7 @@
             <select
               name="category"
               required
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             >
               <option value="">선택하세요</option>
               <option value="new">신규</option>
@@ -109,7 +109,7 @@
             <input
               type="text"
               name="tags"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               placeholder="UX 디자인, 사용성 평가, 기획"
             />
           </div>
@@ -122,7 +122,7 @@
             <input
               type="text"
               name="team"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               placeholder="1인"
             />
           </div>
@@ -133,7 +133,7 @@
                 type="date"
                 name="startDate"
                 id="startDate"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
             </div>
             <div>
@@ -142,7 +142,7 @@
                 type="date"
                 name="endDate"
                 id="endDate"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
             </div>
           </div>
@@ -166,7 +166,7 @@
             <input
               type="text"
               name="role"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               placeholder="기획자"
             />
           </div>
@@ -175,7 +175,7 @@
             <input
               type="text"
               name="link"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               placeholder="https://..."
             />
           </div>
@@ -209,7 +209,7 @@
             <label class="block text-sm font-medium text-gray-700">화면 설계서 PDF</label>
             <div class="flex items-center gap-3 flex-wrap">
               <input type="file" accept="application/pdf" id="designPdfFile" class="text-sm" />
-              <button type="button" onclick="uploadPdf('design')" class="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">
+              <button type="button" onclick="uploadPdf('design')" class="px-3 py-2 text-white rounded text-sm" style="background-color: #7A68F6;" onmouseover="this.style.backgroundColor='#6B5AE5'" onmouseout="this.style.backgroundColor='#7A68F6'">
                 업로드
               </button>
               <span id="designPdfStatus" class="text-sm text-gray-600"></span>
@@ -221,7 +221,7 @@
             <label class="block text-sm font-medium text-gray-700">프로젝트 상세보기 PDF</label>
             <div class="flex items-center gap-3 flex-wrap">
               <input type="file" accept="application/pdf" id="detailPdfFile" class="text-sm" />
-              <button type="button" onclick="uploadPdf('detail')" class="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">
+              <button type="button" onclick="uploadPdf('detail')" class="px-3 py-2 text-white rounded text-sm" style="background-color: #7A68F6;" onmouseover="this.style.backgroundColor='#6B5AE5'" onmouseout="this.style.backgroundColor='#7A68F6'">
                 업로드
               </button>
               <span id="detailPdfStatus" class="text-sm text-gray-600"></span>
@@ -237,7 +237,7 @@
           <textarea
             name="achievements"
             rows="5"
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             placeholder="주요 성과를 한 줄씩 입력하세요&#10;예: 사용자 만족도 20% 향상&#10;예: 예매 단계 7→4단계 축소"
           ></textarea>
           <p class="text-xs text-gray-500 mt-1">각 성과를 줄바꿈으로 구분하여 입력하세요</p>
@@ -249,9 +249,11 @@
             <input
               type="checkbox"
               name="featured"
-              class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              class="w-4 h-4 border-gray-300 rounded"
+              style="color: #7A68F6; accent-color: #7A68F6;"
+              onfocus="this.style.outlineColor='#7A68F6'"
             />
-            <i data-lucide="pin" class="w-4 h-4 text-yellow-600 ml-2" fill="currentColor"></i>
+            <i data-lucide="pin" class="w-4 h-4 ml-2" style="color: #7A68F6;" fill="currentColor"></i>
             <span class="ml-2 text-sm text-gray-700">대표 프로젝트로 고정</span>
           </label>
         </div>
@@ -261,7 +263,10 @@
           <button
             type="submit"
             id="submitBtn"
-            class="flex-1 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed font-medium"
+            class="flex-1 text-white py-3 rounded-lg transition disabled:bg-gray-400 disabled:cursor-not-allowed font-medium"
+            style="background-color: #7A68F6;"
+            onmouseover="if(!this.disabled) this.style.backgroundColor='#6B5AE5'"
+            onmouseout="if(!this.disabled) this.style.backgroundColor='#7A68F6'"
           >
             ✅ 프로젝트 생성
           </button>
@@ -483,7 +488,7 @@
         }
 
         hiddenInput.value = result.path;
-        statusEl.innerHTML = `<a href="${result.path}" target="_blank" class="text-blue-600 underline text-sm">업로드 완료: ${result.filename}</a>`;
+        statusEl.innerHTML = `<a href="${result.path}" target="_blank" class="underline text-sm" style="color: #7A68F6;">업로드 완료: ${result.filename}</a>`;
         fileInput.value = '';
       } catch (error) {
         console.error('PDF 업로드 오류:', error);
@@ -638,11 +643,11 @@
         </p>
         
         <div class="flex items-center gap-6 text-sm">
-          <a href="/admin/viewer" class="text-gray-500 hover:text-blue-600 transition-colors flex items-center gap-2">
+          <a href="/admin/viewer" class="text-gray-500 transition-colors flex items-center gap-2" style="--hover-color: #7A68F6;" onmouseover="this.style.color='#7A68F6'" onmouseout="this.style.color=''">
             <i data-lucide="eye" class="w-4 h-4"></i>
             Viewer Access
           </a>
-          <a href="/admin" class="text-gray-500 hover:text-blue-600 transition-colors flex items-center gap-2">
+          <a href="/admin" class="text-gray-500 transition-colors flex items-center gap-2" style="--hover-color: #7A68F6;" onmouseover="this.style.color='#7A68F6'" onmouseout="this.style.color=''">
             <i data-lucide="settings" class="w-4 h-4"></i>
             관리자 대시보드
           </a>
