@@ -68,19 +68,8 @@ export default function Home() {
     
     logVisit();
     
-    // 해시가 있으면 해당 섹션으로 스크롤, 없으면 최상단으로
-    const hash = window.location.hash;
-    if (hash) {
-      // 약간의 지연을 주어 DOM이 완전히 렌더링되도록 함
-      setTimeout(() => {
-        const element = document.querySelector(hash);
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth' });
-        }
-      }, 100);
-    } else {
-      window.scrollTo(0, 0);
-    }
+    // ScrollToTop 컴포넌트에서 처리하므로 여기서는 제거
+    // 해시가 있으면 해당 섹션으로 스크롤하는 것은 ScrollToTop에서 처리
   }, []);
 
   return (

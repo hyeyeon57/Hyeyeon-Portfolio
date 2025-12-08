@@ -27,7 +27,7 @@
 
     <div class="border-b mb-6">
       <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-        <button class="tab-btn active" data-tab="documents">문서 관리</button>
+        <button class="tab-btn" data-tab="documents">문서 관리</button>
         <button class="tab-btn" data-tab="projects">프로젝트</button>
         <button class="tab-btn" data-tab="contacts">연락</button>
         <button class="tab-btn" data-tab="visitors">방문자</button>
@@ -35,7 +35,7 @@
     </div>
 
     <!-- 문서 관리 탭 -->
-    <div id="content-documents" class="tab-content">
+    <div id="content-documents" class="tab-content hidden">
       <div class="bg-white border rounded-xl shadow-sm">
         <div class="px-6 py-4 border-b">
           <h2 class="text-xl font-semibold text-gray-900">문서 관리</h2>
@@ -363,6 +363,15 @@
         content.classList.toggle('hidden', content.id !== `content-${tab}`);
       });
       
+      // 현재 탭을 localStorage에 저장 (새로고침 시 복원용)
+      if (typeof window !== 'undefined' && window.localStorage) {
+        try {
+          localStorage.setItem('admin-dashboard-active-tab', tab);
+        } catch (e) {
+          console.warn('탭 상태 저장 실패:', e);
+        }
+      }
+      
       // 탭 전환 시 해당 탭 데이터 로드
       if (tab === 'documents') {
         loadDocuments();
@@ -375,6 +384,18 @@
         loadVisitors();
       }
     }
+    
+    // 페이지 로드 시 저장된 탭 복원
+    const savedTab = typeof window !== 'undefined' && window.localStorage 
+      ? localStorage.getItem('admin-dashboard-active-tab') 
+      : null;
+    const initialTab = savedTab && ['documents', 'projects', 'contacts', 'visitors'].includes(savedTab) 
+      ? savedTab 
+      : 'documents';
+    
+    // 초기 탭 설정
+    switchTab(initialTab);
+    
     tabButtons.forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
 
     // 문서 관리 함수들
@@ -3930,10 +3951,24 @@
         await checkAuth();
       }
       await checkMongoStatus();
-      // 초기 탭 설정 (문서 관리 탭이 기본)
-      switchTab('documents');
-      // DOM이 완전히 렌더링된 후 문서 로드
-      await loadDocuments();
+      // 초기 탭 설정은 이미 위에서 처리됨 (localStorage에서 복원)
+      // 저장된 탭이 없으면 'documents'가 기본값
+      // DOM이 완전히 렌더링된 후 현재 탭의 데이터 로드
+      const currentTab = typeof window !== 'undefined' && window.localStorage 
+        ? (localStorage.getItem('admin-dashboard-active-tab') || 'documents')
+        : 'documents';
+      
+      // 현재 탭에 맞는 데이터만 로드 (switchTab에서 이미 로드했지만, 초기 로드 시에는 수동으로 호출)
+      if (currentTab === 'documents') {
+        await loadDocuments();
+      } else if (currentTab === 'projects') {
+        await loadProjects();
+      } else if (currentTab === 'contacts') {
+        await loadContacts();
+      } else if (currentTab === 'visitors') {
+        await loadVisitorStatsForTab();
+        await loadVisitors();
+      }
       await loadProjects();
       await loadContacts();
       await loadVisitorStatsForTab();

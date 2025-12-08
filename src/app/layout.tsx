@@ -4,6 +4,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { ScrollToTop } from "@/components/ScrollToTop";
 
 // Pretendard 폰트 - Variable Font 사용 (모든 weight 지원)
 const pretendard = localFont({
@@ -45,6 +46,7 @@ export default function RootLayout({
       <body
         className={`${pretendard.variable} ${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <ScrollToTop />
         <Header />
         {children}
         <Footer />
