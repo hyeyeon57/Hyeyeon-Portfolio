@@ -199,9 +199,9 @@
     <div id="content-visitors" class="tab-content hidden">
       <div class="mb-6" id="visitor-stats"></div>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <div class="bg-white border rounded-xl shadow-sm" id="visitor-today-chart"></div>
-        <div class="bg-white border rounded-xl shadow-sm" id="visitor-weekly-chart"></div>
-        <div class="bg-white border rounded-xl shadow-sm" id="visitor-daily-chart"></div>
+        <div class="bg-white border rounded-xl shadow-sm min-h-0" id="visitor-today-chart" style="display: none;"></div>
+        <div class="bg-white border rounded-xl shadow-sm min-h-0" id="visitor-weekly-chart" style="display: none;"></div>
+        <div class="bg-white border rounded-xl shadow-sm min-h-0" id="visitor-daily-chart" style="display: none;"></div>
       </div>
 
       <!-- 방문자 기록 테이블 -->
@@ -366,6 +366,13 @@
       // 탭 전환 시 해당 탭 데이터 로드
       if (tab === 'documents') {
         loadDocuments();
+      } else if (tab === 'projects') {
+        loadProjects();
+      } else if (tab === 'contacts') {
+        loadContacts();
+      } else if (tab === 'visitors') {
+        loadVisitorStatsForTab();
+        loadVisitors();
       }
     }
     tabButtons.forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
@@ -376,8 +383,21 @@
         const res = await fetch(`${API_URL}/documents`, { credentials: 'include' });
         const data = await res.json();
         if (data.success) {
-          updateDocumentStatus('resume', data.data.resume);
-          updateDocumentStatus('coverLetter', data.data.coverLetter);
+          // DOM이 준비될 때까지 약간 대기 (요소를 찾을 수 있도록)
+          const checkAndUpdate = () => {
+            const resumeStatusText = document.getElementById('resume-status-text');
+            const coverletterStatusText = document.getElementById('coverletter-status-text');
+            
+            if (resumeStatusText || coverletterStatusText) {
+              updateDocumentStatus('resume', data.data.resume);
+              updateDocumentStatus('coverLetter', data.data.coverLetter);
+            } else {
+              // 요소가 아직 준비되지 않았으면 재시도
+              setTimeout(checkAndUpdate, 50);
+            }
+          };
+          
+          checkAndUpdate();
         }
       } catch (error) {
         console.error('문서 로드 실패:', error);
@@ -823,6 +843,22 @@
 
     function renderProjects() {
       const tbody = document.getElementById('projectsTable');
+      if (!tbody) {
+        console.error('[renderProjects] projectsTable 요소를 찾을 수 없습니다.');
+        return;
+      }
+      
+      if (!projects || projects.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="5" class="px-6 py-10 text-center text-gray-500">
+              등록된 프로젝트가 없습니다.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+      
       tbody.innerHTML = projects.map(p => {
         const isFeatured = p.featured === true || p.featured === 'true';
         const projectId = p.id || p._id;
@@ -870,6 +906,20 @@
       document.body.insertAdjacentHTML('beforeend', detailHtml);
       ensureLucide();
       initDetailTabs(projectId);
+      
+      // 모달이 열릴 때 스크롤 (모달 내부 스크롤 가능한 영역으로)
+      setTimeout(() => {
+        // 모달 내부의 스크롤 가능한 컨텐츠 영역 찾기
+        const modal = document.querySelector('.fixed.inset-0.bg-black\\/50');
+        if (modal) {
+          const scrollableContent = modal.querySelector('[style*="overflow-y"]');
+          if (scrollableContent) {
+            scrollableContent.scrollTop = 0;
+          }
+          // 페이지 상단으로도 스크롤 (모달이 보이도록)
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      }, 100);
     }
 
     function downloadFile(projectId, filename) {
@@ -1708,19 +1758,66 @@
       setTimeout(() => ensureLucide(), 0);
     };
 
+    const renderContactStatsViewerMode = (contactsList) => {
+      const statsContainer = document.getElementById('contact-stats');
+      if (!statsContainer) return;
+
+      const total = contactsList.length;
+      const unread = contactsList.filter(c => !c.read).length;
+      const read = total - unread;
+
+      statsContainer.innerHTML = `
+        <div class="p-4 rounded-xl border shadow-sm flex items-center justify-between">
+          <div>
+            <p class="text-sm text-gray-500">총 연락 수</p>
+            <p class="text-2xl font-semibold text-gray-900 mt-1">${total}</p>
+          </div>
+          <div class="p-3 bg-blue-50 text-blue-600 rounded-lg">
+            <i data-lucide="inbox" class="w-6 h-6"></i>
+          </div>
+        </div>
+        <div class="p-4 rounded-xl border shadow-sm flex items-center justify-between">
+          <div>
+            <p class="text-sm text-gray-500">읽지 않음</p>
+            <p class="text-2xl font-semibold text-blue-700 mt-1">${unread}</p>
+          </div>
+          <div class="p-3 bg-indigo-50 text-indigo-600 rounded-lg">
+            <i data-lucide="mail" class="w-6 h-6"></i>
+          </div>
+        </div>
+        <div class="p-4 rounded-xl border shadow-sm flex items-center justify-between">
+          <div>
+            <p class="text-sm text-gray-500">읽음</p>
+            <p class="text-2xl font-semibold text-green-700 mt-1">${read}</p>
+          </div>
+          <div class="p-3 bg-emerald-50 text-emerald-600 rounded-lg">
+            <i data-lucide="mail-open" class="w-6 h-6"></i>
+          </div>
+        </div>
+      `;
+      setTimeout(() => ensureLucide(), 0);
+    };
+
     function renderContacts(contactsList) {
       const tbody = document.getElementById('contactsTable');
       renderContactStats(contactsList || []);
       if (!tbody) return;
 
       if (!contactsList || contactsList.length === 0) {
+        // Viewer 모드일 때는 다른 메시지 표시
+        const message = window.isViewerMode 
+          ? '<div class="flex flex-col items-center gap-5 bg-white py-8 px-6 rounded-lg"><i data-lucide="lock" class="w-12 h-12 text-gray-400"></i><p class="text-gray-600 font-medium">관리자 로그인 후 확인할 수 있습니다.</p></div>'
+          : '등록된 연락이 없습니다.';
         tbody.innerHTML = `
           <tr>
             <td colspan="6" class="px-6 py-10 text-center text-gray-500">
-              등록된 연락이 없습니다.
+              ${message}
             </td>
           </tr>
         `;
+        if (window.isViewerMode) {
+          setTimeout(() => ensureLucide(), 0);
+        }
         return;
       }
 
@@ -1805,7 +1902,33 @@
     async function loadContacts() {
       const res = await fetch(`${API_URL}/contacts`);
       const data = await res.json();
-      contacts = Array.isArray(data.data) ? data.data : [];
+      const contactsList = Array.isArray(data.data) ? data.data : [];
+      
+      // Viewer 모드일 때는 건수만 표시하고 테이블에는 메시지 표시
+      if (window.isViewerMode) {
+        // 통계 표시 (총 연락 수, 읽지 않음, 읽음)
+        renderContactStatsViewerMode(contactsList);
+        
+        // 테이블에는 메시지 표시
+        const tbody = document.getElementById('contactsTable');
+        if (tbody) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="6" class="px-6 py-24 text-center">
+                <div class="flex flex-col items-center gap-5 bg-white py-8 px-6 rounded-lg">
+                  <i data-lucide="lock" class="w-12 h-12 text-gray-400"></i>
+                  <p class="text-gray-600 font-medium">관리자 로그인 후 확인할 수 있습니다.</p>
+                </div>
+              </td>
+            </tr>
+          `;
+          setTimeout(() => ensureLucide(), 0);
+        }
+        return;
+      }
+      
+      // 일반 모드: 전체 데이터 로드
+      contacts = contactsList;
       const sortSelect = document.getElementById('contact-sort');
       if (sortSelect && !sortSelect.value) {
         sortSelect.value = contactFilters.sort;
@@ -1843,6 +1966,13 @@
     async function loadVisitorStatsForTab() {
       const res = await fetch(`${API_URL}/visitors/stats`);
       const stats = await res.json();
+      
+      // Viewer 모드일 때는 통계만 표시하고 차트는 숨김
+      if (window.isViewerMode) {
+        renderVisitorStatsViewerMode(stats);
+        return;
+      }
+      
       renderVisitorStats(stats);
     }
 
@@ -1855,6 +1985,26 @@
       if (stats.hourly) renderTodayChart(stats.hourly, stats.today || 0);
       if (stats.weekly) renderWeeklyChart(stats.weekly, stats.thisWeek || 0);
       // monthly handled separately
+    }
+
+    function renderVisitorStatsViewerMode(stats) {
+      const statsContainer = document.getElementById('visitor-stats');
+      if (statsContainer) {
+        // 실제 방문자 통계 표시
+        statsContainer.innerHTML = statsCardsTemplate({
+          today: stats.today || 0,
+          thisWeek: stats.thisWeek || 0,
+          total: stats.total || 0
+        });
+        setTimeout(() => ensureLucide(), 0);
+      }
+      // 차트는 숨김
+      const todayChart = document.getElementById('visitor-today-chart');
+      const weeklyChart = document.getElementById('visitor-weekly-chart');
+      const dailyChart = document.getElementById('visitor-daily-chart');
+      if (todayChart) todayChart.style.display = 'none';
+      if (weeklyChart) weeklyChart.style.display = 'none';
+      if (dailyChart) dailyChart.style.display = 'none';
     }
 
     function renderTodayChart(hourlyData, total) {
@@ -1945,8 +2095,8 @@
         barGap
       });
       ensureLucide();
-      const tooltip = document.getElementById('tooltip-daily');
-      chartContainer.querySelectorAll('.bar-daily').forEach((bar, idx) => {
+      const tooltip = document.getElementById('tooltip-monthly');
+      chartContainer.querySelectorAll('.bar-monthly').forEach((bar, idx) => {
         bar.addEventListener('mouseenter', (e) => showTooltip(e, 'daily', bar, tooltip, chartContainer));
         bar.addEventListener('mouseleave', () => hideTooltip(tooltip));
       });
@@ -1973,9 +2123,9 @@
       const c = container || t?.parentElement;
       if (!t || !c) return;
       let text = '';
-      if (type === 'today') text = `${bar.getAttribute('data-hour')}시: ${bar.getAttribute('data-count')}명`;
-      if (type === 'weekly') text = `${bar.getAttribute('data-label')}요일: ${bar.getAttribute('data-count')}명`;
-      if (type === 'daily') text = `${bar.getAttribute('data-label')}: ${bar.getAttribute('data-count')}명`;
+      if (type === 'today') text = `${bar.getAttribute('data-count')}명`;
+      if (type === 'weekly') text = `${bar.getAttribute('data-count')}명`;
+      if (type === 'daily') text = `${bar.getAttribute('data-count')}명`;
       t.textContent = text;
       t.style.opacity = '1';
       t.style.display = 'block';
@@ -2115,6 +2265,29 @@
 
     // 방문자 목록 로드
     async function loadVisitors(startDate = null, endDate = null, sort = 'newest', page = visitorFilters.page, limit = visitorFilters.limit) {
+      // Viewer 모드일 때는 메시지만 표시
+      if (window.isViewerMode) {
+        const tbody = document.getElementById('visitorsTable');
+        if (tbody) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="4" class="px-6 py-24 text-center">
+                <div class="flex flex-col items-center gap-5 bg-white py-8 px-6 rounded-lg">
+                  <i data-lucide="lock" class="w-12 h-12 text-gray-400"></i>
+                  <p class="text-gray-600 font-medium">관리자 로그인 후 확인할 수 있습니다.</p>
+                </div>
+              </td>
+            </tr>
+          `;
+          setTimeout(() => ensureLucide(), 0);
+        }
+        const pagination = document.getElementById('visitor-pagination');
+        if (pagination) {
+          pagination.innerHTML = '';
+        }
+        return;
+      }
+      
       // 필터 상태 업데이트
       visitorFilters.startDate = startDate || '';
       visitorFilters.endDate = endDate || '';
@@ -3444,6 +3617,7 @@
       await checkMongoStatus();
       // 초기 탭 설정 (문서 관리 탭이 기본)
       switchTab('documents');
+      // DOM이 완전히 렌더링된 후 문서 로드
       await loadDocuments();
       await loadProjects();
       await loadContacts();

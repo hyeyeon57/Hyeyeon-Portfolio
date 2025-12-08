@@ -4,37 +4,31 @@ import { truncate } from './utils.js';
 
 export const statsCardsTemplate = (stats) => `
   <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-    <div class="bg-white p-6 rounded-xl shadow-sm border">
-      <div class="flex items-center justify-between">
-        <div>
-          <p class="text-gray-500 text-sm">오늘 방문자</p>
-          <p class="text-3xl font-bold text-gray-900 mt-1">${stats.today || 0}</p>
-        </div>
-        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-          <i data-lucide="sun" class="w-6 h-6 text-blue-600"></i>
-        </div>
+    <div class="p-4 rounded-xl border shadow-sm flex items-center justify-between">
+      <div>
+        <p class="text-sm text-gray-500">오늘 방문자</p>
+        <p class="text-2xl font-semibold text-gray-900 mt-1">${stats.today || 0}</p>
+      </div>
+      <div class="p-3 bg-blue-50 text-blue-600 rounded-lg">
+        <i data-lucide="sun" class="w-6 h-6"></i>
       </div>
     </div>
-    <div class="bg-white p-6 rounded-xl shadow-sm border">
-      <div class="flex items-center justify-between">
-        <div>
-          <p class="text-gray-500 text-sm">이번 주 방문자</p>
-          <p class="text-3xl font-bold text-gray-900 mt-1">${stats.thisWeek || 0}</p>
-        </div>
-        <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-          <i data-lucide="calendar" class="w-6 h-6 text-purple-600"></i>
-        </div>
+    <div class="p-4 rounded-xl border shadow-sm flex items-center justify-between">
+      <div>
+        <p class="text-sm text-gray-500">이번 주 방문자</p>
+        <p class="text-2xl font-semibold text-gray-900 mt-1">${stats.thisWeek || 0}</p>
+      </div>
+      <div class="p-3 bg-purple-50 text-purple-600 rounded-lg">
+        <i data-lucide="calendar" class="w-6 h-6"></i>
       </div>
     </div>
-    <div class="bg-white p-6 rounded-xl shadow-sm border">
-      <div class="flex items-center justify-between">
-        <div>
-          <p class="text-gray-500 text-sm">전체 방문자</p>
-          <p class="text-3xl font-bold text-gray-900 mt-1">${stats.total || 0}</p>
-        </div>
-        <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-          <i data-lucide="trending-up" class="w-6 h-6 text-green-600"></i>
-        </div>
+    <div class="p-4 rounded-xl border shadow-sm flex items-center justify-between">
+      <div>
+        <p class="text-sm text-gray-500">전체 방문자</p>
+        <p class="text-2xl font-semibold text-gray-900 mt-1">${stats.total || 0}</p>
+      </div>
+      <div class="p-3 bg-green-50 text-green-600 rounded-lg">
+        <i data-lucide="trending-up" class="w-6 h-6"></i>
       </div>
     </div>
   </div>

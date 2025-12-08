@@ -441,7 +441,7 @@ export const Footer: React.FC = () => {
           <div className="h-px bg-line-medium mb-8" />
 
           {/* Footer 하단 */}
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-2">
             {/* Admin 안내 + 링크 한 행 (우측 정렬) */}
             <div className="flex flex-col md:items-end md:justify-end gap-2 text-right">
               <div className="flex flex-wrap items-center justify-end gap-3 text-sm text-text-secondary leading-tight">
@@ -450,7 +450,7 @@ export const Footer: React.FC = () => {
                   href="/admin/viewer"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="underline hover:text-brand-main transition-colors"
+                  className="text-brand-main underline hover:text-brand-main/80 transition-colors"
                 >
                   Admin Viewer
                 </a>
@@ -464,7 +464,7 @@ export const Footer: React.FC = () => {
                 </a>
               </div>
             </div>
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-text-secondary">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-2 text-sm text-text-secondary">
               <p className="text-sm text-text-secondary">
                 © 2025 Jang Haeyeon Portfolio All rights reserved.
               </p>

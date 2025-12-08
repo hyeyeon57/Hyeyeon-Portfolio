@@ -26,6 +26,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
   const [lightboxIndex, setLightboxIndex] = useState(0); // 라이트박스 이미지 인덱스
   const [showLightboxTooltip, setShowLightboxTooltip] = useState(false); // 라이트박스 자동 툴팁 (최초 1회)
   const [hasShownLightboxTooltip, setHasShownLightboxTooltip] = useState(false); // 이 세션에서 이미 한 번 보여줬는지 여부
+  const [showImageTooltip, setShowImageTooltip] = useState(false); // 모달 이미지 툴팁 (3초간 표시)
 
   // 키보드로 라이트박스 제어 (ESC: 닫기, ← →: 이미지 이동)
   useEffect(() => {
@@ -100,6 +101,24 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
 
     return () => clearTimeout(timer);
   }, [lightboxImage, hasShownLightboxTooltip]);
+
+  // 모달 진입 시 3초 동안 이미지 툴팁 표시
+  useEffect(() => {
+    if (!selectedProject) {
+      setShowImageTooltip(false);
+      return;
+    }
+
+    // 모달이 열릴 때 툴팁 표시
+    setShowImageTooltip(true);
+
+    // 3초 후 툴팁 숨김
+    const timer = setTimeout(() => {
+      setShowImageTooltip(false);
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [selectedProject]);
 
   // BO에서 featured=true로 설정된 프로젝트를 대표 프로젝트로 표시
   // featured 프로젝트만 표시 (개수 제한 없음 - 백엔드에서 설정한 대로)
@@ -448,7 +467,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.3, delay: index * 0.05 }}
-                                className="relative w-full overflow-hidden bg-bg-light cursor-pointer hover:opacity-90 transition-opacity"
+                                className="group relative w-full overflow-hidden bg-bg-light cursor-pointer hover:opacity-90 transition-opacity"
                                 style={{ minHeight: '700px', maxHeight: '90vh' }}
                                 onClick={() => handleImageClickForLightbox(image, index)}
                               >
@@ -465,12 +484,22 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                                   unoptimized={image?.startsWith('http') || image?.startsWith('//')}
                                 />
                                 
-                                {/* 클릭 안내 툴팁 (첫 번째 이미지에만) */}
+                                {/* 클릭 안내 툴팁 (모달 진입 후 3초간 표시, 첫 번째 이미지에만) */}
                                 {index === 0 && (
-                                  <div className="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/85 text-white text-sm px-4 py-2 rounded-full shadow-lg flex items-center gap-2 opacity-0 hover:opacity-100 transition-opacity group-hover:opacity-100">
-                                    <Eye size={16} className="opacity-90" />
-                                    <span className="font-medium">클릭 시 전체화면으로 볼 수 있어요</span>
-                                  </div>
+                                  <AnimatePresence>
+                                    {showImageTooltip && (
+                                      <motion.div
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: 10 }}
+                                        transition={{ duration: 0.3 }}
+                                        className="pointer-events-none absolute bottom-4 left-0 right-0 mx-auto w-fit bg-black/85 text-white text-sm px-4 py-2 rounded-full shadow-lg flex items-center justify-center gap-2 z-10"
+                                      >
+                                        <Eye size={16} className="opacity-90" />
+                                        <span className="font-medium">이미지 클릭 시 더 크게 볼 수 있어요!</span>
+                                      </motion.div>
+                                    )}
+                                  </AnimatePresence>
                                 )}
                               </motion.div>
                             );
