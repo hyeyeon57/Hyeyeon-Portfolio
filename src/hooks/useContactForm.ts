@@ -64,6 +64,8 @@ export function useContactForm(): UseContactFormReturn {
     setError(null);
 
     try {
+      console.log('📤 메시지 전송 시작:', { name: formData.name, email: formData.email });
+      
       const response = await fetch(API_ENDPOINTS.SEND_EMAIL, {
         method: 'POST',
         headers: {
@@ -72,23 +74,53 @@ export function useContactForm(): UseContactFormReturn {
         body: JSON.stringify(formData),
       });
 
-      const result = await response.json();
+      console.log('📥 서버 응답 받음:', { 
+        status: response.status, 
+        ok: response.ok,
+        statusText: response.statusText 
+      });
 
-      if (response.ok) {
+      // 응답 본문 파싱 시도
+      let result;
+      try {
+        result = await response.json();
+        console.log('📋 응답 데이터:', result);
+      } catch (parseError) {
+        // JSON 파싱 실패 시 텍스트로 읽기 시도
+        const text = await response.text();
+        console.error('❌ 응답 파싱 오류:', { text, parseError, status: response.status });
+        throw new Error('서버 응답을 처리할 수 없습니다.');
+      }
+
+      if (response.ok && response.status === 200) {
+        // 성공 응답 처리
+        console.log('✅ 메시지 전송 성공:', result);
+        
         // 폼 초기화
         setFormData(initialFormData);
         setIsSubmitted(true);
+        setError(null); // 에러 초기화
 
-        // 3초 후 성공 메시지 숨기기
+        // 5초 후 성공 메시지 숨기기
         setTimeout(() => {
           setIsSubmitted(false);
-        }, 3000);
+        }, 5000);
       } else {
-        setError(result.error || '메시지 전송에 실패했습니다. 다시 시도해주세요.');
+        // 에러 응답 처리
+        const errorMessage = result?.error || result?.message || '메시지 전송에 실패했습니다. 다시 시도해주세요.';
+        console.error('❌ 메시지 전송 실패:', { 
+          status: response.status, 
+          ok: response.ok,
+          error: errorMessage, 
+          result 
+        });
+        setError(errorMessage);
+        setIsSubmitted(false); // 실패 시 submitted 상태 해제
       }
-    } catch (err) {
-      console.error('연락 정보 저장 오류:', err);
-      setError('메시지 전송 중 오류가 발생했습니다. 다시 시도해주세요.');
+    } catch (err: any) {
+      console.error('❌ 연락 정보 저장 오류:', err);
+      const errorMessage = err?.message || '메시지 전송 중 오류가 발생했습니다. 네트워크 연결을 확인하고 다시 시도해주세요.';
+      setError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

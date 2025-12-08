@@ -145,14 +145,43 @@ export const ContactSection: React.FC<ContactSectionProps> = () => {
                     />
                   </div>
 
+                  {error && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700 text-sm"
+                    >
+                      <p className="font-semibold mb-1">⚠️ 전송 실패</p>
+                      <p>{error}</p>
+                    </motion.div>
+                  )}
+
                   <motion.button
                     type="submit"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="w-full px-8 py-5 bg-brand-main hover:bg-brand-main/90 text-white rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-3"
+                    disabled={isSubmitting}
+                    whileHover={!isSubmitting ? { scale: 1.02 } : {}}
+                    whileTap={!isSubmitting ? { scale: 0.98 } : {}}
+                    className={`w-full px-8 py-5 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-3 ${
+                      isSubmitting
+                        ? 'bg-gray-400 cursor-not-allowed text-white'
+                        : 'bg-brand-main hover:bg-brand-main/90 text-white'
+                    }`}
                   >
-                    <Send size={24} />
-                    메시지 보내기
+                    {isSubmitting ? (
+                      <>
+                        <motion.div
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                          className="w-6 h-6 border-2 border-white border-t-transparent rounded-full"
+                        />
+                        전송 중...
+                      </>
+                    ) : (
+                      <>
+                        <Send size={24} />
+                        메시지 보내기
+                      </>
+                    )}
                   </motion.button>
 
                   <p className="text-sm text-text-secondary text-center">
