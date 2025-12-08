@@ -4,7 +4,13 @@ import { Resend } from 'resend';
 // 이 라우트는 동적이므로 정적 생성하지 않음
 export const dynamic = 'force-dynamic';
 
-const resend = new Resend(process.env.RESEND_API_KEY || 'dummy-key-for-build');
+// Resend API 키 확인
+const resendApiKey = process.env.RESEND_API_KEY;
+if (!resendApiKey || resendApiKey === 'dummy-key-for-build') {
+  console.warn('⚠️ RESEND_API_KEY가 설정되지 않았습니다. 이메일 전송이 실패할 수 있습니다.');
+}
+
+const resend = new Resend(resendApiKey || 'dummy-key-for-build');
 
 // 백오피스 서버 URL 설정 (통합 배포 지원)
 const getBackofficeUrl = () => {
@@ -135,6 +141,7 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('❌ Resend 이메일 전송 오류:', error);
+      console.error('❌ Resend 에러 상세:', JSON.stringify(error, null, 2));
       
       // 백오피스에는 저장되었지만 이메일 전송이 실패한 경우
       if (contactSaved) {
@@ -143,15 +150,20 @@ export async function POST(request: NextRequest) {
           { 
             message: '메시지가 저장되었습니다. 이메일 전송에 실패했지만 나중에 확인하겠습니다.',
             saved: true,
-            emailError: true
+            emailError: true,
+            error: null // error 필드를 null로 명시적으로 설정
           },
           { status: 200 }
         );
       }
       
       // 둘 다 실패한 경우
+      const errorMessage = error?.message || '이메일 전송에 실패했습니다. 다시 시도해주세요.';
       return NextResponse.json(
-        { error: '이메일 전송에 실패했습니다. 다시 시도해주세요.' },
+        { 
+          error: errorMessage,
+          details: error
+        },
         { status: 500 }
       );
     }
@@ -163,7 +175,8 @@ export async function POST(request: NextRequest) {
       { 
         message: '메시지가 성공적으로 전송되었습니다.',
         saved: contactSaved,
-        emailSent: true
+        emailSent: true,
+        error: null // 명시적으로 error 필드를 null로 설정
       },
       { status: 200 }
     );

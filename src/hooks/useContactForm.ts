@@ -92,7 +92,8 @@ export function useContactForm(): UseContactFormReturn {
         throw new Error('서버 응답을 처리할 수 없습니다.');
       }
 
-      if (response.ok && response.status === 200) {
+      // 응답 처리: error 필드가 없고 message 필드가 있으면 성공
+      if (response.ok && response.status === 200 && !result?.error) {
         // 성공 응답 처리
         console.log('✅ 메시지 전송 성공:', result);
         
@@ -107,13 +108,20 @@ export function useContactForm(): UseContactFormReturn {
         }, 5000);
       } else {
         // 에러 응답 처리
-        const errorMessage = result?.error || result?.message || '메시지 전송에 실패했습니다. 다시 시도해주세요.';
+        // result.error가 있으면 그것을 사용, 없으면 result.message를 사용, 둘 다 없으면 기본 메시지
+        const errorMessage = result?.error || 
+          (result?.message && response.status !== 200 ? result.message : null) ||
+          '메시지 전송에 실패했습니다. 다시 시도해주세요.';
+        
         console.error('❌ 메시지 전송 실패:', { 
           status: response.status, 
           ok: response.ok,
           error: errorMessage, 
-          result 
+          result,
+          hasError: !!result?.error,
+          hasMessage: !!result?.message
         });
+        
         setError(errorMessage);
         setIsSubmitted(false); // 실패 시 submitted 상태 해제
       }
