@@ -151,6 +151,7 @@ export const Header: React.FC = () => {
                   <li key={item.href} className="relative group">
                     <Link
                       href={item.href}
+                      prefetch={item.href === '/projects'}
                       className={cn(
                         'flex flex-col items-center gap-1 text-sm font-light transition-all duration-200 px-3 py-2 rounded-lg relative z-10',
                         isActive
@@ -206,6 +207,7 @@ export const Header: React.FC = () => {
                     >
                       <Link
                         href={item.href}
+                        prefetch={item.href === '/projects'}
                         className={cn(
                           'flex flex-col gap-1 py-3 px-4 rounded-lg transition-all',
                           isActive

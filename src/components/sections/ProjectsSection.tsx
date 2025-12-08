@@ -380,7 +380,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
             viewport={{ once: true }}
             className="text-center"
           >
-          <Link href="/projects">
+          <Link href="/projects" prefetch={true}>
             <button
               className="px-8 py-4 bg-brand-main text-white rounded-xl font-semibold hover:opacity-90 transition-all duration-300"
             >

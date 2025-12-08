@@ -31,7 +31,7 @@ export default function AllProjectsPage() {
   useEffect(() => {
     setIsMounted(true);
     
-    // 방문자 로그 저장 (중복 방지)
+    // 방문자 로그 저장 (비동기, 블로킹 없음)
     const logVisit = async () => {
       // 세션 스토리지를 사용하여 중복 방지
       const lastVisitTime = sessionStorage.getItem('lastVisitTime');
@@ -97,12 +97,47 @@ export default function AllProjectsPage() {
       }
     };
     
+    // 방문자 로그는 비동기로 처리 (프로젝트 로딩 블로킹 안 함)
     logVisit();
     
     const fetchProjects = async (forceRefresh = false) => {
       try {
-        // 초기 로드 시 항상 로딩 상태 표시
-        setLoading(true);
+        // localStorage에서 캐시된 데이터 확인 (5분 이내 데이터만 사용)
+        const CACHE_KEY = 'projects_cache';
+        const CACHE_TIMESTAMP_KEY = 'projects_cache_timestamp';
+        const CACHE_DURATION = 5 * 60 * 1000; // 5분
+        
+        let hasCachedData = false;
+        
+        if (!forceRefresh && typeof window !== 'undefined') {
+          const cachedData = localStorage.getItem(CACHE_KEY);
+          const cacheTimestamp = localStorage.getItem(CACHE_TIMESTAMP_KEY);
+          
+          if (cachedData && cacheTimestamp) {
+            const cacheAge = Date.now() - parseInt(cacheTimestamp);
+            if (cacheAge < CACHE_DURATION) {
+              try {
+                const parsedProjects = JSON.parse(cachedData);
+                if (Array.isArray(parsedProjects) && parsedProjects.length > 0) {
+                  console.log('✅ 캐시된 프로젝트 데이터 사용:', parsedProjects.length);
+                  setProjects(parsedProjects);
+                  setLoading(false);
+                  hasCachedData = true;
+                  // 백그라운드에서 최신 데이터 가져오기
+                  forceRefresh = true;
+                }
+              } catch (e) {
+                console.warn('캐시 데이터 파싱 실패:', e);
+              }
+            }
+          }
+        }
+        
+        // 캐시가 없거나 강제 새로고침인 경우에만 로딩 상태 표시
+        if (!hasCachedData) {
+          setLoading(true);
+        }
+        
         // 강제 새로고침 시 타임스탬프를 더 크게 만들어 캐시 완전 무효화
         const timestamp = forceRefresh ? Date.now() + Math.random() : Date.now();
         const response = await fetch(`/api/projects?t=${timestamp}&_=${timestamp}`, {
@@ -119,9 +154,11 @@ export default function AllProjectsPage() {
             statusText: response.statusText,
             url: response.url
           });
-          // API 호출 실패 시 빈 배열 사용 (정적 데이터 사용 안 함)
-          console.warn('⚠️ 백엔드 연결 실패 - 빈 배열 사용 (정적 데이터 사용 안 함)');
-          setProjects([]);
+          // API 호출 실패 시 캐시된 데이터가 없으면 빈 배열 설정
+          if (!hasCachedData) {
+            setProjects([]);
+            setLoading(false);
+          }
           return;
         }
         
@@ -164,6 +201,16 @@ export default function AllProjectsPage() {
               featuredProjects: boProjects.filter(p => p.featured).map(p => p.title)
             });
             setProjects(boProjects);
+            
+            // localStorage에 캐시 저장
+            if (typeof window !== 'undefined') {
+              try {
+                localStorage.setItem(CACHE_KEY, JSON.stringify(boProjects));
+                localStorage.setItem(CACHE_TIMESTAMP_KEY, Date.now().toString());
+              } catch (e) {
+                console.warn('캐시 저장 실패:', e);
+              }
+            }
           } else {
             // BO에 데이터가 없으면 빈 배열 사용 (정적 데이터 사용 안 함)
             console.warn('⚠️ 백엔드에 프로젝트가 없음 - 빈 배열 사용');
@@ -172,20 +219,23 @@ export default function AllProjectsPage() {
         } else {
           // 응답 형식 오류 시 빈 배열 사용 (정적 데이터 사용 안 함)
           console.error('❌ 백엔드 응답 형식 오류:', result);
-          setProjects([]);
+          if (!hasCachedData) {
+            setProjects([]);
+          }
         }
       } catch (error) {
         console.error('❌ 프로젝트 로드 오류:', error);
-        // 오류 시 빈 배열 사용 (정적 데이터 사용 안 함)
-        console.warn('⚠️ 백엔드 연결 실패 - 빈 배열 사용 (정적 데이터 사용 안 함)');
-        setProjects([]);
+        // 오류 시 캐시된 데이터가 없으면 빈 배열 설정
+        if (!hasCachedData) {
+          setProjects([]);
+        }
       } finally {
         setLoading(false);
       }
     };
 
     // 초기 한 번만 로드
-    fetchProjects(true);
+    fetchProjects(false); // 캐시 우선 사용
   }, []);
 
   // 프로젝트 데이터는 BO 서버에서 관리하므로 localStorage 저장 제거
