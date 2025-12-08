@@ -4,9 +4,13 @@ import { Resend } from 'resend';
 // 이 라우트는 동적이므로 정적 생성하지 않음
 export const dynamic = 'force-dynamic';
 
+// 이메일 전송 비활성화 플래그 (기본: false)
+// SEND_EMAIL_DISABLED=true 로 설정하면 이메일 전송을 건너뛰고 저장만 수행
+const EMAIL_DISABLED = process.env.SEND_EMAIL_DISABLED === 'true';
+
 // Resend API 키 확인
 const resendApiKey = process.env.RESEND_API_KEY;
-if (!resendApiKey || resendApiKey === 'dummy-key-for-build') {
+if (!EMAIL_DISABLED && (!resendApiKey || resendApiKey === 'dummy-key-for-build')) {
   console.warn('⚠️ RESEND_API_KEY가 설정되지 않았습니다. 이메일 전송이 실패할 수 있습니다.');
 }
 
@@ -109,6 +113,20 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // 이메일 전송 비활성화 시: 백오피스 저장만 진행하고 바로 성공 응답
+    if (EMAIL_DISABLED) {
+      console.log('✉️ 이메일 전송 비활성화 상태로 응답:', { contactSaved, emailSent: false });
+      return NextResponse.json(
+        {
+          message: '메시지가 저장되었습니다. (이메일 전송은 비활성화됨)',
+          saved: contactSaved,
+          emailSent: false,
+          error: null,
+        },
+        { status: 200 }
+      );
+    }
+
     // Resend를 사용한 실제 이메일 전송
     const { data, error } = await resend.emails.send({
       from: 'Portfolio Contact <onboarding@resend.dev>',
@@ -171,6 +189,15 @@ export async function POST(request: NextRequest) {
     console.log('✅ 이메일 전송 성공:', data);
     console.log('📊 연락 정보 저장 상태:', { contactSaved, emailSent: true });
 
+    return NextResponse.json(
+      { 
+        message: '메시지가 성공적으로 전송되었습니다.',
+        saved: contactSaved,
+        emailSent: true,
+        error: null // 명시적으로 error 필드를 null로 설정
+      },
+      { status: 200 }
+    );
     return NextResponse.json(
       { 
         message: '메시지가 성공적으로 전송되었습니다.',
