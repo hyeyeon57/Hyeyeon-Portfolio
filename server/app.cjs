@@ -52,6 +52,9 @@ const createApp = ({ withDbMiddleware = false } = {}) => {
     console.log('[createApp] Starting Express app initialization...');
     const app = express();
 
+    // 프록시(IP 추출) 신뢰 설정 (Vercel/프록시 뒤에서 클라이언트 IP 확보)
+    app.set('trust proxy', true);
+
     // 에러 핸들링 미들웨어 (라우트 이후에 추가)
     // Express는 4개 파라미터를 가진 함수를 에러 핸들러로 인식
 

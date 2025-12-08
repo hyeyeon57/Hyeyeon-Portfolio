@@ -9,7 +9,17 @@ const {
 
 const postVisitor = async (req, res) => {
   const { ip, userAgent, path } = req.body;
-  const clientIp = ip || req.ip || req.connection.remoteAddress;
+
+  // 프록시 환경에서의 실제 클라이언트 IP 추출
+  const forwardedFor = (req.headers['x-forwarded-for'] || '').split(',').map(s => s.trim()).filter(Boolean);
+  const clientIp =
+    ip ||
+    forwardedFor[0] ||
+    req.headers['cf-connecting-ip'] ||
+    req.headers['x-real-ip'] ||
+    req.ip ||
+    req.connection.remoteAddress;
+
   const clientUserAgent = userAgent || req.get('user-agent');
   const clientPath = path || '/';
 
