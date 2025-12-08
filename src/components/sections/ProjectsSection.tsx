@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ExternalLink, Calendar, Users, Award, FileText, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
 import Link from 'next/link';
@@ -104,17 +104,10 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
   // BO에서 featured=true로 설정된 프로젝트를 대표 프로젝트로 표시
   // featured 프로젝트만 표시 (개수 제한 없음 - 백엔드에서 설정한 대로)
   // API route에서 이미 boolean으로 변환되어 전달됨
-  const displayedProjects = projects.filter(project => project.featured);
-  
-  // 디버깅: featured 프로젝트 개수 확인 (항상 로그 출력)
-  if (typeof window !== 'undefined') {
-    console.log('📌 대표 프로젝트 필터링 결과:', {
-      totalProjects: projects.length,
-      featuredCount: displayedProjects.length,
-      featuredProjects: displayedProjects.map(p => ({ title: p.title, featured: p.featured })),
-      allProjects: projects.map(p => ({ title: p.title, featured: p.featured, featuredType: typeof p.featured }))
-    });
-  }
+  // useMemo로 필터링 결과 메모이제이션하여 불필요한 재계산 방지
+  const displayedProjects = useMemo(() => {
+    return projects.filter(project => project.featured);
+  }, [projects]);
 
   // 에러 또는 로딩 상태 표시
   if (loading) {

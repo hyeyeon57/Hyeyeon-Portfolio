@@ -104,11 +104,19 @@ export function useProjects(): UseProjectsReturn {
         setProjects(result.data);
         setError(null);
 
-        // 2) 최신 데이터를 세션 스토리지에 캐시
+        // 최신 데이터를 localStorage와 sessionStorage에 캐시
         if (typeof window !== 'undefined') {
           try {
+            const CACHE_KEY = 'featured-projects-cache';
+            const CACHE_TIMESTAMP_KEY = 'featured-projects-cache-timestamp';
+            
+            // localStorage에 저장 (더 오래 유지)
+            window.localStorage.setItem(CACHE_KEY, JSON.stringify(result.data));
+            window.localStorage.setItem(CACHE_TIMESTAMP_KEY, Date.now().toString());
+            
+            // sessionStorage에도 저장 (호환성)
             window.sessionStorage.setItem(
-              'featured-projects-cache',
+              CACHE_KEY,
               JSON.stringify({ data: result.data, updatedAt: Date.now() }),
             );
           } catch {
@@ -153,38 +161,74 @@ export function useProjects(): UseProjectsReturn {
     if (hasInitialLoad.current) return;
     hasInitialLoad.current = true;
 
-    // 세션 스토리지에서 캐시된 데이터 로드 (즉시 표시)
+    // localStorage와 sessionStorage에서 캐시된 데이터 확인 (localStorage 우선)
+    const CACHE_KEY = 'featured-projects-cache';
+    const CACHE_TIMESTAMP_KEY = 'featured-projects-cache-timestamp';
+    const CACHE_DURATION = 5 * 60 * 1000; // 5분
+    
+    let hasCachedData = false;
+
+    // 1. localStorage 캐시 확인 (더 오래 유지됨)
     try {
-      const cached = window.sessionStorage.getItem('featured-projects-cache');
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed?.data) && parsed.data.length > 0) {
-          setProjects(parsed.data as Project[]);
-          setLoading(false);
-          setError(null); // 에러 초기화
-          
-          // 캐시가 오래되었는지 확인
-          const updatedAt = typeof parsed?.updatedAt === 'number' ? parsed.updatedAt : 0;
-          const tenMinutes = 10 * 60 * 1000;
-          const shouldRefresh = Date.now() - updatedAt > tenMinutes;
-          
-          // 백그라운드에서 최신 데이터로 업데이트 (에러 발생해도 조용히 무시)
-          if (shouldRefresh) {
-            // fetchProjects 함수가 이미 정의되었으므로 직접 호출
+      const cached = window.localStorage.getItem(CACHE_KEY);
+      const cacheTimestamp = window.localStorage.getItem(CACHE_TIMESTAMP_KEY);
+      
+      if (cached && cacheTimestamp) {
+        const cacheAge = Date.now() - parseInt(cacheTimestamp);
+        if (cacheAge < CACHE_DURATION) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            console.log('✅ localStorage 캐시된 프로젝트 데이터 사용:', parsed.length);
+            setProjects(parsed as Project[]);
+            setLoading(false);
+            setError(null);
+            hasCachedData = true;
+            
+            // 백그라운드에서 최신 데이터 가져오기
             fetchProjects(true).catch((err) => {
-              // 백그라운드 업데이트 실패 시 조용히 무시 (캐시 데이터 유지)
               console.warn('⚠️ 백그라운드 프로젝트 업데이트 실패 (캐시 데이터 유지):', err.message);
             });
           }
-          return;
         }
       }
     } catch {
-      // 캐시 읽기 실패 시 무시하고 계속 진행
+      // localStorage 캐시 읽기 실패 시 무시
     }
 
-    // 캐시가 없으면 바로 페치
-    fetchProjects(false);
+    // 2. localStorage 캐시가 없으면 sessionStorage 확인
+    if (!hasCachedData) {
+      try {
+        const cached = window.sessionStorage.getItem(CACHE_KEY);
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed?.data) && parsed.data.length > 0) {
+            setProjects(parsed.data as Project[]);
+            setLoading(false);
+            setError(null);
+            hasCachedData = true;
+            
+            // 캐시가 오래되었는지 확인
+            const updatedAt = typeof parsed?.updatedAt === 'number' ? parsed.updatedAt : 0;
+            const tenMinutes = 10 * 60 * 1000;
+            const shouldRefresh = Date.now() - updatedAt > tenMinutes;
+            
+            // 백그라운드에서 최신 데이터로 업데이트
+            if (shouldRefresh) {
+              fetchProjects(true).catch((err) => {
+                console.warn('⚠️ 백그라운드 프로젝트 업데이트 실패 (캐시 데이터 유지):', err.message);
+              });
+            }
+          }
+        }
+      } catch {
+        // sessionStorage 캐시 읽기 실패 시 무시
+      }
+    }
+
+    // 3. 캐시가 없으면 바로 페치
+    if (!hasCachedData) {
+      fetchProjects(false);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // 빈 의존성 배열 - 초기 마운트 시 한 번만 실행 (fetchProjects는 useCallback으로 안정적)
 
