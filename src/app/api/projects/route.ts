@@ -240,14 +240,21 @@ export async function GET(request: NextRequest) {
         }, { status: 500 });
       }
 
-      const featuredCount = projects.filter(p => p.featured).length;
+      // featured 프로젝트를 상단에 정렬
+      const sortedProjects = [...projects].sort((a, b) => {
+        if (a.featured && !b.featured) return -1; // a가 featured면 위로
+        if (!a.featured && b.featured) return 1;  // b가 featured면 위로
+        return 0; // 둘 다 featured이거나 둘 다 아니면 기존 순서 유지
+      });
+      
+      const featuredCount = sortedProjects.filter(p => p.featured).length;
       console.log('✅ 변환된 프로젝트:', {
-        total: projects.length,
+        total: sortedProjects.length,
         featured: featuredCount,
-        featuredTitles: projects.filter(p => p.featured).map(p => p.title)
+        featuredTitles: sortedProjects.filter(p => p.featured).map(p => p.title)
       });
 
-      return NextResponse.json({ success: true, data: projects });
+      return NextResponse.json({ success: true, data: sortedProjects });
     }
 
     return NextResponse.json({ success: true, data: [] });

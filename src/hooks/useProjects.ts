@@ -101,7 +101,15 @@ export function useProjects(): UseProjectsReturn {
       const result = await response.json();
 
       if (result.success && Array.isArray(result.data)) {
-        setProjects(result.data);
+        // featured 프로젝트를 상단에 정렬
+        const sortedProjects = [...result.data].sort((a: any, b: any) => {
+          const aFeatured = a.featured === true || a.featured === 'true';
+          const bFeatured = b.featured === true || b.featured === 'true';
+          if (aFeatured && !bFeatured) return -1; // a가 featured면 위로
+          if (!aFeatured && bFeatured) return 1;  // b가 featured면 위로
+          return 0; // 둘 다 featured이거나 둘 다 아니면 기존 순서 유지
+        });
+        setProjects(sortedProjects);
         setError(null);
 
         // 최신 데이터를 localStorage와 sessionStorage에 캐시

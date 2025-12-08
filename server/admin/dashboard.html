@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>관리자 대시보드 (모듈화)</title>
+  <title>관리자 대시보드 (BO화면)</title>
   <link rel="stylesheet" href="/admin.css">
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js" defer></script>
 </head>
@@ -12,7 +12,7 @@
     <header class="flex items-center justify-between mb-6">
       <div>
         <h1 class="text-3xl font-bold text-gray-900" id="dashboard-title">관리자 대시보드</h1>
-        <p class="text-gray-500 text-sm" id="dashboard-subtitle">모듈화된 새 대시보드</p>
+        <p class="text-gray-500 text-sm" id="dashboard-subtitle">BO화면</p>
       </div>
       <div class="flex items-center gap-3">
         <div id="mongodbStatus" class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm">
@@ -798,6 +798,7 @@
         });
         const data = await res.json();
         if (data.success) {
+          // 프로젝트 목록 새로고침 및 정렬
           await loadProjects();
         } else {
           alert(data.error || '대표 설정에 실패했습니다.');
@@ -827,6 +828,14 @@
         }
         
         projects = Array.isArray(data.data) ? data.data : [];
+        // featured 프로젝트를 상단에 정렬
+        projects.sort((a, b) => {
+          const aFeatured = a.featured === true || a.featured === 'true';
+          const bFeatured = b.featured === true || b.featured === 'true';
+          if (aFeatured && !bFeatured) return -1; // a가 featured면 위로
+          if (!aFeatured && bFeatured) return 1;  // b가 featured면 위로
+          return 0; // 둘 다 featured이거나 둘 다 아니면 기존 순서 유지
+        });
         console.log('[loadProjects] 로드된 프로젝트 수:', projects.length);
         renderProjects();
       } catch (error) {
@@ -922,6 +931,24 @@
       }, 100);
     }
 
+    function openImageModal(imageUrl, imageName) {
+      const modal = document.createElement('div');
+      modal.className = 'fixed inset-0 bg-black/90 z-[100] flex items-center justify-center p-4';
+      modal.onclick = () => modal.remove();
+      modal.innerHTML = `
+        <div class="relative max-w-7xl max-h-[95vh] w-full h-full flex items-center justify-center" onclick="event.stopPropagation()">
+          <button onclick="this.closest('.fixed').remove()" class="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white z-10 transition-colors">
+            <i data-lucide="x" class="w-6 h-6"></i>
+          </button>
+          <img src="${imageUrl}" alt="${imageName}" class="max-w-full max-h-full object-contain" />
+          ${imageName ? `<div class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/70 text-white px-4 py-2 rounded-lg text-sm">${imageName}</div>` : ''}
+        </div>
+      `;
+      document.body.appendChild(modal);
+      ensureLucide();
+    }
+    window.openImageModal = openImageModal;
+
     function downloadFile(projectId, filename) {
       const downloadUrl = `${API_URL}/projects/${projectId}/files/${encodeURIComponent(filename)}`;
       const link = document.createElement('a');
@@ -978,6 +1005,44 @@
       const html = renderEditModal(project, categoryLabels);
       document.body.insertAdjacentHTML('beforeend', html);
       ensureLucide();
+      
+      // 초기 로드된 템플릿의 화살표 버튼에도 이벤트 리스너 연결
+      setTimeout(() => {
+        const container = document.getElementById('editGalleryImagesStatus');
+        if (container) {
+          // 순서 위로 이동
+          container.querySelectorAll('[data-move-up]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+              const idx = Number(btn.getAttribute('data-move-up'));
+              const currentGallery = window.editGalleryList || [];
+              if (!Number.isNaN(idx) && idx > 0) {
+                const tmp = currentGallery[idx - 1];
+                currentGallery[idx - 1] = currentGallery[idx];
+                currentGallery[idx] = tmp;
+                window.editGalleryList = currentGallery;
+                window.refreshEditGalleryStatus();
+              }
+            });
+          });
+          
+          // 순서 아래로 이동
+          container.querySelectorAll('[data-move-down]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+              const idx = Number(btn.getAttribute('data-move-down'));
+              const currentGallery = window.editGalleryList || [];
+              if (!Number.isNaN(idx) && idx < currentGallery.length - 1) {
+                const tmp = currentGallery[idx + 1];
+                currentGallery[idx + 1] = currentGallery[idx];
+                currentGallery[idx] = tmp;
+                window.editGalleryList = currentGallery;
+                window.refreshEditGalleryStatus();
+              }
+            });
+          });
+          
+          ensureLucide();
+        }
+      }, 100);
       
       // 모달 외부 클릭으로 닫히는 기능 비활성화 (저장 후에도 모달이 열려있도록)
       const modalBackdrop = document.getElementById('editModalBackdrop');
@@ -1140,16 +1205,36 @@
       window.refreshEditGalleryStatus = () => {
         const container = document.getElementById('editGalleryImagesStatus');
         if (!container) return;
-        const currentGallery = window.editGalleryList || galleryList;
+        // window.editGalleryList를 우선 사용 (저장 후에도 접근 가능)
+        // 유효하지 않은 값(null, undefined, 빈 문자열) 필터링
+        const rawGallery = window.editGalleryList || [];
+        const currentGallery = rawGallery.filter(img => img && typeof img === 'string' && img.trim() !== '');
+        // 필터링된 배열로 업데이트 (유효하지 않은 값 제거)
+        if (currentGallery.length !== rawGallery.length) {
+          window.editGalleryList = currentGallery;
+        }
 
         // 갤러리 이미지 목록: 썸네일 + 파일명 + 드래그로 순서 변경 + 삭제
-        container.innerHTML = currentGallery.map((img, idx) => `
+        container.innerHTML = currentGallery.map((img, idx) => {
+          // img가 유효한 문자열인지 확인
+          if (!img || typeof img !== 'string') return '';
+          const fileName = img.split('/').pop() || img;
+          return `
           <div
             class="flex items-center gap-2 py-1 border border-gray-200 rounded-md px-2 bg-white"
             data-existing-gallery="${img}"
             data-gallery-index="${idx}"
             draggable="true"
           >
+            <div class="flex flex-col items-center justify-center gap-1">
+              <button type="button" class="p-0.5 text-gray-400 hover:text-green-600 transition-colors ${idx === 0 ? 'opacity-30 cursor-not-allowed' : ''}" data-move-up="${idx}" ${idx === 0 ? 'disabled' : ''} title="위로 이동">
+                <i data-lucide="chevron-up" class="w-3 h-3"></i>
+              </button>
+              <span class="flex items-center justify-center w-6 h-6 text-white rounded-full text-xs font-bold flex-shrink-0" style="background-color: #16a34a; border: 2px solid #15803d;">${idx + 1}</span>
+              <button type="button" class="p-0.5 text-gray-400 hover:text-green-600 transition-colors ${idx === currentGallery.length - 1 ? 'opacity-30 cursor-not-allowed' : ''}" data-move-down="${idx}" ${idx === currentGallery.length - 1 ? 'disabled' : ''} title="아래로 이동">
+                <i data-lucide="chevron-down" class="w-3 h-3"></i>
+              </button>
+            </div>
             <div class="w-12 h-12 rounded border border-gray-200 overflow-hidden bg-gray-50 flex-shrink-0">
               <img
                 src="${img}"
@@ -1159,7 +1244,7 @@
               />
             </div>
             <!-- 파일명을 줄임 없이 전체 표시 -->
-            <span class="text-sm break-all" title="${img}">${img.split('/').pop()}</span>
+            <span class="text-sm break-all" title="${img}">${fileName}</span>
             <div class="flex items-center gap-1 ml-auto">
               <button
                 type="button"
@@ -1170,7 +1255,8 @@
               </button>
             </div>
           </div>
-        `).join('');
+        `;
+        }).filter(html => html !== '').join('');
 
         // 드래그로 순서 변경
         container.querySelectorAll('[data-existing-gallery]').forEach((item) => {
@@ -1208,11 +1294,10 @@
               return;
             }
 
-            const currentGallery = window.editGalleryList || galleryList;
+            const currentGallery = window.editGalleryList || [];
             const newList = [...currentGallery];
             const [moved] = newList.splice(draggedGalleryIndex, 1);
             newList.splice(targetIdx, 0, moved);
-            galleryList = newList;
             window.editGalleryList = newList;
             draggedGalleryIndex = null;
             window.refreshEditGalleryStatus();
@@ -1225,13 +1310,15 @@
 
         // 삭제 버튼
         container.querySelectorAll('[data-remove-gallery]').forEach((btn) => {
-          btn.addEventListener('click', () => {
+          btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation(); // 이벤트 전파 중지
             const idx = Number(btn.getAttribute('data-remove-gallery'));
-            if (!Number.isNaN(idx)) {
-              const currentGallery = window.editGalleryList || galleryList;
-              currentGallery.splice(idx, 1);
-              galleryList = currentGallery;
-              window.editGalleryList = currentGallery;
+            if (!Number.isNaN(idx) && idx >= 0 && idx < (window.editGalleryList || []).length) {
+              const currentGallery = window.editGalleryList || [];
+              // 새 배열 생성하여 삭제 (원본 배열 직접 수정 방지)
+              const newGallery = currentGallery.filter((_, i) => i !== idx);
+              window.editGalleryList = newGallery;
               window.refreshEditGalleryStatus();
             }
           });
@@ -1239,15 +1326,18 @@
 
         // 순서 위로 이동
         container.querySelectorAll('[data-move-up]').forEach((btn) => {
-          btn.addEventListener('click', () => {
+          btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation(); // 이벤트 전파 중지 (삭제 버튼 클릭 방지)
             const idx = Number(btn.getAttribute('data-move-up'));
-            const currentGallery = window.editGalleryList || galleryList;
-            if (!Number.isNaN(idx) && idx > 0) {
-              const tmp = currentGallery[idx - 1];
-              currentGallery[idx - 1] = currentGallery[idx];
-              currentGallery[idx] = tmp;
-              galleryList = currentGallery;
-              window.editGalleryList = currentGallery;
+            const currentGallery = window.editGalleryList || [];
+            if (!Number.isNaN(idx) && idx > 0 && idx < currentGallery.length) {
+              // 새 배열 생성하여 순서 변경 (원본 배열 직접 수정 방지)
+              const newGallery = [...currentGallery];
+              const tmp = newGallery[idx - 1];
+              newGallery[idx - 1] = newGallery[idx];
+              newGallery[idx] = tmp;
+              window.editGalleryList = newGallery;
               window.refreshEditGalleryStatus();
             }
           });
@@ -1255,19 +1345,25 @@
 
         // 순서 아래로 이동
         container.querySelectorAll('[data-move-down]').forEach((btn) => {
-          btn.addEventListener('click', () => {
+          btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation(); // 이벤트 전파 중지 (삭제 버튼 클릭 방지)
             const idx = Number(btn.getAttribute('data-move-down'));
-            const currentGallery = window.editGalleryList || galleryList;
-            if (!Number.isNaN(idx) && idx < currentGallery.length - 1) {
-              const tmp = currentGallery[idx + 1];
-              currentGallery[idx + 1] = currentGallery[idx];
-              currentGallery[idx] = tmp;
-              galleryList = currentGallery;
-              window.editGalleryList = currentGallery;
+            const currentGallery = window.editGalleryList || [];
+            if (!Number.isNaN(idx) && idx >= 0 && idx < currentGallery.length - 1) {
+              // 새 배열 생성하여 순서 변경 (원본 배열 직접 수정 방지)
+              const newGallery = [...currentGallery];
+              const tmp = newGallery[idx + 1];
+              newGallery[idx + 1] = newGallery[idx];
+              newGallery[idx] = tmp;
+              window.editGalleryList = newGallery;
               window.refreshEditGalleryStatus();
             }
           });
         });
+        
+        // Lucide 아이콘 렌더링
+        setTimeout(() => ensureLucide(), 0);
       };
       window.refreshEditGalleryStatus();
 
@@ -1275,8 +1371,8 @@
       if (removeMainBtn) {
         removeMainBtn.addEventListener('click', () => {
           removeMainImage = true;
-          galleryList = galleryList.filter((img) => img !== project.image);
-          window.editGalleryList = galleryList;
+          const filtered = (window.editGalleryList || []).filter((img) => img !== project.image);
+          window.editGalleryList = filtered;
           const status = document.getElementById('editMainImageStatus');
           if (status) status.textContent = '삭제됨';
         });
@@ -1336,6 +1432,18 @@
           return;
         }
         e.preventDefault();
+        
+        // 저장 버튼 비활성화 (중복 저장 방지)
+        const submitBtn = form.querySelector('button[type="submit"]') || Array.from(form.querySelectorAll('button')).find(btn => btn.textContent.includes('저장'));
+        let originalText = '저장';
+        if (submitBtn) {
+          originalText = submitBtn.textContent || '저장';
+          submitBtn.disabled = true;
+          submitBtn.style.opacity = '0.5';
+          submitBtn.style.cursor = 'not-allowed';
+          submitBtn.textContent = '저장 중...';
+        }
+        
         const fd = new FormData(form);
         
         // Hidden input에서 직접 값 가져오기 (FormData가 제대로 읽지 못할 수 있음)
@@ -1685,11 +1793,165 @@
               setTimeout(() => successMessage.remove(), 3000);
               // 모달은 닫지 않음 (사용자가 직접 닫을 수 있도록)
               
-              // 프로젝트 목록 새로고침
-              await loadProjects();
+              // 저장된 프로젝트 데이터를 서버 응답에서 직접 사용 (불필요한 API 호출 방지)
+              const updatedProject = data.data || savedProject;
               
-              // 저장된 프로젝트 데이터 확인
-              const updatedProject = projects.find(p => (p.id || p._id) === projectId);
+              // 프로젝트 목록도 업데이트 (로컬에서만, API 호출 없이)
+              const projectIndex = projects.findIndex(p => (p.id || p._id) === projectId);
+              if (projectIndex !== -1 && updatedProject) {
+                projects[projectIndex] = updatedProject;
+              }
+              
+              if (updatedProject) {
+                // 프로젝트 데이터 업데이트
+                project = updatedProject;
+                
+                // 폼 필드 업데이트 및 활성화
+                const titleInput = form.querySelector('input[name="title"]');
+                const subtitleInput = form.querySelector('input[name="subtitle"]');
+                const descriptionInput = form.querySelector('textarea[name="description"]');
+                const fullDescriptionInput = form.querySelector('textarea[name="fullDescription"]');
+                const categorySelect = form.querySelector('select[name="category"]');
+                const tagsInput = form.querySelector('input[name="tags"]');
+                const startDateInput = form.querySelector('input[name="startDate"]');
+                const endDateInput = form.querySelector('input[name="endDate"]');
+                const teamInput = form.querySelector('input[name="team"]');
+                const roleInput = form.querySelector('input[name="role"]');
+                const linkInput = form.querySelector('input[name="link"]');
+                const achievementsInput = form.querySelector('textarea[name="achievements"]');
+                
+                // 모든 입력 필드 활성화 및 값 업데이트
+                const inputs = [titleInput, subtitleInput, descriptionInput, fullDescriptionInput, categorySelect, tagsInput, startDateInput, endDateInput, teamInput, roleInput, linkInput, achievementsInput];
+                inputs.forEach(input => {
+                  if (input) {
+                    input.disabled = false;
+                    input.readOnly = false;
+                  }
+                });
+                
+                if (titleInput) titleInput.value = updatedProject.title || '';
+                if (subtitleInput) subtitleInput.value = updatedProject.subtitle || '';
+                if (descriptionInput) descriptionInput.value = updatedProject.description || '';
+                if (fullDescriptionInput) fullDescriptionInput.value = updatedProject.fullDescription || updatedProject.description || '';
+                if (categorySelect) categorySelect.value = updatedProject.category || '';
+                if (tagsInput) tagsInput.value = (updatedProject.tags || []).join(', ');
+                if (startDateInput) startDateInput.value = updatedProject.startDate || '';
+                if (endDateInput) endDateInput.value = updatedProject.endDate || '';
+                if (teamInput) teamInput.value = updatedProject.team || '';
+                if (roleInput) roleInput.value = updatedProject.role || '';
+                if (linkInput) linkInput.value = updatedProject.link || '';
+                if (achievementsInput) achievementsInput.value = (updatedProject.achievements || []).join('\\n');
+                
+                // 이미지 및 갤러리 상태 업데이트
+                window.editMainImageUrl = updatedProject.image || null;
+                // 저장된 프로젝트의 갤러리 이미지로 업데이트
+                // 단, 이미 업로드된 새 이미지가 있으면 유지
+                const savedGallery = updatedProject.images || updatedProject.gallery || [];
+                const savedGalleryArray = Array.isArray(savedGallery) ? savedGallery.filter(img => img && typeof img === 'string' && img.trim() !== '') : [];
+                // 현재 editGalleryList에 있는 이미지 중 저장된 갤러리에 없는 것들은 새로 업로드한 이미지
+                const currentGallery = window.editGalleryList || [];
+                const newUploadedImages = currentGallery.filter(img => img && typeof img === 'string' && img.trim() !== '' && !savedGalleryArray.includes(img));
+                // 저장된 갤러리 + 새로 업로드한 이미지 합치기 (중복 제거)
+                const mergedGallery = [...savedGalleryArray, ...newUploadedImages].filter((img, idx, arr) => arr.indexOf(img) === idx);
+                // 갤러리 목록 업데이트 (기존 목록이 있으면 유지, 없으면 새로 설정)
+                if (mergedGallery.length > 0) {
+                  window.editGalleryList = mergedGallery;
+                } else if (savedGalleryArray.length > 0) {
+                  window.editGalleryList = savedGalleryArray;
+                }
+                
+                // 갤러리 상태 새로고침 (화살표 버튼 이벤트 리스너 재등록)
+                // 약간의 지연을 주어 DOM이 완전히 업데이트된 후 호출
+                setTimeout(() => {
+                  if (window.refreshEditGalleryStatus) {
+                    try {
+                      window.refreshEditGalleryStatus();
+                      // Lucide 아이콘도 다시 렌더링
+                      setTimeout(() => ensureLucide(), 100);
+                    } catch (error) {
+                      console.error('갤러리 상태 새로고침 오류:', error);
+                    }
+                  }
+                }, 200);
+              }
+              
+              // 저장 버튼 다시 활성화 (setTimeout 안에서도)
+              const currentSubmitBtn = form.querySelector('button[type="submit"]') || Array.from(form.querySelectorAll('button')).find(btn => btn.textContent.includes('저장'));
+              if (currentSubmitBtn) {
+                currentSubmitBtn.disabled = false;
+                currentSubmitBtn.style.opacity = '1';
+                currentSubmitBtn.style.cursor = 'pointer';
+                currentSubmitBtn.textContent = originalText || '저장';
+                // pointer-events도 확인
+                currentSubmitBtn.style.pointerEvents = 'auto';
+              }
+              
+              // 폼 자체가 비활성화되지 않았는지 확인
+              form.disabled = false;
+              
+              // 모든 파일 입력 필드도 활성화
+              const fileInputs = form.querySelectorAll('input[type="file"]');
+              fileInputs.forEach(input => {
+                input.disabled = false;
+                input.style.pointerEvents = 'auto';
+              });
+              
+              // 모든 버튼 활성화 (업로드 버튼 등)
+              const allButtons = form.querySelectorAll('button');
+              allButtons.forEach(btn => {
+                // 저장 버튼이거나 다른 모든 버튼 활성화
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.style.cursor = 'pointer';
+                btn.style.pointerEvents = 'auto';
+              });
+              
+              // 갤러리 이미지 상태 컨테이너 확인 및 활성화
+              const galleryContainer = document.getElementById('editGalleryImagesStatus');
+              if (galleryContainer) {
+                galleryContainer.style.pointerEvents = 'auto';
+                // 갤러리 내부 버튼들도 활성화
+                galleryContainer.querySelectorAll('button').forEach(btn => {
+                  btn.disabled = false;
+                  btn.style.opacity = '1';
+                  btn.style.cursor = 'pointer';
+                  btn.style.pointerEvents = 'auto';
+                });
+              }
+              
+              // 파일 입력 필드 초기화 및 활성화 (다시 선택할 수 있도록)
+              // 약간의 지연을 주어 DOM이 완전히 업데이트된 후 처리
+              setTimeout(() => {
+                const galleryFileInput = document.getElementById('editGalleryImagesFile');
+                if (galleryFileInput) {
+                  galleryFileInput.value = ''; // 파일 선택 초기화
+                  galleryFileInput.disabled = false;
+                  galleryFileInput.removeAttribute('disabled');
+                  galleryFileInput.style.pointerEvents = 'auto';
+                  galleryFileInput.style.opacity = '1';
+                }
+                
+                const mainImageFileInput = document.getElementById('editMainImageFile');
+                if (mainImageFileInput) {
+                  mainImageFileInput.value = ''; // 파일 선택 초기화
+                  mainImageFileInput.disabled = false;
+                  mainImageFileInput.removeAttribute('disabled');
+                  mainImageFileInput.style.pointerEvents = 'auto';
+                  mainImageFileInput.style.opacity = '1';
+                }
+              }, 300);
+              
+              // 폼의 submit 이벤트 리스너가 여전히 작동하는지 확인
+              // (이미 등록되어 있으므로 재등록 불필요, 하지만 확인용)
+              console.log('✅ 저장 후 폼 상태 복원 완료:', {
+                formDisabled: form.disabled,
+                submitBtnDisabled: currentSubmitBtn?.disabled,
+                galleryListLength: window.editGalleryList?.length,
+                galleryContainerExists: !!galleryContainer,
+                galleryFileInputExists: !!galleryFileInput,
+                formHasSubmitListener: true // 이미 등록되어 있음
+              });
+              
               console.log('✅ 저장 후 프로젝트 데이터:', {
                 id: projectId,
                 image: updatedProject?.image,
@@ -1700,11 +1962,25 @@
               });
             }, 500);
           } else {
+            // 저장 실패 시 버튼 다시 활성화
+            if (submitBtn) {
+              submitBtn.disabled = false;
+              submitBtn.style.opacity = '1';
+              submitBtn.style.cursor = 'pointer';
+              submitBtn.textContent = originalText || '저장';
+            }
             if (totalFiles > 0) hideUploadProgress();
             console.error('❌ 저장 실패:', data);
             alert(data.error || data.message || '수정 실패');
           }
         } catch (e) {
+          // 오류 발생 시 버튼 다시 활성화
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.style.opacity = '1';
+            submitBtn.style.cursor = 'pointer';
+            submitBtn.textContent = originalText || '저장';
+          }
           if (totalFiles > 0) hideUploadProgress();
           alert('업로드 중 오류가 발생했습니다: ' + e.message);
         }
@@ -3286,10 +3562,49 @@
               if (container) {
                 container.innerHTML = window.editGalleryList.map((img, idx) => `
                   <div class="flex items-center gap-2 py-2 px-3 bg-gray-50 rounded-lg border border-gray-200" data-existing-gallery="${img}">
+                    <div class="flex flex-col items-center justify-center gap-1">
+                      <button type="button" class="p-0.5 text-gray-400 hover:text-green-600 transition-colors ${idx === 0 ? 'opacity-30 cursor-not-allowed' : ''}" data-move-up="${idx}" ${idx === 0 ? 'disabled' : ''} title="위로 이동">
+                        <i data-lucide="chevron-up" class="w-3 h-3"></i>
+                      </button>
+                      <span class="flex items-center justify-center w-6 h-6 text-white rounded-full text-xs font-bold flex-shrink-0" style="background-color: #16a34a; border: 2px solid #15803d;">${idx + 1}</span>
+                      <button type="button" class="p-0.5 text-gray-400 hover:text-green-600 transition-colors ${idx === window.editGalleryList.length - 1 ? 'opacity-30 cursor-not-allowed' : ''}" data-move-down="${idx}" ${idx === window.editGalleryList.length - 1 ? 'disabled' : ''} title="아래로 이동">
+                        <i data-lucide="chevron-down" class="w-3 h-3"></i>
+                      </button>
+                    </div>
                     <span class="truncate flex-1 text-xs font-medium" title="${img}">${img.split('/').pop()}</span>
                     <button type="button" class="px-2 py-1 text-xs text-red-600 border border-red-200 rounded hover:bg-red-50 transition-colors flex-shrink-0" data-remove-gallery="${idx}">삭제</button>
                   </div>
                 `).join('');
+                // 화살표 버튼 이벤트 리스너 추가
+                setTimeout(() => {
+                  container.querySelectorAll('[data-move-up]').forEach((btn) => {
+                    btn.addEventListener('click', () => {
+                      const idx = Number(btn.getAttribute('data-move-up'));
+                      const currentGallery = window.editGalleryList || [];
+                      if (!Number.isNaN(idx) && idx > 0) {
+                        const tmp = currentGallery[idx - 1];
+                        currentGallery[idx - 1] = currentGallery[idx];
+                        currentGallery[idx] = tmp;
+                        window.editGalleryList = currentGallery;
+                        window.refreshEditGalleryStatus();
+                      }
+                    });
+                  });
+                  container.querySelectorAll('[data-move-down]').forEach((btn) => {
+                    btn.addEventListener('click', () => {
+                      const idx = Number(btn.getAttribute('data-move-down'));
+                      const currentGallery = window.editGalleryList || [];
+                      if (!Number.isNaN(idx) && idx < currentGallery.length - 1) {
+                        const tmp = currentGallery[idx + 1];
+                        currentGallery[idx + 1] = currentGallery[idx];
+                        currentGallery[idx] = tmp;
+                        window.editGalleryList = currentGallery;
+                        window.refreshEditGalleryStatus();
+                      }
+                    });
+                  });
+                  ensureLucide();
+                }, 0);
               }
             }
             fileInput.value = '';

@@ -194,13 +194,20 @@ export default function AllProjectsPage() {
           
           // BO에 프로젝트가 있으면 BO 데이터 사용, 없으면 빈 배열 사용
           if (boProjects.length > 0) {
-            const featuredCount = boProjects.filter(p => p.featured).length;
-            console.log('✅ 백엔드 프로젝트 데이터 로드 성공:', {
-              total: boProjects.length,
-              featured: featuredCount,
-              featuredProjects: boProjects.filter(p => p.featured).map(p => p.title)
+            // featured 프로젝트를 상단에 정렬
+            const sortedProjects = [...boProjects].sort((a, b) => {
+              if (a.featured && !b.featured) return -1; // a가 featured면 위로
+              if (!a.featured && b.featured) return 1;  // b가 featured면 위로
+              return 0; // 둘 다 featured이거나 둘 다 아니면 기존 순서 유지
             });
-            setProjects(boProjects);
+            
+            const featuredCount = sortedProjects.filter(p => p.featured).length;
+            console.log('✅ 백엔드 프로젝트 데이터 로드 성공:', {
+              total: sortedProjects.length,
+              featured: featuredCount,
+              featuredProjects: sortedProjects.filter(p => p.featured).map(p => p.title)
+            });
+            setProjects(sortedProjects);
             
             // localStorage에 캐시 저장
             if (typeof window !== 'undefined') {

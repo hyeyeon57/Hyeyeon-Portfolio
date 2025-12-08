@@ -123,19 +123,19 @@ export const renderDetailModal = (project, files, categoryLabels, isAuthenticate
   const renderImageCards = (items, label) => {
     if (!items || !items.length) return '';
     return `
-      <div class="space-y-2">
-        ${label ? `<p class="text-sm font-medium text-gray-700">${label}</p>` : ''}
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div class="space-y-3">
+        ${label ? `<p class="text-sm font-medium text-gray-700 mb-2">${label}</p>` : ''}
+        <div class="grid grid-cols-1 gap-4">
           ${items
             .map(
-              (img) => `
-            <div class="border rounded-lg overflow-hidden bg-gray-50">
-              <div class="aspect-video bg-gray-100">
-                <img src="${img.url}" alt="${img.name}" class="w-full h-full object-cover" />
+              (img, idx) => `
+            <div class="border rounded-lg overflow-hidden bg-gray-50 hover:shadow-md transition-shadow">
+              <div class="bg-gray-100 cursor-pointer" onclick="openImageModal('${img.url}', '${img.name || ''}')">
+                <img src="${img.url}" alt="${img.name}" class="w-full h-auto max-h-[500px] object-contain mx-auto" style="display: block;" />
               </div>
-              <div class="px-3 py-2 flex items-center justify-between text-sm text-gray-700">
+              <div class="px-3 py-2 flex items-center justify-between text-sm text-gray-700 bg-white">
                 <span class="truncate max-w-[220px]" title="${img.name}">${truncate(img.name || '')}</span>
-                <button onclick="downloadFile('${projectId}', '${img.name}')" class="p-1 text-green-600 hover:bg-green-50 rounded">
+                <button onclick="downloadFile('${projectId}', '${img.name}')" class="p-1 text-green-600 hover:bg-green-50 rounded" title="다운로드">
                   <i data-lucide="download" class="w-4 h-4"></i>
                 </button>
               </div>
@@ -155,7 +155,23 @@ export const renderDetailModal = (project, files, categoryLabels, isAuthenticate
             <i data-lucide="x" class="w-6 h-6"></i>
           </button>
         </div>
-        <div class="flex-1 overflow-y-auto p-6 space-y-6 min-h-0" style="scrollbar-width: thin; scrollbar-color: #cbd5e0 #f7fafc; -webkit-overflow-scrolling: touch;">
+        <div class="flex-1 overflow-y-auto p-6 space-y-6 min-h-0 modal-scroll" style="max-height: calc(90vh - 120px); scrollbar-width: auto; scrollbar-color: #9ca3af #f3f4f6; -webkit-overflow-scrolling: touch;">
+          <style>
+            .modal-scroll::-webkit-scrollbar {
+              width: 8px;
+            }
+            .modal-scroll::-webkit-scrollbar-track {
+              background: #f3f4f6;
+              border-radius: 4px;
+            }
+            .modal-scroll::-webkit-scrollbar-thumb {
+              background: #9ca3af;
+              border-radius: 4px;
+            }
+            .modal-scroll::-webkit-scrollbar-thumb:hover {
+              background: #6b7280;
+            }
+          </style>
           <div>
             <h3 class="text-sm font-medium text-gray-500 mb-1">부제목</h3>
             <p class="text-lg text-gray-900">${project.subtitle || ''}</p>
