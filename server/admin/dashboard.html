@@ -212,15 +212,16 @@
               <h2 class="text-xl font-semibold text-gray-900">방문자 기록</h2>
               <p class="text-sm text-gray-500 mt-1">방문한 사용자 목록</p>
             </div>
-            <button
-              onclick="clearVisitors()"
-              class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium flex items-center gap-2"
-              id="clearVisitorsBtn"
-              style="display:none;"
-            >
-              <i data-lucide="trash-2" class="w-4 h-4"></i>
-              기록 초기화
-            </button>
+            <div class="flex items-center gap-2">
+              <button
+                onclick="clearVisitors()"
+                class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium flex items-center gap-2"
+                id="clearVisitorsBtn"
+              >
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                기록 초기화
+              </button>
+            </div>
           </div>
           <!-- 필터 UI -->
           <div class="flex flex-wrap items-center gap-3 p-3 bg-gray-50 rounded-lg">
@@ -274,6 +275,7 @@
             </tbody>
           </table>
         </div>
+        <div id="visitor-pagination" class="px-6 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3 text-sm text-gray-600"></div>
       </div>
     </div>
   </div>
@@ -2101,21 +2103,38 @@
       return pathMap[path] || path || '홈';
     }
 
+    // 방문자 목록 필터 상태
+    let visitorFilters = {
+      startDate: '',
+      endDate: '',
+      sort: 'newest',
+      page: 1,
+      limit: 20,
+    };
+    let totalVisitorsCount = 0;
+
     // 방문자 목록 로드
-    async function loadVisitors(startDate = null, endDate = null, sort = 'newest') {
+    async function loadVisitors(startDate = null, endDate = null, sort = 'newest', page = visitorFilters.page, limit = visitorFilters.limit) {
+      // 필터 상태 업데이트
+      visitorFilters.startDate = startDate || '';
+      visitorFilters.endDate = endDate || '';
+      visitorFilters.sort = sort || 'newest';
+      visitorFilters.page = page || 1;
+      visitorFilters.limit = limit || visitorFilters.limit || 20;
       try {
         // 필터 파라미터 구성
         const params = new URLSearchParams();
-        params.append('limit', '100'); // 더 많은 데이터 표시
+        params.append('limit', String(visitorFilters.limit));
+        params.append('page', String(visitorFilters.page));
 
-        if (startDate) {
-          params.append('startDate', startDate);
+        if (visitorFilters.startDate) {
+          params.append('startDate', visitorFilters.startDate);
         }
-        if (endDate) {
-          params.append('endDate', endDate);
+        if (visitorFilters.endDate) {
+          params.append('endDate', visitorFilters.endDate);
         }
-        if (sort) {
-          params.append('sort', sort);
+        if (visitorFilters.sort) {
+          params.append('sort', visitorFilters.sort);
         }
 
         const url = `${API_URL}/visitors?${params.toString()}`;
@@ -2134,18 +2153,21 @@
         const result = await response.json();
 
         if (result.success && Array.isArray(result.data)) {
-          renderVisitors(result.data, result.total || 0);
+          totalVisitorsCount = result.total || result.data.length || 0;
+          renderVisitors(result.data, totalVisitorsCount, visitorFilters.page, visitorFilters.limit);
         } else {
-          renderVisitors([], 0);
+          totalVisitorsCount = 0;
+          renderVisitors([], 0, visitorFilters.page, visitorFilters.limit);
         }
       } catch (error) {
         console.error('방문자 로드 오류:', error);
-        renderVisitors([], 0);
+        totalVisitorsCount = 0;
+        renderVisitors([], 0, visitorFilters.page, visitorFilters.limit);
       }
     }
 
     // 방문자 목록 렌더링
-    function renderVisitors(visitors, total = 0) {
+    function renderVisitors(visitors, total = 0, currentPage = visitorFilters.page, limit = visitorFilters.limit) {
       const tbody = document.getElementById('visitorsTable');
 
       if (!visitors || visitors.length === 0) {
@@ -2207,6 +2229,52 @@
       if (countElement) {
         countElement.textContent = total || visitors.length;
       }
+
+      renderVisitorPagination(total, currentPage, limit);
+    }
+
+    // 방문자 페이지네이션 렌더링
+    function renderVisitorPagination(total, page = 1, limit = visitorFilters.limit) {
+      const container = document.getElementById('visitor-pagination');
+      if (!container) return;
+
+      const totalPages = Math.max(1, Math.ceil((total || 0) / (limit || 1)));
+      const currentPage = Math.min(Math.max(1, page || 1), totalPages);
+
+      let html = `<div class="flex-shrink-0">총 ${total}건 / ${currentPage} 페이지</div>`;
+      html += `<div class="flex items-center gap-1">`;
+
+      html += `<button onclick="changeVisitorPage(${currentPage - 1})" class="p-2 rounded-lg hover:bg-gray-100 transition-colors ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}" ${currentPage === 1 ? 'disabled' : ''}>
+        <i data-lucide="chevron-left" class="w-4 h-4"></i>
+      </button>`;
+
+      const maxButtons = 5;
+      let startPage = Math.max(1, currentPage - Math.floor(maxButtons / 2));
+      let endPage = Math.min(totalPages, startPage + maxButtons - 1);
+      if (endPage - startPage + 1 < maxButtons) {
+        startPage = Math.max(1, endPage - maxButtons + 1);
+      }
+
+      for (let i = startPage; i <= endPage; i++) {
+        html += `<button onclick="changeVisitorPage(${i})" class="px-3 py-1 rounded-lg ${i === currentPage ? 'bg-blue-600 text-white' : 'hover:bg-gray-100 transition-colors'}">
+          ${i}
+        </button>`;
+      }
+
+      html += `<button onclick="changeVisitorPage(${currentPage + 1})" class="p-2 rounded-lg hover:bg-gray-100 transition-colors ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : ''}" ${currentPage === totalPages ? 'disabled' : ''}>
+        <i data-lucide="chevron-right" class="w-4 h-4"></i>
+      </button>`;
+
+      html += `</div>`;
+      container.innerHTML = html;
+      ensureLucide();
+    }
+
+    function changeVisitorPage(newPage) {
+      const totalPages = Math.max(1, Math.ceil((totalVisitorsCount || 0) / (visitorFilters.limit || 1)));
+      if (newPage < 1 || newPage > totalPages) return;
+      visitorFilters.page = newPage;
+      searchVisitors(true); // keep filters, change page only
     }
 
     // 날짜 제약 조건 업데이트
@@ -2232,7 +2300,7 @@
     }
 
     // 방문자 검색
-    async function searchVisitors() {
+    async function searchVisitors(keepPage = false) {
       const startDateInput = document.getElementById('visitor-start-date');
       const endDateInput = document.getElementById('visitor-end-date');
       const sortSelect = document.getElementById('visitor-sort');
@@ -2247,6 +2315,10 @@
       const endDate = endDateInput.value || null;
       const sort = sortSelect.value || 'newest';
 
+      if (!keepPage) {
+        visitorFilters.page = 1;
+      }
+
       console.log('검색 조건:', { startDate, endDate, sort });
 
       // 검색 버튼 비활성화 및 로딩 표시
@@ -2260,7 +2332,7 @@
       }
 
       try {
-        await loadVisitors(startDate, endDate, sort);
+        await loadVisitors(startDate, endDate, sort, visitorFilters.page, visitorFilters.limit);
         console.log('검색 완료');
       } catch (error) {
         console.error('검색 오류:', error);
@@ -2296,7 +2368,7 @@
         if (result.success) {
           alert(`방문자 기록 ${result.deletedCount || 0}개가 삭제되었습니다.`);
           // 방문자 목록 및 통계 새로고침
-          await loadVisitors(null, null, 'newest');
+          await loadVisitors(null, null, 'newest', 1, visitorFilters.limit);
           await loadVisitorStatsForTab();
         } else {
           alert(result.error || '방문자 기록 초기화에 실패했습니다.');
@@ -3235,6 +3307,7 @@
     window.markContactRead = markContactRead;
     window.deleteContact = deleteContact;
     window.searchVisitors = searchVisitors;
+    window.changeVisitorPage = changeVisitorPage;
     window.updateDateConstraints = updateDateConstraints;
     window.clearVisitors = clearVisitors;
     window.showUploadProgress = showUploadProgress;
@@ -3401,7 +3474,7 @@
         updateDateConstraints();
 
         // 기본 날짜 범위로 방문자 목록 로드
-        await loadVisitors(startDateInput.value, endDateInput.value, 'newest');
+        await loadVisitors(startDateInput.value, endDateInput.value, 'newest', visitorFilters.page, visitorFilters.limit);
       }
 
       ensureLucide();
