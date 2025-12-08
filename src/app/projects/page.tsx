@@ -101,9 +101,8 @@ export default function AllProjectsPage() {
     
     const fetchProjects = async (forceRefresh = false) => {
       try {
-        if (!forceRefresh) {
-          setLoading(true);
-        }
+        // 초기 로드 시 항상 로딩 상태 표시
+        setLoading(true);
         // 강제 새로고침 시 타임스탬프를 더 크게 만들어 캐시 완전 무효화
         const timestamp = forceRefresh ? Date.now() + Math.random() : Date.now();
         const response = await fetch(`/api/projects?t=${timestamp}&_=${timestamp}`, {
@@ -365,7 +364,7 @@ export default function AllProjectsPage() {
     URL.revokeObjectURL(url);
   };
 
-  if (!isMounted) {
+  if (!isMounted || loading) {
     return (
       <div className="min-h-screen py-20" style={{
         background: 'linear-gradient(135deg, #ECE9FF 0%, #F7F7FF 50%, #FFFFFF 100%)'
