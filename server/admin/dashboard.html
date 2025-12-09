@@ -298,7 +298,7 @@
             </tbody>
           </table>
         </div>
-        <div id="visitor-pagination" class="px-6 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3 text-sm text-gray-600"></div>
+        <div id="visitor-pagination" class="px-6 py-4 flex flex-col items-center justify-center gap-3 text-sm text-gray-600 text-center"></div>
       </div>
     </div>
   </div>
@@ -1017,28 +1017,20 @@
               </div>
             </td>
             <td class="px-6 py-3 text-center">
-              ${!window.isViewerMode ? `
-                <button class="inline-flex items-center justify-center p-1 hover:bg-purple-50 rounded" onclick="toggleFeatured('${projectId}')" title="${isFeatured ? '대표 해제' : '대표 설정'}">
-                  <i data-lucide="${isFeatured ? 'pin' : 'pin-off'}" class="w-4 h-4" style="color: #7A68F6;" fill="${isFeatured ? 'currentColor' : 'none'}"></i>
-                </button>
-              ` : `
-                <div class="inline-flex items-center justify-center p-1 opacity-50" title="Viewer 모드에서는 대표 설정 불가">
-                  <i data-lucide="${isFeatured ? 'pin' : 'pin-off'}" class="w-4 h-4" style="color: #7A68F6;" fill="${isFeatured ? 'currentColor' : 'none'}"></i>
-                </div>
-              `}
+              <button class="inline-flex items-center justify-center p-1 hover:bg-purple-50 rounded ${window.isViewerMode || !isAuthenticated ? 'opacity-50 cursor-not-allowed' : ''}" onclick="${window.isViewerMode || !isAuthenticated ? 'alert(\'로그인 후 이용 가능합니다.\')' : `toggleFeatured('${projectId}')`}" ${window.isViewerMode || !isAuthenticated ? 'disabled' : ''} title="${isFeatured ? '대표 해제' : '대표 설정'}">
+                <i data-lucide="${isFeatured ? 'pin' : 'pin-off'}" class="w-4 h-4" style="color: #7A68F6;" fill="${isFeatured ? 'currentColor' : 'none'}"></i>
+              </button>
             </td>
             <td class="px-6 py-3 text-right space-x-2">
               <button class="inline-flex items-center justify-center p-1.5 hover:bg-purple-50 rounded transition-colors" style="color: #7A68F6;" onclick="viewDetail('${projectId}')" title="상세 보기">
                 <i data-lucide="search" class="w-4 h-4"></i>
               </button>
-              ${isAuthenticated && !window.isViewerMode ? `
-                <button class="inline-flex items-center justify-center p-1.5 hover:bg-purple-50 rounded transition-colors" style="color: #7A68F6;" onclick="editProject('${projectId}')" title="수정하기">
-                  <i data-lucide="pencil" class="w-4 h-4"></i>
-                </button>
-                <button class="inline-flex items-center justify-center p-1.5 hover:bg-purple-50 rounded transition-colors" style="color: #7A68F6;" onclick="deleteProject('${projectId}')" title="삭제하기">
-                  <i data-lucide="trash-2" class="w-4 h-4"></i>
-                </button>
-              ` : ''}
+              <button class="inline-flex items-center justify-center p-1.5 hover:bg-purple-50 rounded transition-colors ${window.isViewerMode || !isAuthenticated ? 'opacity-50 cursor-not-allowed' : ''}" style="color: #7A68F6;" onclick="${window.isViewerMode || !isAuthenticated ? 'alert(\'로그인 후 이용 가능합니다.\')' : `editProject('${projectId}')`}" ${window.isViewerMode || !isAuthenticated ? 'disabled' : ''} title="수정하기">
+                <i data-lucide="pencil" class="w-4 h-4"></i>
+              </button>
+              <button class="inline-flex items-center justify-center p-1.5 hover:bg-purple-50 rounded transition-colors ${window.isViewerMode || !isAuthenticated ? 'opacity-50 cursor-not-allowed' : ''}" style="color: #7A68F6;" onclick="${window.isViewerMode || !isAuthenticated ? 'alert(\'로그인 후 이용 가능합니다.\')' : `deleteProject('${projectId}')`}" ${window.isViewerMode || !isAuthenticated ? 'disabled' : ''} title="삭제하기">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+              </button>
             </td>
           </tr>
         `;
@@ -3078,13 +3070,14 @@
       // IP 제외 필터 적용
       let filteredVisitors = visitors || [];
       if (visitorFilters.excludeIp) {
-        // 제외할 IP 목록: 로컬 IP
+        // 제외할 IP 목록: 로컬 IP 및 특정 IP
         const excludeIps = [
           '127.0.0.1',
           'localhost',
           '::1',
           '0.0.0.0',
-          '::ffff:127.0.0.1'
+          '::ffff:127.0.0.1',
+          '125.247.73.53' // 사용자 지정 제외 IP
         ];
         
         // Vercel IP 범위 (일반적인 Vercel IP 패턴)
@@ -3102,7 +3095,7 @@
           const ip = (visitor.ip || '').toString().trim();
           const userAgent = (visitor.userAgent || '').toString().toLowerCase();
           
-          // 로컬 IP 제외
+          // 로컬 IP 및 특정 IP 제외
           if (excludeIps.includes(ip)) {
             return false;
           }
@@ -3112,10 +3105,11 @@
             return false;
           }
           
-          // Vercel 봇 User-Agent 제외
+          // Vercel 봇 User-Agent 제외 (vercel-screenshot/1.0 포함)
           if (userAgent.includes('vercel-screenshot') || 
+              userAgent.includes('vercel-screenshot/1.0') ||
               userAgent.includes('vercel-bot') || 
-              userAgent.includes('vercel') && (userAgent.includes('crawler') || userAgent.includes('bot'))) {
+              (userAgent.includes('vercel') && (userAgent.includes('crawler') || userAgent.includes('bot')))) {
             return false;
           }
           
@@ -3194,7 +3188,8 @@
       const totalPages = Math.max(1, Math.ceil((total || 0) / (limit || 1)));
       const currentPage = Math.min(Math.max(1, page || 1), totalPages);
 
-      let html = `<div class="flex-shrink-0">총 ${total}건 / ${currentPage} 페이지</div>`;
+      let html = `<div class="flex flex-col items-center gap-2">`;
+      html += `<div class="text-sm text-gray-700">총 ${total}건 / ${currentPage} 페이지</div>`;
       html += `<div class="flex items-center gap-1">`;
 
       html += `<button onclick="changeVisitorPage(${currentPage - 1})" class="p-2 rounded-lg hover:bg-gray-100 transition-colors ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}" ${currentPage === 1 ? 'disabled' : ''}>
@@ -3218,7 +3213,7 @@
         <i data-lucide="chevron-right" class="w-4 h-4"></i>
       </button>`;
 
-      html += `</div>`;
+      html += `</div></div>`;
       container.innerHTML = html;
       ensureLucide();
     }
@@ -4454,88 +4449,9 @@
       if (titleEl) titleEl.textContent = 'Admin Viewer';
       if (subtitleEl) subtitleEl.textContent = '로그인 없이 관리자 화면을 구경할 수 있습니다 (수정/삭제 불가)';
       
-      // 로그아웃 버튼 숨기기
+      // Viewer 모드에서도 로그아웃 버튼 표시 (기능 유지)
       const logoutBtn = document.getElementById('logoutBtn');
-      if (logoutBtn) logoutBtn.style.display = 'none';
-      
-      // 모든 수정/삭제 버튼 비활성화
-      const editButtons = document.querySelectorAll('[onclick*="editProject"], [onclick*="deleteProject"], button[id*="edit"], button[id*="delete"]');
-      editButtons.forEach(btn => {
-        btn.disabled = true;
-        btn.style.opacity = '0.5';
-        btn.style.cursor = 'not-allowed';
-        btn.onclick = (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          alert('Viewer 모드에서는 수정/삭제가 불가능합니다.');
-        };
-      });
-      
-      // 파일 업로드 input 비활성화
-      const fileInputs = document.querySelectorAll('input[type="file"]');
-      fileInputs.forEach(input => {
-        input.disabled = true;
-        input.style.opacity = '0.5';
-        input.style.cursor = 'not-allowed';
-      });
-      
-      // 저장 버튼 비활성화
-      const saveButtons = document.querySelectorAll('button[id*="save"], button:contains("저장")');
-      document.querySelectorAll('button').forEach(btn => {
-        if (btn.textContent.includes('저장') || btn.id.includes('save')) {
-          btn.disabled = true;
-          btn.style.opacity = '0.5';
-          btn.style.cursor = 'not-allowed';
-          btn.onclick = (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            alert('Viewer 모드에서는 저장이 불가능합니다.');
-          };
-        }
-      });
-      
-      // 삭제 버튼 비활성화
-      const deleteButtons = document.querySelectorAll('button[id*="delete"], button:contains("삭제")');
-      document.querySelectorAll('button').forEach(btn => {
-        if (btn.textContent.includes('삭제') || btn.id.includes('delete')) {
-          btn.disabled = true;
-          btn.style.opacity = '0.5';
-          btn.style.cursor = 'not-allowed';
-          btn.onclick = (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            alert('Viewer 모드에서는 삭제가 불가능합니다.');
-          };
-        }
-      });
-      
-      // 프로젝트 생성 버튼 비활성화 (있는 경우)
-      const createButtons = document.querySelectorAll('a[href*="create"], button:contains("생성"), button:contains("추가")');
-      document.querySelectorAll('a, button').forEach(el => {
-        if (el.href && el.href.includes('create') || 
-            el.textContent.includes('생성') || 
-            el.textContent.includes('추가')) {
-          el.style.pointerEvents = 'none';
-          el.style.opacity = '0.5';
-          el.style.cursor = 'not-allowed';
-          if (el.onclick) {
-            const originalOnclick = el.onclick;
-            el.onclick = (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              alert('Viewer 모드에서는 생성/추가가 불가능합니다.');
-            };
-          }
-        }
-      });
-      
-      // 방문자 기록 초기화 버튼 비활성화
-      const clearVisitorsBtn = document.getElementById('clearVisitorsBtn');
-      if (clearVisitorsBtn) {
-        clearVisitorsBtn.disabled = true;
-        clearVisitorsBtn.style.opacity = '0.5';
-        clearVisitorsBtn.style.cursor = 'not-allowed';
-      }
+      if (logoutBtn) logoutBtn.style.display = 'flex';
     }
 
     // 초기 실행
