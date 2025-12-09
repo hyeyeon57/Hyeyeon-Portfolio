@@ -437,6 +437,7 @@
       } else if (tab === 'visitors') {
         loadVisitorStatsForTab();
         loadVisitors();
+        loadMonthlyData(currentMonthlyYear, currentMonthlyMonth);
       }
     }
     
@@ -2375,6 +2376,7 @@
     function renderTodayChart(hourlyData, total) {
       const chartContainer = document.getElementById('visitor-today-chart');
       if (!chartContainer) return;
+      chartContainer.style.display = 'block';
       const maxValue = Math.max(...hourlyData, 1);
       const chartHeight = 250, barWidth = 24, barGap = 4;
       const totalWidth = (barWidth + barGap) * 24;
@@ -2397,6 +2399,7 @@
     function renderWeeklyChart(weeklyData, total) {
       const chartContainer = document.getElementById('visitor-weekly-chart');
       if (!chartContainer) return;
+      chartContainer.style.display = 'block';
       const maxValue = Math.max(...weeklyData, 1);
       const chartHeight = 250;
       const dayLabels = ['월','화','수','목','금','토','일'];
@@ -2449,6 +2452,7 @@
     function renderDailyChart(dailyData, labels) {
       const chartContainer = document.getElementById('visitor-daily-chart');
       if (!chartContainer) return;
+      chartContainer.style.display = 'block';
       const chartHeight = 250, barWidth = 24, barGap = 4;
       chartContainer.innerHTML = monthlyChartTemplate({
         safeData: dailyData,
@@ -2494,6 +2498,15 @@
       t.textContent = text;
       t.style.opacity = '1';
       t.style.display = 'block';
+      t.style.visibility = 'visible';
+      t.style.pointerEvents = 'none';
+      // 툴팁 내부의 말풍선 꼬리도 표시
+      const tail = t.querySelector('div[class*="rotate-45"]');
+      if (tail) {
+        tail.style.display = 'block';
+        tail.style.opacity = '1';
+        tail.style.visibility = 'visible';
+      }
       const rect = bar.getBoundingClientRect();
       const crect = c.getBoundingClientRect();
       const x = rect.left + rect.width/2 - crect.left;
@@ -2505,6 +2518,15 @@
       if (!tooltipEl) return;
       tooltipEl.style.opacity = '0';
       tooltipEl.style.display = 'none';
+      tooltipEl.style.visibility = 'hidden';
+      tooltipEl.style.pointerEvents = 'none';
+      // 툴팁 내부의 말풍선 꼬리도 숨기기
+      const tail = tooltipEl.querySelector('div[class*="rotate-45"]');
+      if (tail) {
+        tail.style.display = 'none';
+        tail.style.opacity = '0';
+        tail.style.visibility = 'hidden';
+      }
     }
 
     function computeDurationText(start, end) {

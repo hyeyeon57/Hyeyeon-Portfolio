@@ -43,8 +43,8 @@ export const todayChartTemplate = ({ hourlyData, total, maxValue, chartHeight, b
     <p class="text-xs text-gray-500 mt-1">총 ${total}명</p>
   </div>
   <div class="p-6 relative">
-    <div id="tooltip-today" class="absolute bg-white text-black text-xs rounded-lg px-3 py-2 pointer-events-none opacity-0 transition-all duration-200 z-20 shadow-xl font-medium whitespace-nowrap border border-gray-300" style="transform: translateX(-50%);">
-      <div class="absolute -bottom-1.5 left-1/2 transform -translate-x-1/2 w-3 h-3 bg-white border-r border-b border-gray-300 rotate-45"></div>
+    <div id="tooltip-today" class="absolute bg-white text-black text-xs rounded-lg px-3 py-2 pointer-events-none opacity-0 transition-all duration-200 z-20 shadow-xl font-medium whitespace-nowrap border border-gray-300" style="transform: translateX(-50%); visibility: hidden;">
+      <div class="absolute -bottom-1.5 left-1/2 transform -translate-x-1/2 w-3 h-3 bg-white border-r border-b border-gray-300 rotate-45" style="display: none;"></div>
     </div>
     <div class="overflow-x-auto" id="today-chart-scroll" style="scroll-behavior: auto;">
       <svg width="${totalWidth}" height="${chartHeight + 40}" class="min-w-full" viewBox="0 0 ${totalWidth} ${chartHeight + 40}">
@@ -77,8 +77,8 @@ export const weeklyChartTemplate = ({ weeklyData, total, maxValue, chartHeight, 
     <p class="text-xs text-gray-500 mt-1">총 ${total}명</p>
   </div>
   <div class="p-6 relative">
-    <div id="tooltip-weekly" class="absolute bg-white text-black text-xs rounded-lg px-3 py-2 pointer-events-none opacity-0 transition-all duration-200 z-20 shadow-xl font-medium whitespace-nowrap border border-gray-300" style="transform: translateX(-50%);">
-      <div class="absolute -bottom-1.5 left-1/2 transform -translate-x-1/2 w-3 h-3 bg-white border-r border-b border-gray-300 rotate-45"></div>
+    <div id="tooltip-weekly" class="absolute bg-white text-black text-xs rounded-lg px-3 py-2 pointer-events-none opacity-0 transition-all duration-200 z-20 shadow-xl font-medium whitespace-nowrap border border-gray-300" style="transform: translateX(-50%); visibility: hidden;">
+      <div class="absolute -bottom-1.5 left-1/2 transform -translate-x-1/2 w-3 h-3 bg-white border-r border-b border-gray-300 rotate-45" style="display: none;"></div>
     </div>
     <svg width="100%" height="${chartHeight + 40}" viewBox="0 0 420 ${chartHeight + 40}">
       ${gridLines(5, 420, chartHeight)}
@@ -143,8 +143,8 @@ export const monthlyChartTemplate = ({ safeData, safeLabels, currentMonthlyYear,
       </div>
     </div>
     <div class="p-6 relative">
-      <div id="tooltip-monthly" class="absolute bg-white text-black text-xs rounded-lg px-3 py-2 pointer-events-none opacity-0 transition-all duration-200 z-20 shadow-xl font-medium whitespace-nowrap border border-gray-300" style="transform: translateX(-50%);">
-        <div class="absolute -bottom-1.5 left-1/2 transform -translate-x-1/2 w-3 h-3 bg-white border-r border-b border-gray-300 rotate-45"></div>
+      <div id="tooltip-monthly" class="absolute bg-white text-black text-xs rounded-lg px-3 py-2 pointer-events-none opacity-0 transition-all duration-200 z-20 shadow-xl font-medium whitespace-nowrap border border-gray-300" style="transform: translateX(-50%); visibility: hidden;">
+        <div class="absolute -bottom-1.5 left-1/2 transform -translate-x-1/2 w-3 h-3 bg-white border-r border-b border-gray-300 rotate-45" style="display: none;"></div>
       </div>
       <div class="overflow-x-auto" id="monthly-chart-scroll" style="scroll-behavior: auto;">
         <svg width="${totalWidth}" height="${chartHeight + 40}" class="min-w-full" viewBox="0 0 ${totalWidth} ${chartHeight + 40}">
