@@ -1341,6 +1341,70 @@
         // 또는 완전히 제거
       }
       
+      // 편집 모달이 열려있는 동안 주기적으로 세션 갱신 (5분마다)
+      let sessionRefreshInterval = null;
+      const refreshSession = async () => {
+        try {
+          const authCheck = await fetch('/bo-api/auth/check', {
+            method: 'GET',
+            credentials: 'include',
+          });
+          if (authCheck.ok) {
+            const authData = await authCheck.json();
+            if (authData.authenticated) {
+              console.log('✅ 세션 자동 갱신 완료');
+              isAuthenticated = true;
+            } else {
+              console.warn('⚠️ 세션 만료 감지, 자동 갱신 중단');
+              if (sessionRefreshInterval) {
+                clearInterval(sessionRefreshInterval);
+                sessionRefreshInterval = null;
+              }
+            }
+          }
+        } catch (error) {
+          console.error('세션 갱신 오류:', error);
+        }
+      };
+      
+      // 모달이 열릴 때 세션 갱신 시작 (5분 = 300000ms마다)
+      sessionRefreshInterval = setInterval(refreshSession, 5 * 60 * 1000);
+      
+      // 모달이 닫힐 때 인터벌 정리
+      const cleanupOnModalClose = () => {
+        if (sessionRefreshInterval) {
+          clearInterval(sessionRefreshInterval);
+          sessionRefreshInterval = null;
+        }
+      };
+      
+      // 모달 닫기 버튼 이벤트 감지
+      setTimeout(() => {
+        const modalBackdropEl = document.getElementById('editModalBackdrop');
+        if (modalBackdropEl) {
+          // MutationObserver로 모달이 DOM에서 제거되는지 감지
+          const observer = new MutationObserver((mutations, obs) => {
+            if (!document.getElementById('editModalBackdrop')) {
+              cleanupOnModalClose();
+              obs.disconnect();
+            }
+          });
+          observer.observe(document.body, { childList: true, subtree: true });
+          
+          // 취소 버튼 클릭 감지
+          const cancelBtn = modalBackdropEl.querySelector('button[onclick*="remove"]');
+          if (cancelBtn) {
+            cancelBtn.addEventListener('click', cleanupOnModalClose);
+          }
+          
+          // X 버튼 클릭 감지
+          const closeBtn = modalBackdropEl.querySelector('button:has(svg)');
+          if (closeBtn) {
+            closeBtn.addEventListener('click', cleanupOnModalClose);
+          }
+        }
+      }, 500);
+      
       // 업로드 함수가 전역에 정의되어 있는지 확인
       console.log('📋 편집 모달 열기 - 업로드 함수 확인:', {
         uploadPdfInEdit: typeof window.uploadPdfInEdit,
@@ -1435,33 +1499,14 @@
       setTimeout(bindUploadButtons, 300);
       setTimeout(bindUploadButtons, 500);
 
-      // 파일명에서 번호 추출 함수 (타임스탬프 제외)
+      // 파일명에서 번호 추출 함수 (확장자 앞 숫자 기준)
       const extractNumber = (url) => {
         if (!url || typeof url !== 'string') return Infinity;
         const fileName = url.split('/').pop() || '';
         
-        // 타임스탬프 제거 (앞에 있는 13자리 숫자 제거)
-        // 예: "1734567890123_image_1.jpg" -> "image_1.jpg"
-        let nameWithoutTimestamp = fileName.replace(/^\d{10,15}_/, '');
-        
-        // 확장자 제거
-        const nameWithoutExt = nameWithoutTimestamp.replace(/\.[^.]+$/, '');
-        
-        // 여러 패턴으로 번호 찾기 (우선순위 순)
-        // 1. 끝에 있는 숫자 (예: "image_1", "img-1", "photo1")
-        let match = nameWithoutExt.match(/(?:[_-]|^)(\d+)$/);
-        if (match) {
-          return parseInt(match[1], 10);
-        }
-        
-        // 2. 중간에 있는 숫자 (예: "image_1_detail", "1_main")
-        match = nameWithoutExt.match(/(?:^|_|-)(\d+)(?:_|-|$)/);
-        if (match) {
-          return parseInt(match[1], 10);
-        }
-        
-        // 3. 숫자만 있는 경우 (예: "1", "17")
-        match = nameWithoutExt.match(/^(\d+)$/);
+        // 확장자 앞의 숫자 추출 (예: "image_1.jpg", "1734567890_1.jpg", "17.jpg")
+        // 패턴: 확장자 앞에 있는 숫자를 찾음
+        const match = fileName.match(/(\d+)\.(jpg|jpeg|png|gif|webp|JPG|JPEG|PNG|GIF|WEBP)$/i);
         if (match) {
           return parseInt(match[1], 10);
         }
@@ -4291,33 +4336,14 @@
           if (uploadedUrls && uploadedUrls.length > 0) {
             if (!window.editGalleryList) window.editGalleryList = [];
             
-            // 파일명에서 번호 추출 함수 (타임스탬프 제외)
+            // 파일명에서 번호 추출 함수 (확장자 앞 숫자 기준)
             const extractNumber = (url) => {
               if (!url || typeof url !== 'string') return Infinity;
               const fileName = url.split('/').pop() || '';
               
-              // 타임스탬프 제거 (앞에 있는 13자리 숫자 제거)
-              // 예: "1734567890123_image_1.jpg" -> "image_1.jpg"
-              let nameWithoutTimestamp = fileName.replace(/^\d{10,15}_/, '');
-              
-              // 확장자 제거
-              const nameWithoutExt = nameWithoutTimestamp.replace(/\.[^.]+$/, '');
-              
-              // 여러 패턴으로 번호 찾기 (우선순위 순)
-              // 1. 끝에 있는 숫자 (예: "image_1", "img-1", "photo1")
-              let match = nameWithoutExt.match(/(?:[_-]|^)(\d+)$/);
-              if (match) {
-                return parseInt(match[1], 10);
-              }
-              
-              // 2. 중간에 있는 숫자 (예: "image_1_detail", "1_main")
-              match = nameWithoutExt.match(/(?:^|_|-)(\d+)(?:_|-|$)/);
-              if (match) {
-                return parseInt(match[1], 10);
-              }
-              
-              // 3. 숫자만 있는 경우 (예: "1", "17")
-              match = nameWithoutExt.match(/^(\d+)$/);
+              // 확장자 앞의 숫자 추출 (예: "image_1.jpg", "1734567890_1.jpg", "17.jpg")
+              // 패턴: 확장자 앞에 있는 숫자를 찾음
+              const match = fileName.match(/(\d+)\.(jpg|jpeg|png|gif|webp|JPG|JPEG|PNG|GIF|WEBP)$/i);
               if (match) {
                 return parseInt(match[1], 10);
               }
