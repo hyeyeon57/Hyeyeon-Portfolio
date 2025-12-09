@@ -22,7 +22,7 @@
         <a href="/" class="px-4 py-2 rounded-lg transition flex items-center gap-2" style="background-color: #E8E4FF; color: #7A68F6;" onmouseover="this.style.backgroundColor='#D8D0FF'" onmouseout="this.style.backgroundColor='#E8E4FF'">
           <i data-lucide="home" class="w-4 h-4"></i> 홈으로 가기
         </a>
-        <button id="logoutBtn" class="px-4 py-2 rounded-lg transition flex items-center gap-2" style="display:none; background-color: #E8E4FF; color: #7A68F6;" onmouseover="this.style.backgroundColor='#D8D0FF'" onmouseout="this.style.backgroundColor='#E8E4FF'">
+        <button id="logoutBtn" class="px-4 py-2 rounded-lg transition flex items-center gap-2" style="background-color: #E8E4FF; color: #7A68F6;" onmouseover="this.style.backgroundColor='#D8D0FF'" onmouseout="this.style.backgroundColor='#E8E4FF'">
           <i data-lucide="log-out" class="w-4 h-4"></i> 로그아웃
         </button>
       </div>
@@ -890,7 +890,7 @@
         const res = await fetch(url, { credentials: 'include' });
         const data = await res.json();
         isAuthenticated = !!data.authenticated;
-        document.getElementById('logoutBtn').style.display = isAuthenticated ? 'flex' : 'none';
+        // 로그아웃 버튼은 항상 표시 (이미 display:none 제거됨)
         const createBtn = document.getElementById('createBtn');
         if (createBtn) createBtn.style.display = isAuthenticated ? 'inline-flex' : 'none';
       } catch (e) {
@@ -1017,7 +1017,7 @@
               </div>
             </td>
             <td class="px-6 py-3 text-center">
-              <button class="inline-flex items-center justify-center p-1 hover:bg-purple-50 rounded ${window.isViewerMode || !isAuthenticated ? 'opacity-50 cursor-not-allowed' : ''}" onclick="${window.isViewerMode || !isAuthenticated ? 'alert(\'로그인 후 이용 가능합니다.\')' : `toggleFeatured('${projectId}')`}" ${window.isViewerMode || !isAuthenticated ? 'disabled' : ''} title="${isFeatured ? '대표 해제' : '대표 설정'}">
+              <button class="inline-flex items-center justify-center p-1 hover:bg-purple-50 rounded" onclick="toggleFeatured('${projectId}')" title="${isFeatured ? '대표 해제' : '대표 설정'}">
                 <i data-lucide="${isFeatured ? 'pin' : 'pin-off'}" class="w-4 h-4" style="color: #7A68F6;" fill="${isFeatured ? 'currentColor' : 'none'}"></i>
               </button>
             </td>
@@ -1025,10 +1025,10 @@
               <button class="inline-flex items-center justify-center p-1.5 hover:bg-purple-50 rounded transition-colors" style="color: #7A68F6;" onclick="viewDetail('${projectId}')" title="상세 보기">
                 <i data-lucide="search" class="w-4 h-4"></i>
               </button>
-              <button class="inline-flex items-center justify-center p-1.5 hover:bg-purple-50 rounded transition-colors ${window.isViewerMode || !isAuthenticated ? 'opacity-50 cursor-not-allowed' : ''}" style="color: #7A68F6;" onclick="${window.isViewerMode || !isAuthenticated ? 'alert(\'로그인 후 이용 가능합니다.\')' : `editProject('${projectId}')`}" ${window.isViewerMode || !isAuthenticated ? 'disabled' : ''} title="수정하기">
+              <button class="inline-flex items-center justify-center p-1.5 hover:bg-purple-50 rounded transition-colors" style="color: #7A68F6;" onclick="editProject('${projectId}')" title="수정하기">
                 <i data-lucide="pencil" class="w-4 h-4"></i>
               </button>
-              <button class="inline-flex items-center justify-center p-1.5 hover:bg-purple-50 rounded transition-colors ${window.isViewerMode || !isAuthenticated ? 'opacity-50 cursor-not-allowed' : ''}" style="color: #7A68F6;" onclick="${window.isViewerMode || !isAuthenticated ? 'alert(\'로그인 후 이용 가능합니다.\')' : `deleteProject('${projectId}')`}" ${window.isViewerMode || !isAuthenticated ? 'disabled' : ''} title="삭제하기">
+              <button class="inline-flex items-center justify-center p-1.5 hover:bg-purple-50 rounded transition-colors" style="color: #7A68F6;" onclick="deleteProject('${projectId}')" title="삭제하기">
                 <i data-lucide="trash-2" class="w-4 h-4"></i>
               </button>
             </td>
@@ -4478,10 +4478,8 @@
         }
       });
       
-      // Viewer 모드가 아닐 때만 인증 체크
-      if (!isViewerMode) {
-        await checkAuth();
-      }
+      // 항상 인증 상태 확인 (Viewer 모드와 무관하게)
+      await checkAuth();
       await checkMongoStatus();
       // 초기 탭 설정은 이미 위에서 처리됨 (localStorage에서 복원)
       // 저장된 탭이 없으면 'documents'가 기본값
