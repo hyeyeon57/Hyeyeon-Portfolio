@@ -1435,13 +1435,38 @@
       setTimeout(bindUploadButtons, 300);
       setTimeout(bindUploadButtons, 500);
 
-      // 파일명에서 번호 추출 함수
+      // 파일명에서 번호 추출 함수 (타임스탬프 제외)
       const extractNumber = (url) => {
         if (!url || typeof url !== 'string') return Infinity;
         const fileName = url.split('/').pop() || '';
-        // 파일명에서 숫자 추출 (예: "image_1.jpg", "1_image.jpg", "img1.jpg" 등)
-        const match = fileName.match(/(\d+)/);
-        return match ? parseInt(match[1], 10) : Infinity; // 번호가 없으면 맨 뒤로
+        
+        // 타임스탬프 제거 (앞에 있는 13자리 숫자 제거)
+        // 예: "1734567890123_image_1.jpg" -> "image_1.jpg"
+        let nameWithoutTimestamp = fileName.replace(/^\d{10,15}_/, '');
+        
+        // 확장자 제거
+        const nameWithoutExt = nameWithoutTimestamp.replace(/\.[^.]+$/, '');
+        
+        // 여러 패턴으로 번호 찾기 (우선순위 순)
+        // 1. 끝에 있는 숫자 (예: "image_1", "img-1", "photo1")
+        let match = nameWithoutExt.match(/(?:[_-]|^)(\d+)$/);
+        if (match) {
+          return parseInt(match[1], 10);
+        }
+        
+        // 2. 중간에 있는 숫자 (예: "image_1_detail", "1_main")
+        match = nameWithoutExt.match(/(?:^|_|-)(\d+)(?:_|-|$)/);
+        if (match) {
+          return parseInt(match[1], 10);
+        }
+        
+        // 3. 숫자만 있는 경우 (예: "1", "17")
+        match = nameWithoutExt.match(/^(\d+)$/);
+        if (match) {
+          return parseInt(match[1], 10);
+        }
+        
+        return Infinity; // 번호가 없으면 맨 뒤로
       };
       
       // 기존 이미지들을 번호 순서로 정렬 (1번이 첫 번째)
@@ -4266,12 +4291,38 @@
           if (uploadedUrls && uploadedUrls.length > 0) {
             if (!window.editGalleryList) window.editGalleryList = [];
             
-            // 파일명에서 번호 추출 함수
+            // 파일명에서 번호 추출 함수 (타임스탬프 제외)
             const extractNumber = (url) => {
+              if (!url || typeof url !== 'string') return Infinity;
               const fileName = url.split('/').pop() || '';
-              // 파일명에서 숫자 추출 (예: "image_1.jpg", "1_image.jpg", "img1.jpg" 등)
-              const match = fileName.match(/(\d+)/);
-              return match ? parseInt(match[1], 10) : Infinity; // 번호가 없으면 맨 뒤로
+              
+              // 타임스탬프 제거 (앞에 있는 13자리 숫자 제거)
+              // 예: "1734567890123_image_1.jpg" -> "image_1.jpg"
+              let nameWithoutTimestamp = fileName.replace(/^\d{10,15}_/, '');
+              
+              // 확장자 제거
+              const nameWithoutExt = nameWithoutTimestamp.replace(/\.[^.]+$/, '');
+              
+              // 여러 패턴으로 번호 찾기 (우선순위 순)
+              // 1. 끝에 있는 숫자 (예: "image_1", "img-1", "photo1")
+              let match = nameWithoutExt.match(/(?:[_-]|^)(\d+)$/);
+              if (match) {
+                return parseInt(match[1], 10);
+              }
+              
+              // 2. 중간에 있는 숫자 (예: "image_1_detail", "1_main")
+              match = nameWithoutExt.match(/(?:^|_|-)(\d+)(?:_|-|$)/);
+              if (match) {
+                return parseInt(match[1], 10);
+              }
+              
+              // 3. 숫자만 있는 경우 (예: "1", "17")
+              match = nameWithoutExt.match(/^(\d+)$/);
+              if (match) {
+                return parseInt(match[1], 10);
+              }
+              
+              return Infinity; // 번호가 없으면 맨 뒤로
             };
             
             // 새로 업로드된 이미지들을 번호 순서로 정렬 (1번이 첫 번째)
