@@ -998,6 +998,12 @@
       document.body.insertAdjacentHTML('beforeend', detailHtml);
       ensureLucide();
       initDetailTabs(projectId);
+      // 이미지 드래그 앤 드롭 초기화
+      setTimeout(() => {
+        if (window.initImageDragAndDrop) {
+          window.initImageDragAndDrop(projectId, project);
+        }
+      }, 100);
       
       // 모달이 열릴 때 스크롤 (모달 내부 스크롤 가능한 영역으로)
       setTimeout(() => {
@@ -1041,6 +1047,108 @@
       link.click();
       document.body.removeChild(link);
     }
+
+    function initImageDragAndDrop(projectId, project) {
+      const galleryContainer = document.getElementById(`gallery-images-${projectId}`);
+      if (!galleryContainer) return;
+
+      let draggedElement = null;
+      let draggedIndex = null;
+
+      // 모든 이미지 카드에 드래그 이벤트 추가
+      galleryContainer.querySelectorAll('[draggable="true"]').forEach((item, idx) => {
+        item.addEventListener('dragstart', (e) => {
+          draggedElement = item;
+          draggedIndex = parseInt(item.getAttribute('data-image-index'));
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('text/html', item.innerHTML);
+          item.style.opacity = '0.5';
+        });
+
+        item.addEventListener('dragend', (e) => {
+          item.style.opacity = '1';
+          galleryContainer.querySelectorAll('[draggable="true"]').forEach(el => {
+            el.classList.remove('border-blue-500', 'border-2');
+          });
+          draggedElement = null;
+          draggedIndex = null;
+        });
+
+        item.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          if (draggedIndex === null || draggedElement === null) return;
+          if (e.dataTransfer) {
+            e.dataTransfer.dropEffect = 'move';
+          }
+          const targetIndex = parseInt(item.getAttribute('data-image-index'));
+          if (!Number.isNaN(targetIndex) && targetIndex !== draggedIndex) {
+            item.classList.add('border-blue-500', 'border-2');
+          }
+        });
+
+        item.addEventListener('dragleave', (e) => {
+          item.classList.remove('border-blue-500', 'border-2');
+        });
+
+        item.addEventListener('drop', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          
+          if (draggedElement === null || draggedElement === item) {
+            draggedElement = null;
+            draggedIndex = null;
+            return;
+          }
+
+          const targetIndex = parseInt(item.getAttribute('data-image-index'));
+          if (Number.isNaN(targetIndex) || draggedIndex === targetIndex) {
+            draggedElement = null;
+            draggedIndex = null;
+            return;
+          }
+          
+          // DOM에서 요소 이동
+          if (draggedIndex < targetIndex) {
+            galleryContainer.insertBefore(draggedElement, item.nextSibling);
+          } else {
+            galleryContainer.insertBefore(draggedElement, item);
+          }
+
+          // data-image-index 업데이트 및 번호 재표시
+          galleryContainer.querySelectorAll('[draggable="true"]').forEach((el, newIdx) => {
+            el.setAttribute('data-image-index', newIdx);
+            const badge = el.querySelector('.absolute.top-2');
+            if (badge) {
+              badge.textContent = newIdx + 1;
+            }
+          });
+
+          // 프로젝트 이미지 순서 업데이트
+          const currentImages = project.images || project.gallery || [];
+          if (Array.isArray(currentImages) && currentImages.length > 0) {
+            const newOrder = [...currentImages];
+            const [moved] = newOrder.splice(draggedIndex, 1);
+            newOrder.splice(targetIndex, 0, moved);
+            
+            // 프로젝트 데이터 업데이트 (로컬)
+            project.images = newOrder;
+            project.gallery = newOrder;
+            
+            // 전역 프로젝트 목록도 업데이트
+            const projectIndex = projects.findIndex(p => (p.id || p._id) === projectId);
+            if (projectIndex !== -1) {
+              projects[projectIndex].images = newOrder;
+              projects[projectIndex].gallery = newOrder;
+            }
+          }
+
+          item.classList.remove('border-blue-500', 'border-2');
+          draggedElement = null;
+          draggedIndex = null;
+        });
+      });
+    }
+    window.initImageDragAndDrop = initImageDragAndDrop;
 
     async function editProject(id) {
       // Viewer 모드 체크
@@ -1297,153 +1405,117 @@
           window.editGalleryList = currentGallery;
         }
 
-        // 갤러리 이미지 목록: 썸네일 + 파일명 + 드래그로 순서 변경 + 삭제
-        container.innerHTML = currentGallery.map((img, idx) => {
-          // img가 유효한 문자열인지 확인
-          if (!img || typeof img !== 'string') return '';
-          const fileName = img.split('/').pop() || img;
-          return `
-          <div
-            class="flex items-center gap-2 py-1 border border-gray-200 rounded-md px-2 bg-white"
-            data-existing-gallery="${img}"
-            data-gallery-index="${idx}"
-            draggable="true"
-          >
-            <div class="flex flex-col items-center justify-center gap-1">
-              <button type="button" class="p-0.5 text-gray-400 hover:text-green-600 transition-colors ${idx === 0 ? 'opacity-30 cursor-not-allowed' : ''}" data-move-up="${idx}" ${idx === 0 ? 'disabled' : ''} title="위로 이동">
-                <i data-lucide="chevron-up" class="w-3 h-3"></i>
-              </button>
-              <span class="flex items-center justify-center w-6 h-6 text-white rounded-full text-xs font-bold flex-shrink-0" style="background-color: #16a34a; border: 2px solid #15803d;">${idx + 1}</span>
-              <button type="button" class="p-0.5 text-gray-400 hover:text-green-600 transition-colors ${idx === currentGallery.length - 1 ? 'opacity-30 cursor-not-allowed' : ''}" data-move-down="${idx}" ${idx === currentGallery.length - 1 ? 'disabled' : ''} title="아래로 이동">
-                <i data-lucide="chevron-down" class="w-3 h-3"></i>
-              </button>
+        // 갤러리 이미지 목록: 미리보기 모달처럼 그리드 레이아웃으로 표시
+        if (currentGallery.length === 0) {
+          container.innerHTML = '<p class="text-xs text-gray-400 text-center py-2">갤러리 이미지가 없습니다</p>';
+        } else {
+          const fileName = (img) => img.split('/').pop() || img;
+          const truncate = (text, len) => text.length > len ? `${text.slice(0, len)}…` : text;
+          container.innerHTML = `
+            <div class="grid grid-cols-2 gap-3" id="edit-gallery-images-grid">
+              ${currentGallery.map((img, idx) => {
+                if (!img || typeof img !== 'string') return '';
+                const fileNm = fileName(img);
+                return `
+                <div class="border rounded-lg overflow-hidden bg-gray-50 hover:shadow-md transition-shadow relative cursor-move" draggable="true" data-gallery-index="${idx}" data-image-url="${img}" data-image-name="${fileNm}">
+                  <div class="absolute top-2 left-2 z-10 bg-black/70 text-white text-xs font-bold px-2 py-1 rounded">
+                    ${idx + 1}
+                  </div>
+                  <div class="bg-gray-100 cursor-pointer" onclick="openImageModal('${img}', '${fileNm}')">
+                    <img src="${img}" alt="${fileNm}" class="w-full h-auto max-h-[150px] object-contain mx-auto" style="display: block; pointer-events: none;" onerror="this.style.display='none'" />
+                  </div>
+                  <div class="px-2 py-1.5 flex items-center justify-between text-xs text-gray-700 bg-white">
+                    <span class="truncate flex-1" title="${img}">${truncate(fileNm, 15)}</span>
+                    <button type="button" class="p-1 text-red-600 hover:bg-red-50 rounded flex-shrink-0" data-remove-gallery="${idx}" title="삭제">
+                      <i data-lucide="trash-2" class="w-3 h-3"></i>
+                    </button>
+                  </div>
+                </div>
+              `;
+              }).filter(html => html !== '').join('')}
             </div>
-            <div class="w-12 h-12 rounded border border-gray-200 overflow-hidden bg-gray-50 flex-shrink-0">
-              <img
-                src="${img}"
-                alt="Gallery ${idx + 1}"
-                class="w-full h-full object-cover"
-                onerror="this.style.display='none'"
-              />
-            </div>
-            <!-- 파일명을 줄임 없이 전체 표시 -->
-            <span class="text-sm break-all" title="${img}">${fileName}</span>
-            <div class="flex items-center gap-1 ml-auto">
-              <button
-                type="button"
-                class="px-2 py-1 text-xs text-red-600 border border-red-200 rounded"
-                data-remove-gallery="${idx}"
-              >
-                삭제
-              </button>
-            </div>
-          </div>
-        `;
-        }).filter(html => html !== '').join('');
+          `;
+        }
 
-        // 드래그로 순서 변경
-        container.querySelectorAll('[data-existing-gallery]').forEach((item) => {
-          item.addEventListener('dragstart', (e) => {
-            const idx = Number(item.getAttribute('data-gallery-index'));
-            if (!Number.isNaN(idx)) {
-              draggedGalleryIndex = idx;
-              item.classList.add('opacity-50', 'ring-2', 'ring-indigo-400');
-              if (e.dataTransfer) {
-                e.dataTransfer.effectAllowed = 'move';
+        // 드래그로 순서 변경 (그리드 레이아웃용)
+        const galleryGrid = document.getElementById('edit-gallery-images-grid');
+        if (galleryGrid) {
+          galleryGrid.querySelectorAll('[draggable="true"]').forEach((item) => {
+            item.addEventListener('dragstart', (e) => {
+              const idx = Number(item.getAttribute('data-gallery-index'));
+              if (!Number.isNaN(idx)) {
+                draggedGalleryIndex = idx;
+                item.style.opacity = '0.5';
+                if (e.dataTransfer) {
+                  e.dataTransfer.effectAllowed = 'move';
+                }
               }
-            }
-          });
+            });
 
-          item.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            if (draggedGalleryIndex === null) return;
-            item.classList.add('bg-indigo-50');
-          });
-
-          item.addEventListener('dragleave', () => {
-            item.classList.remove('bg-indigo-50');
-          });
-
-          item.addEventListener('drop', (e) => {
-            e.preventDefault();
-            item.classList.remove('bg-indigo-50');
-            const targetIdx = Number(item.getAttribute('data-gallery-index'));
-            if (
-              draggedGalleryIndex === null ||
-              Number.isNaN(targetIdx) ||
-              draggedGalleryIndex === targetIdx
-            ) {
+            item.addEventListener('dragend', (e) => {
+              item.style.opacity = '1';
+              galleryGrid.querySelectorAll('[draggable="true"]').forEach(el => {
+                el.classList.remove('border-blue-500', 'border-2');
+              });
               draggedGalleryIndex = null;
-              return;
-            }
+            });
 
-            const currentGallery = window.editGalleryList || [];
-            const newList = [...currentGallery];
-            const [moved] = newList.splice(draggedGalleryIndex, 1);
-            newList.splice(targetIdx, 0, moved);
-            window.editGalleryList = newList;
-            draggedGalleryIndex = null;
-            window.refreshEditGalleryStatus();
-          });
+            item.addEventListener('dragover', (e) => {
+              e.preventDefault();
+              if (draggedGalleryIndex === null) return;
+              if (e.dataTransfer) {
+                e.dataTransfer.dropEffect = 'move';
+              }
+              const targetIdx = Number(item.getAttribute('data-gallery-index'));
+              if (targetIdx !== draggedGalleryIndex) {
+                item.classList.add('border-blue-500', 'border-2');
+              }
+            });
 
-          item.addEventListener('dragend', () => {
-            draggedGalleryIndex = null;
+            item.addEventListener('dragleave', () => {
+              item.classList.remove('border-blue-500', 'border-2');
+            });
+
+            item.addEventListener('drop', (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              
+              if (draggedGalleryIndex === null) return;
+              
+              const targetIdx = Number(item.getAttribute('data-gallery-index'));
+              if (draggedGalleryIndex === targetIdx) {
+                draggedGalleryIndex = null;
+                return;
+              }
+
+              const currentGallery = window.editGalleryList || [];
+              const newList = [...currentGallery];
+              const [moved] = newList.splice(draggedGalleryIndex, 1);
+              newList.splice(targetIdx, 0, moved);
+              window.editGalleryList = newList;
+              draggedGalleryIndex = null;
+              window.refreshEditGalleryStatus();
+            });
           });
-        });
+        }
 
         // 삭제 버튼
-        container.querySelectorAll('[data-remove-gallery]').forEach((btn) => {
-          btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation(); // 이벤트 전파 중지
-            const idx = Number(btn.getAttribute('data-remove-gallery'));
-            if (!Number.isNaN(idx) && idx >= 0 && idx < (window.editGalleryList || []).length) {
-              const currentGallery = window.editGalleryList || [];
-              // 새 배열 생성하여 삭제 (원본 배열 직접 수정 방지)
-              const newGallery = currentGallery.filter((_, i) => i !== idx);
-              window.editGalleryList = newGallery;
-              window.refreshEditGalleryStatus();
-            }
+        if (galleryGrid) {
+          galleryGrid.querySelectorAll('[data-remove-gallery]').forEach((btn) => {
+            btn.addEventListener('click', (e) => {
+              e.preventDefault();
+              e.stopPropagation(); // 이벤트 전파 중지
+              const idx = Number(btn.getAttribute('data-remove-gallery'));
+              if (!Number.isNaN(idx) && idx >= 0 && idx < (window.editGalleryList || []).length) {
+                const currentGallery = window.editGalleryList || [];
+                // 새 배열 생성하여 삭제 (원본 배열 직접 수정 방지)
+                const newGallery = currentGallery.filter((_, i) => i !== idx);
+                window.editGalleryList = newGallery;
+                window.refreshEditGalleryStatus();
+              }
+            });
           });
-        });
-
-        // 순서 위로 이동
-        container.querySelectorAll('[data-move-up]').forEach((btn) => {
-          btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation(); // 이벤트 전파 중지 (삭제 버튼 클릭 방지)
-            const idx = Number(btn.getAttribute('data-move-up'));
-            const currentGallery = window.editGalleryList || [];
-            if (!Number.isNaN(idx) && idx > 0 && idx < currentGallery.length) {
-              // 새 배열 생성하여 순서 변경 (원본 배열 직접 수정 방지)
-              const newGallery = [...currentGallery];
-              const tmp = newGallery[idx - 1];
-              newGallery[idx - 1] = newGallery[idx];
-              newGallery[idx] = tmp;
-              window.editGalleryList = newGallery;
-              window.refreshEditGalleryStatus();
-            }
-          });
-        });
-
-        // 순서 아래로 이동
-        container.querySelectorAll('[data-move-down]').forEach((btn) => {
-          btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation(); // 이벤트 전파 중지 (삭제 버튼 클릭 방지)
-            const idx = Number(btn.getAttribute('data-move-down'));
-            const currentGallery = window.editGalleryList || [];
-            if (!Number.isNaN(idx) && idx >= 0 && idx < currentGallery.length - 1) {
-              // 새 배열 생성하여 순서 변경 (원본 배열 직접 수정 방지)
-              const newGallery = [...currentGallery];
-              const tmp = newGallery[idx + 1];
-              newGallery[idx + 1] = newGallery[idx];
-              newGallery[idx] = tmp;
-              window.editGalleryList = newGallery;
-              window.refreshEditGalleryStatus();
-            }
-          });
-        });
+        }
         
         // Lucide 아이콘 렌더링
         setTimeout(() => ensureLucide(), 0);
@@ -1627,20 +1699,21 @@
         const mainImageFile = document.getElementById('editMainImageFile')?.files?.[0];
         const galleryFiles = document.getElementById('editGalleryImagesFile')?.files;
         
-        // 갤러리 이미지: 이미 업로드된 것과 기존 것 합치기
-        // 먼저 기존 프로젝트의 갤러리를 가져옴
+        // 갤러리 이미지: window.editGalleryList를 우선 사용 (순서 변경 반영)
+        // window.editGalleryList가 있으면 그것을 사용 (이미 순서가 변경된 전체 목록)
+        // 없으면 기존 갤러리 사용
         const existingGallery = (project.images && project.images.length > 0) 
           ? project.images 
           : (project.gallery && project.gallery.length > 0 ? project.gallery : []);
         
-        // 이미 업로드된 갤러리 리스트 (업로드 버튼을 눌러서 업로드한 파일들)
-        const alreadyUploadedGallery = window.editGalleryList || [];
-        
-        // 현재 갤러리 = 기존 갤러리 + 이미 업로드된 갤러리
-        let currentGallery = [...existingGallery, ...alreadyUploadedGallery];
-        
-        // 중복 제거
-        currentGallery = [...new Set(currentGallery.filter(Boolean))];
+        let currentGallery = [];
+        if (window.editGalleryList && Array.isArray(window.editGalleryList) && window.editGalleryList.length > 0) {
+          // window.editGalleryList는 순서가 변경된 전체 갤러리 목록
+          currentGallery = window.editGalleryList.filter(img => img && typeof img === 'string' && img.trim() !== '');
+        } else {
+          // window.editGalleryList가 없으면 기존 갤러리 사용
+          currentGallery = existingGallery.filter(Boolean);
+        }
 
         // 업로드할 파일 개수 계산 (새로 선택한 파일만)
         const totalFiles = (mainImageFile ? 1 : 0) + (galleryFiles ? galleryFiles.length : 0);
@@ -1762,6 +1835,7 @@
         });
           console.log('📤 이미지 URL:', payload.image);
           console.log('📤 갤러리 이미지:', payload.images);
+          console.log('📤 currentGallery:', currentGallery);
           console.log('📤 업로드 상태:', {
             alreadyUploadedMain: window.editMainImageUrl,
             alreadyUploadedGallery: window.editGalleryList,
@@ -1868,9 +1942,9 @@
             setTimeout(async () => {
               if (totalFiles > 0) hideUploadProgress();
               // alert 제거 (모달이 닫히는 것을 방지하기 위해)
-              // 대신 모달 내부에 성공 메시지 표시
+              // 대신 모달 밖 화면 하단에 성공 메시지 표시
               const successMessage = document.createElement('div');
-              successMessage.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+              successMessage.className = 'fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-white text-gray-700 border border-gray-300 px-4 py-2 rounded-lg shadow-md text-sm z-[10001]';
               successMessage.textContent = '✅ 수정되었습니다';
               document.body.appendChild(successMessage);
               setTimeout(() => successMessage.remove(), 3000);

@@ -105,7 +105,19 @@ const getStats = async () => {
           {
             $group: {
               _id: {
-                $hour: { $ifNull: ['$date', '$createdAt'] }
+                $let: {
+                  vars: {
+                    utcHour: {
+                      $hour: { $ifNull: ['$date', '$createdAt'] }
+                    }
+                  },
+                  in: {
+                    $mod: [
+                      { $add: ['$$utcHour', 9] },
+                      24
+                    ]
+                  }
+                }
               },
               count: { $sum: 1 }
             }

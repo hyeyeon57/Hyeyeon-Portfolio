@@ -107,12 +107,63 @@ export const renderDetailModal = (project, files, categoryLabels, isAuthenticate
   const imageFiles = (files || []).filter((f) => !isPdf(f));
   const pdfFiles = (files || []).filter(isPdf);
 
-  const mainImage = imageFiles.find((f) => {
-    const imgPath = project.image || '';
-    const fname = imgPath.split('/').pop();
-    return imgPath && (f.path === imgPath || f.url === imgPath || f.name === fname);
+  // 프로젝트의 이미지 URL을 직접 사용
+  const projectImages = [];
+  if (project.image) {
+    projectImages.push({
+      url: project.image,
+      name: project.image.split('/').pop() || '대표 이미지',
+      path: project.image
+    });
+  }
+  const galleryList = project.images || project.gallery || [];
+  if (Array.isArray(galleryList)) {
+    galleryList.forEach(imgUrl => {
+      if (imgUrl && imgUrl !== project.image) {
+        projectImages.push({
+          url: imgUrl,
+          name: imgUrl.split('/').pop() || '갤러리 이미지',
+          path: imgUrl
+        });
+      }
+    });
+  }
+
+  // files API에서 가져온 이미지와 프로젝트 이미지 합치기 (중복 제거)
+  const allImages = [...projectImages];
+  imageFiles.forEach(file => {
+    const exists = allImages.some(img => img.url === file.url || img.path === file.path || img.url === file.path);
+    if (!exists) {
+      allImages.push(file);
+    }
   });
-  const galleryImages = imageFiles.filter((f) => f !== mainImage);
+
+  // 대표 이미지 찾기
+  let mainImage = null;
+  if (project.image && allImages.length > 0) {
+    mainImage = allImages.find((img) => {
+      const imgPath = project.image || '';
+      return imgPath && (img.path === imgPath || img.url === imgPath || img.url === project.image);
+    });
+    // 찾지 못했으면 project.image를 직접 사용
+    if (!mainImage && project.image) {
+      mainImage = {
+        url: project.image,
+        name: project.image.split('/').pop() || '대표 이미지',
+        path: project.image
+      };
+      // allImages에 없으면 추가
+      if (!allImages.some(img => img.url === project.image)) {
+        allImages.unshift(mainImage);
+      }
+    }
+  }
+  
+  // 갤러리 이미지: mainImage를 제외한 나머지
+  const galleryImages = allImages.filter((img) => {
+    if (!mainImage) return true;
+    return img.url !== mainImage.url && img.path !== mainImage.path;
+  });
 
   const pdfRows = renderFileRows(pdfFiles, projectId);
   const actions = renderActions(project);
@@ -125,18 +176,21 @@ export const renderDetailModal = (project, files, categoryLabels, isAuthenticate
     return `
       <div class="space-y-3">
         ${label ? `<p class="text-sm font-medium text-gray-700 mb-2">${label}</p>` : ''}
-        <div class="grid grid-cols-1 gap-4">
+        <div class="grid grid-cols-2 gap-3" id="gallery-images-${projectId}">
           ${items
             .map(
               (img, idx) => `
-            <div class="border rounded-lg overflow-hidden bg-gray-50 hover:shadow-md transition-shadow">
-              <div class="bg-gray-100 cursor-pointer" onclick="openImageModal('${img.url}', '${img.name || ''}')">
-                <img src="${img.url}" alt="${img.name}" class="w-full h-auto max-h-[500px] object-contain mx-auto" style="display: block;" />
+            <div class="border rounded-lg overflow-hidden bg-gray-50 hover:shadow-md transition-shadow relative cursor-move" draggable="true" data-image-index="${idx}" data-image-url="${img.url}" data-image-name="${img.name || ''}">
+              <div class="absolute top-2 left-2 z-10 bg-black/70 text-white text-xs font-bold px-2 py-1 rounded">
+                ${idx + 1}
               </div>
-              <div class="px-3 py-2 flex items-center justify-between text-sm text-gray-700 bg-white">
-                <span class="truncate max-w-[220px]" title="${img.name}">${truncate(img.name || '')}</span>
-                <button onclick="downloadFile('${projectId}', '${img.name}')" class="p-1 text-green-600 hover:bg-green-50 rounded" title="다운로드">
-                  <i data-lucide="download" class="w-4 h-4"></i>
+              <div class="bg-gray-100 cursor-pointer" onclick="openImageModal('${img.url}', '${img.name || ''}')">
+                <img src="${img.url}" alt="${img.name}" class="w-full h-auto max-h-[150px] object-contain mx-auto" style="display: block; pointer-events: none;" />
+              </div>
+              <div class="px-2 py-1.5 flex items-center justify-between text-xs text-gray-700 bg-white">
+                <span class="truncate flex-1" title="${img.name}">${truncate(img.name || '', 15)}</span>
+                <button onclick="downloadFile('${projectId}', '${img.name}')" class="p-1 text-green-600 hover:bg-green-50 rounded flex-shrink-0" title="다운로드">
+                  <i data-lucide="download" class="w-3 h-3"></i>
                 </button>
               </div>
             </div>`
@@ -148,14 +202,14 @@ export const renderDetailModal = (project, files, categoryLabels, isAuthenticate
   };
   return `
     <div class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="this.remove()">
-      <div class="bg-white rounded-2xl shadow-xl max-w-xl w-full max-h-[90vh] flex flex-col overflow-hidden" onclick="event.stopPropagation()">
+      <div class="bg-white rounded-2xl shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col" style="display: flex; flex-direction: column; max-height: 90vh; overflow: hidden;" onclick="event.stopPropagation()">
         <div class="flex-shrink-0 bg-white border-b px-6 py-4 flex justify-between items-center">
           <h2 class="text-2xl font-bold text-gray-900">${project.title}</h2>
           <button onclick="this.closest('.fixed').remove()" class="p-2 hover:bg-gray-100 rounded-full transition">
             <i data-lucide="x" class="w-6 h-6"></i>
           </button>
         </div>
-        <div class="flex-1 p-6 space-y-6 modal-scroll" style="overflow-y: auto; overflow-x: hidden; flex: 1 1 auto; min-height: 0; max-height: calc(90vh - 120px); scrollbar-width: auto; scrollbar-color: #9ca3af #f3f4f6; -webkit-overflow-scrolling: touch;">
+        <div class="flex-1 p-6 space-y-6 modal-scroll" style="overflow-y: auto !important; overflow-x: hidden; flex: 1 1 auto; min-height: 0; max-height: calc(90vh - 140px); scrollbar-width: thin; scrollbar-color: #9ca3af #f3f4f6; -webkit-overflow-scrolling: touch;">
           <style>
             .modal-scroll::-webkit-scrollbar {
               width: 8px;
@@ -229,10 +283,12 @@ export const renderDetailModal = (project, files, categoryLabels, isAuthenticate
 
           <!-- 파일 관리 섹션 -->
           <div class="border-t pt-6">
+            ${(mainImage || galleryImages.length > 0 || pdfFiles.length > 0) ? `
             <div class="flex items-center gap-2 mb-4">
               <button class="px-3 py-2 rounded-lg text-sm font-medium bg-blue-600 text-white" data-tab-btn="${tabGroup}" data-target="${imgPane}">이미지</button>
               <button class="px-3 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-700" data-tab-btn="${tabGroup}" data-target="${pdfPane}">PDF</button>
             </div>
+            ` : ''}
             <div id="${imgPane}" class="space-y-4">
               ${mainImage ? renderImageCards([mainImage], '대표 이미지') : ''}
               ${galleryImages.length ? renderImageCards(galleryImages, '갤러리 이미지') : (!mainImage ? `
@@ -412,13 +468,16 @@ export const renderEditModal = (project, categoryLabels) => {
               </div>
             </div>
           </div>
-          <div class="flex gap-3 pt-4 pb-2 sticky bottom-0 bg-white border-t -mx-6 px-6 py-4 mt-4">
-            <button type="submit" class="flex-1 text-white py-2.5 rounded-lg transition font-medium text-sm" style="background-color: #16a34a;" onmouseover="this.style.backgroundColor='#15803d'" onmouseout="this.style.backgroundColor='#16a34a'">
-              수정 완료
-            </button>
-            <button type="button" onclick="this.closest('.fixed').remove()" class="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition text-sm">
-              취소
-            </button>
+          <div class="flex flex-col gap-3 pt-4 pb-2 sticky bottom-0 bg-white border-t -mx-6 px-6 py-4 mt-4">
+            <div class="flex gap-3">
+              <button type="submit" class="flex-1 text-white py-2.5 rounded-lg transition font-medium text-sm" style="background-color: #16a34a;" onmouseover="this.style.backgroundColor='#15803d'" onmouseout="this.style.backgroundColor='#16a34a'">
+                수정 완료
+              </button>
+              <button type="button" onclick="this.closest('.fixed').remove()" class="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition text-sm">
+                취소
+              </button>
+            </div>
+            <div id="editSuccessMessage" class="text-center text-sm text-green-600 font-medium hidden"></div>
           </div>
         </form>
       </div>
