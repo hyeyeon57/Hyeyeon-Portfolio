@@ -888,13 +888,25 @@
       try {
         const url = '/bo-api/auth/check';
         const res = await fetch(url, { credentials: 'include' });
+        
+        if (!res.ok) {
+          console.error('인증 확인 실패:', res.status);
+          isAuthenticated = false;
+          return false;
+        }
+        
         const data = await res.json();
         isAuthenticated = !!data.authenticated;
+        
         // 로그아웃 버튼은 항상 표시 (이미 display:none 제거됨)
         const createBtn = document.getElementById('createBtn');
         if (createBtn) createBtn.style.display = isAuthenticated ? 'inline-flex' : 'none';
+        
+        return isAuthenticated;
       } catch (e) {
+        console.error('인증 확인 오류:', e);
         isAuthenticated = false;
+        return false;
       }
     }
 
@@ -1216,10 +1228,34 @@
         return;
       }
       
-      // 실시간으로 인증 상태 확인
-      await checkAuth();
-      if (!isAuthenticated) {
-        alert('로그인이 필요합니다.');
+      // 실시간으로 인증 상태 확인 및 세션 갱신
+      try {
+        const authCheck = await fetch('/bo-api/auth/check', {
+          method: 'GET',
+          credentials: 'include',
+        });
+        
+        if (!authCheck.ok) {
+          alert('세션이 만료되었습니다. 다시 로그인해주세요.');
+          window.location.href = '/admin/login';
+          return;
+        }
+        
+        const authData = await authCheck.json();
+        console.log('🔐 프로젝트 편집 전 인증 상태:', authData);
+        
+        if (!authData.authenticated) {
+          alert('세션이 만료되었습니다. 다시 로그인해주세요.');
+          window.location.href = '/admin/login';
+          return;
+        }
+        
+        // 인증 성공 시 전역 변수 업데이트
+        isAuthenticated = true;
+      } catch (authError) {
+        console.error('인증 확인 실패:', authError);
+        alert('인증 확인 중 오류가 발생했습니다. 다시 로그인해주세요.');
+        window.location.href = '/admin/login';
         return;
       }
       
@@ -3361,17 +3397,26 @@
           method: 'GET',
           credentials: 'include',
         });
+        
+        if (!authCheck.ok) {
+          console.error('인증 확인 실패:', authCheck.status);
+          alert('세션이 만료되었습니다. 다시 로그인해주세요.');
+          window.location.href = '/admin/login';
+          throw new Error('세션이 만료되었습니다. 다시 로그인해주세요.');
+        }
+        
         const authData = await authCheck.json();
         console.log('🔐 파일 업로드 전 인증 상태:', authData);
         
         if (!authData.authenticated) {
+          alert('세션이 만료되었습니다. 다시 로그인해주세요.');
+          window.location.href = '/admin/login';
           throw new Error('세션이 만료되었습니다. 다시 로그인해주세요.');
         }
       } catch (authError) {
         console.error('인증 확인 실패:', authError);
-        if (authError.message.includes('세션이 만료')) {
-          alert('세션이 만료되었습니다. 다시 로그인해주세요.');
-          window.location.href = '/admin/login';
+        if (authError.message && authError.message.includes('세션이 만료')) {
+          // 이미 alert와 리다이렉트가 처리됨
         } else {
           alert('인증 확인 중 오류가 발생했습니다. 다시 로그인해주세요.');
           window.location.href = '/admin/login';
@@ -3614,6 +3659,14 @@
           method: 'GET',
           credentials: 'include',
         });
+        
+        if (!authCheck.ok) {
+          console.error('인증 확인 실패:', authCheck.status);
+          alert('세션이 만료되었습니다. 다시 로그인해주세요.');
+          window.location.href = '/admin/login';
+          return;
+        }
+        
         const authData = await authCheck.json();
         console.log('🔐 PDF 업로드 전 인증 상태:', authData);
         
@@ -4099,6 +4152,14 @@
           method: 'GET',
           credentials: 'include',
         });
+        
+        if (!authCheck.ok) {
+          console.error('인증 확인 실패:', authCheck.status);
+          alert('세션이 만료되었습니다. 다시 로그인해주세요.');
+          window.location.href = '/admin/login';
+          return;
+        }
+        
         const authData = await authCheck.json();
         console.log('🔐 이미지 업로드 전 인증 상태:', authData);
         
