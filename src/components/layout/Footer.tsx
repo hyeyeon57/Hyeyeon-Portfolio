@@ -430,10 +430,10 @@ export const Footer: React.FC = () => {
               <h3 className="text-2xl md:text-3xl font-light text-text-main mb-3">
                 {personalInfo.name}
               </h3>
-              <p className="text-base text-text-sub leading-relaxed">
-                막다른 길에서도 또 다른 경로를 찾아내는<br />
-                <span className="font-bold">내비게이션 같은 기획자</span>입니다.
-              </p>
+              <div className="text-base md:text-lg text-text-sub leading-relaxed">
+                <div className="whitespace-nowrap">막다른 길에서도 또 다른 경로를 찾아내는</div>
+                <div><span className="font-bold">내비게이션 같은 기획자</span>입니다.</div>
+              </div>
             </div>
           </div>
 

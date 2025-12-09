@@ -120,6 +120,22 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
     return () => clearTimeout(timer);
   }, [selectedProject]);
 
+  // 모달 열릴 때 배경 스크롤 막기
+  useEffect(() => {
+    if (selectedProject) {
+      // 모달이 열릴 때 body 스크롤 막기
+      document.body.style.overflow = 'hidden';
+    } else {
+      // 모달이 닫힐 때 body 스크롤 복원
+      document.body.style.overflow = '';
+    }
+
+    // cleanup: 컴포넌트 언마운트 시 스크롤 복원
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [selectedProject]);
+
   // BO에서 featured=true로 설정된 프로젝트를 대표 프로젝트로 표시
   // featured 프로젝트만 표시 (개수 제한 없음 - 백엔드에서 설정한 대로)
   // API route에서 이미 boolean으로 변환되어 전달됨
@@ -296,7 +312,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
         </motion.div>
 
         {/* Projects Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-12 max-w-7xl mx-auto">
           {displayedProjects.map((project, index) => {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const cardStyles = ['pastel-card--blue', 'pastel-card--purple', 'pastel-card--gray'];
@@ -317,13 +333,13 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
             >
               <div className="bg-white rounded-2xl overflow-hidden border border-line-light hover:border-brand-main/50 transition-all duration-300 hover:shadow-xl h-full flex flex-col">
                 {/* Project Image */}
-                <div className="relative h-48 overflow-hidden bg-gradient-to-br from-brand-main/5 to-brand-sub-1/5">
+                <div className="relative w-full aspect-[16/9] overflow-hidden bg-gradient-to-br from-brand-main/5 to-brand-sub-1/5">
                   {project.image && (
                     <Image 
                       src={project.image} 
                       alt={project.title}
                       fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      className="object-contain group-hover:scale-105 transition-transform duration-500"
                       style={{ display: 'block', margin: 0 }}
                       onError={(e) => {
                         e.currentTarget.style.display = 'none';
@@ -421,17 +437,18 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-3xl overflow-hidden max-w-7xl w-full max-h-[95vh] overflow-y-auto custom-scrollbar shadow-2xl"
+              className="bg-white rounded-3xl overflow-hidden max-w-5xl w-full max-h-[90vh] overflow-y-auto custom-scrollbar shadow-2xl"
+              style={{ borderRadius: '1.5rem 1.5rem 0 0' }}
             >
               {/* Modal Header */}
-              <div className="sticky top-0 z-10 bg-white border-b border-line-medium p-6 flex items-start justify-between">
+              <div className="sticky top-0 z-10 bg-white border-b border-line-medium p-4 flex items-start justify-between mb-0">
                 <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h2 className="text-2xl md:text-3xl font-bold text-text-main">
+                  <div className="flex items-center gap-3 mb-1">
+                    <h2 className="text-xl md:text-2xl font-bold text-text-main">
                   {selectedProject.title}
                     </h2>
                   </div>
-                  <p className="text-brand-main font-medium">{selectedProject.subtitle}</p>
+                  <p className="text-brand-main font-medium text-sm">{selectedProject.subtitle}</p>
                 </div>
                 <button
                   onClick={() => setSelectedProject(null)}
@@ -442,7 +459,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
               </div>
 
               {/* Modal Content */}
-              <div className="p-0">
+              <div className="p-0 -mt-0">
                 {/* 이미지 세로 스크롤 - 크게 표시 */}
                 {(() => {
                   try {
@@ -456,9 +473,9 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                     if (total === 0) return null;
                     
                     return (
-                      <div className="mb-8 overflow-hidden">
-                        {/* 이미지 영역 - 스크롤 없이 전체 높이 사용 */}
-                        <div className="space-y-0">
+                      <div className="overflow-visible" style={{ marginTop: 0, marginLeft: 0, marginRight: 0, width: '100%' }}>
+                        {/* 이미지 영역 - 풀블리드 레이아웃 */}
+                        <div className="space-y-0" style={{ margin: 0, padding: 0, width: '100%' }}>
                           {images.map((image, index) => {
                             if (!image) return null;
                             return (
@@ -467,15 +484,17 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.3, delay: index * 0.05 }}
-                                className="group relative w-full overflow-hidden bg-bg-light cursor-pointer hover:opacity-90 transition-opacity"
-                                style={{ minHeight: '700px', maxHeight: '90vh' }}
+                                className="group relative w-full cursor-pointer hover:opacity-90 transition-opacity"
+                                style={{ margin: 0, padding: 0, width: '100%', display: 'block', overflow: 'visible' }}
                                 onClick={() => handleImageClickForLightbox(image, index)}
                               >
                                 <Image
                                   src={image}
                                   alt={`${selectedProject?.title || ''} - 이미지 ${index + 1}`}
-                                  fill
-                                  className="object-contain"
+                                  width={1200}
+                                  height={800}
+                                  className="w-full h-auto object-contain"
+                                  style={{ width: '100%', margin: 0, padding: 0, display: 'block', objectFit: 'contain' }}
                                   loading="lazy"
                                   onError={(e) => {
                                     console.error('이미지 로드 실패:', image);
@@ -600,7 +619,20 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                         </li>
                       ))}
                     </ul>
-                    </div>
+                  </div>
+                )}
+
+                {/* Retrospective */}
+                {selectedProject.retrospective && (
+                  <div className="mb-8 px-8">
+                    <h3 className="text-xl font-bold text-text-main mb-4 flex items-center gap-2">
+                      <span className="text-brand-main">💭</span>
+                      회고
+                    </h3>
+                    <p className="text-text-secondary leading-relaxed">
+                      {selectedProject.retrospective}
+                    </p>
+                  </div>
                 )}
 
                 {/* Retrospective */}

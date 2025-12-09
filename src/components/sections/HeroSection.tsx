@@ -106,15 +106,15 @@ export const HeroSection: React.FC<HeroSectionProps> = () => {
             </motion.h2>
 
             {/* 자기소개 */}
-            <motion.p
-              className="text-xl md:text-2xl lg:text-3xl font-light leading-relaxed max-w-2xl mb-24 text-text-sub"
+            <motion.div
+              className="text-lg md:text-2xl lg:text-3xl font-light leading-relaxed max-w-2xl mb-24 text-text-sub"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.4 }}
             >
-              막다른 길에서도 또 다른 경로를 찾아내는<br />
-              <span className="font-bold">내비게이션 같은 기획자</span>입니다.
-            </motion.p>
+              <div className="whitespace-nowrap">막다른 길에서도 또 다른 경로를 찾아내는</div>
+              <div><span className="font-bold">내비게이션 같은 기획자</span>입니다.</div>
+            </motion.div>
 
             {/* CTA 버튼 */}
             <motion.div

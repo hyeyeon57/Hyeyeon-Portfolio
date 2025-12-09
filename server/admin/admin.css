@@ -50,6 +50,16 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   opacity: 1;
 }
 
+/* 연락 필드와 방문자 기록 필드의 날짜 입력 달력 아이콘 색상 통일 */
+#contact-start-date::-webkit-calendar-picker-indicator,
+#contact-end-date::-webkit-calendar-picker-indicator,
+#visitor-start-date::-webkit-calendar-picker-indicator,
+#visitor-end-date::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: invert(38%) sepia(95%) saturate(2000%) hue-rotate(240deg) brightness(98%) contrast(95%) !important;
+  opacity: 1;
+}
+
 /* 정렬 선택 보라색 테마 */
 select:focus {
   outline: none;

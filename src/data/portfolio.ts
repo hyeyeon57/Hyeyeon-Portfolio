@@ -314,7 +314,7 @@ export const skills: Skill[] = [
     id: '5',
     name: 'AI Tools (Cursor·GPT·Gemini·UXpilot)',
     category: 'AI 활용',
-    level: 5,
+    level: 3.5,
     description: '아이디어 확장, 기획 문서화, 효율적 협업'
   },
   {

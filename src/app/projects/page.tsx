@@ -26,6 +26,7 @@ export default function AllProjectsPage() {
   const [showLightboxTooltip, setShowLightboxTooltip] = useState(false); // 라이트박스 자동 툴팁 (최초 1회)
   const [hasShownLightboxTooltip, setHasShownLightboxTooltip] = useState(false); // 이 세션에서 이미 한 번 보여줬는지 여부
   const [isHoveringLightboxImage, setIsHoveringLightboxImage] = useState(false); // 라이트박스 이미지 hover 상태
+  const [showImageTooltip, setShowImageTooltip] = useState(false); // 모달 이미지 툴팁 (3초간 표시)
 
   // 클라이언트 마운트 시 BO 서버에서 데이터 로드
   useEffect(() => {
@@ -101,13 +102,14 @@ export default function AllProjectsPage() {
     logVisit();
     
     const fetchProjects = async (forceRefresh = false) => {
+      // localStorage에서 캐시된 데이터 확인 (5분 이내 데이터만 사용)
+      const CACHE_KEY = 'projects_cache';
+      const CACHE_TIMESTAMP_KEY = 'projects_cache_timestamp';
+      const CACHE_DURATION = 5 * 60 * 1000; // 5분
+      
+      let hasCachedData = false;
+      
       try {
-        // localStorage에서 캐시된 데이터 확인 (5분 이내 데이터만 사용)
-        const CACHE_KEY = 'projects_cache';
-        const CACHE_TIMESTAMP_KEY = 'projects_cache_timestamp';
-        const CACHE_DURATION = 5 * 60 * 1000; // 5분
-        
-        let hasCachedData = false;
         
         if (!forceRefresh && typeof window !== 'undefined') {
           const cachedData = localStorage.getItem(CACHE_KEY);
@@ -244,6 +246,37 @@ export default function AllProjectsPage() {
     // 초기 한 번만 로드
     fetchProjects(false); // 캐시 우선 사용
   }, []);
+
+  // 모달 이미지 툴팁: 모달 진입 후 3초간 표시
+  useEffect(() => {
+    if (!selectedProject) {
+      setShowImageTooltip(false);
+      return;
+    }
+
+    setShowImageTooltip(true);
+    const timer = setTimeout(() => {
+      setShowImageTooltip(false);
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [selectedProject]);
+
+  // 모달 열릴 때 배경 스크롤 막기
+  useEffect(() => {
+    if (selectedProject) {
+      // 모달이 열릴 때 body 스크롤 막기
+      document.body.style.overflow = 'hidden';
+    } else {
+      // 모달이 닫힐 때 body 스크롤 복원
+      document.body.style.overflow = '';
+    }
+
+    // cleanup: 컴포넌트 언마운트 시 스크롤 복원
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [selectedProject]);
 
   // 프로젝트 데이터는 BO 서버에서 관리하므로 localStorage 저장 제거
 
@@ -527,7 +560,7 @@ export default function AllProjectsPage() {
         {/* Projects Grid */}
         <motion.div 
           layout
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-7xl mx-auto"
         >
           <AnimatePresence mode="popLayout">
           {filteredProjects.map((project, index) => (
@@ -543,12 +576,12 @@ export default function AllProjectsPage() {
             >
                 <div className="bg-white rounded-2xl overflow-hidden border border-line-light hover:border-brand-main/50 transition-all duration-300 hover:shadow-xl h-full flex flex-col">
                         {/* Project Image */}
-                  <div className="relative h-48 overflow-hidden bg-gradient-to-br from-brand-main/5 to-brand-sub-1/5">
+                  <div className="relative w-full aspect-[16/9] overflow-hidden bg-gradient-to-br from-brand-main/5 to-brand-sub-1/5">
                     {project.image && (
                       <img 
                         src={project.image} 
                         alt={project.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 block"
+                        className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500 block"
                         style={{ display: 'block', margin: 0 }}
                       />
                     )}
@@ -633,17 +666,18 @@ export default function AllProjectsPage() {
             animate={{ scale: 1, y: 0 }}
             exit={{ scale: 0.9, y: 20 }}
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-3xl overflow-hidden max-w-7xl w-full max-h-[95vh] overflow-y-auto shadow-2xl"
+            className="bg-white rounded-3xl overflow-hidden max-w-5xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+            style={{ padding: 0, margin: 0 }}
           >
             {/* Modal Header */}
-              <div className="sticky top-0 z-10 bg-white border-b border-line-medium p-6 flex items-start justify-between">
+              <div className="sticky top-0 z-10 bg-white border-b border-line-medium p-4 flex items-start justify-between mb-0">
                 <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h2 className="text-2xl md:text-3xl font-bold text-text-main">
+                  <div className="flex items-center gap-3 mb-1">
+                    <h2 className="text-xl md:text-2xl font-bold text-text-main">
                 {selectedProject.title}
                     </h2>
                   </div>
-                  <p className="text-brand-main font-medium">{selectedProject.subtitle}</p>
+                  <p className="text-brand-main font-medium text-sm">{selectedProject.subtitle}</p>
                 </div>
               <button
                 onClick={() => setSelectedProject(null)}
@@ -654,7 +688,7 @@ export default function AllProjectsPage() {
             </div>
 
             {/* Modal Content (대표 프로젝트와 동일한 구조) */}
-            <div className="p-8 md:p-10">
+            <div className="p-0 -mt-0">
               {/* 이미지 세로 나열 */}
               {(() => {
                 try {
@@ -667,34 +701,25 @@ export default function AllProjectsPage() {
                   if (total === 0) return null;
                   
                   return (
-                    <div className="mb-8 rounded-2xl overflow-hidden border border-line-light bg-white">
-                      <div className="max-h-[70vh] overflow-y-auto custom-scrollbar">
-                        <div className="space-y-4 p-4">
-                          {images.map((image, index) => {
-                            if (!image) return null;
-                            return (
-                              <motion.div
-                                key={`${image}-${index}`}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.3, delay: index * 0.05 }}
-                                className="relative w-full rounded-lg overflow-hidden border border-line-light bg-bg-light cursor-pointer hover:opacity-90 transition-opacity"
-                                onMouseEnter={() => {
-                                  if (index === 0) {
-                                    setIsHoveringFirstImage(true);
-                                  }
-                                }}
-                                onMouseLeave={() => {
-                                  if (index === 0) {
-                                    setIsHoveringFirstImage(false);
-                                  }
-                                }}
-                                onClick={() => handleImageClickForLightbox(image, index)}
-                              >
+                    <div className="overflow-visible" style={{ marginTop: 0, marginLeft: 0, marginRight: 0, width: '100%' }}>
+                      <div className="space-y-0" style={{ margin: 0, padding: 0, width: '100%' }}>
+                        {images.map((image, index) => {
+                          if (!image) return null;
+                          return (
+                            <motion.div
+                              key={`${image}-${index}`}
+                              initial={{ opacity: 0, y: 20 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ duration: 0.3, delay: index * 0.05 }}
+                              className="group relative w-full cursor-pointer hover:opacity-90 transition-opacity"
+                              style={{ margin: 0, padding: 0, width: '100%', display: 'block', overflow: 'visible' }}
+                              onClick={() => handleImageClickForLightbox(image, index)}
+                            >
                                 <img
                                   src={image}
                                   alt={`${selectedProject?.title || ''} - 이미지 ${index + 1}`}
                                   className="w-full h-auto object-contain"
+                                  style={{ width: '100%', margin: 0, padding: 0, display: 'block', objectFit: 'contain' }}
                                   loading="lazy"
                                   onError={(e) => {
                                     console.error('이미지 로드 실패:', image);
@@ -702,17 +727,26 @@ export default function AllProjectsPage() {
                                   }}
                                 />
 
-                                {/* 1번(대표) 이미지 툴팁: hover 시에만 표시 */}
-                                {index === 0 && isHoveringFirstImage && (
-                                  <div className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/85 text-white text-sm px-4 py-2 rounded-full shadow-lg flex items-center gap-1 opacity-90 group-hover:opacity-100 transition-opacity">
-                                    <Eye size={16} className="opacity-90" />
-                                    <span className="font-medium">이미지 클릭 시 크게 볼 수 있어요!</span>
-                                  </div>
+                                {/* 클릭 안내 툴팁 (모달 진입 후 3초간 표시, 첫 번째 이미지에만) */}
+                                {index === 0 && (
+                                  <AnimatePresence>
+                                    {showImageTooltip && (
+                                      <motion.div
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: 10 }}
+                                        transition={{ duration: 0.3 }}
+                                        className="pointer-events-none absolute bottom-4 left-0 right-0 mx-auto w-fit bg-black/85 text-white text-sm px-4 py-2 rounded-full shadow-lg flex items-center justify-center gap-2 z-10"
+                                      >
+                                        <Eye size={16} className="opacity-90" />
+                                        <span className="font-medium">이미지 클릭 시 더 크게 볼 수 있어요!</span>
+                                      </motion.div>
+                                    )}
+                                  </AnimatePresence>
                                 )}
                               </motion.div>
                             );
                           })}
-                        </div>
                       </div>
                     </div>
                   );
@@ -727,7 +761,7 @@ export default function AllProjectsPage() {
               })()}
 
                 {/* Project Info Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 px-8 pt-8 mt-8">
                   <div className="bg-bg-light rounded-xl p-4 border border-line-light">
                     <p className="text-xs text-text-secondary mb-1 font-medium">진행 기간</p>
                     <p className="text-sm font-semibold text-text-main">
@@ -772,7 +806,7 @@ export default function AllProjectsPage() {
                 </div>
 
               {/* Tags */}
-                <div className="flex flex-wrap gap-2 mb-8">
+                <div className="flex flex-wrap gap-2 mb-8 px-8">
                 {selectedProject.tags.map((tag, i) => (
                   <span
                     key={i}
@@ -813,7 +847,7 @@ export default function AllProjectsPage() {
               )}
 
               {/* Retrospective */}
-              <div className="mb-8">
+              <div className="mb-8 px-8">
                 <h3 className="text-xl font-bold text-text-main mb-4 flex items-center gap-2">
                   <span className="text-brand-main">💭</span>
                   회고
@@ -824,7 +858,7 @@ export default function AllProjectsPage() {
               </div>
 
                 {/* External Links */}
-                <div className="mt-8 pt-8 border-t border-line-light flex flex-wrap gap-3">
+                <div className="mt-8 pt-8 px-8 border-t border-line-light flex flex-wrap gap-3">
                   {/* 프로젝트 상세보기 - PDF 우선, 없으면 링크 */}
                   {(() => {
                     const detailPdf = (selectedProject as any).detailPdf;

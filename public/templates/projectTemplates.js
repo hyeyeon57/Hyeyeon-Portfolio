@@ -128,7 +128,7 @@ export const renderDetailModal = (project, files, categoryLabels, isAuthenticate
         <div class="grid grid-cols-1 gap-4">
           ${items
             .map(
-              (img, idx) => `
+              (img) => `
             <div class="border rounded-lg overflow-hidden bg-gray-50 hover:shadow-md transition-shadow">
               <div class="bg-gray-100 cursor-pointer" onclick="openImageModal('${img.url}', '${img.name || ''}')">
                 <img src="${img.url}" alt="${img.name}" class="w-full h-auto max-h-[500px] object-contain mx-auto" style="display: block;" />

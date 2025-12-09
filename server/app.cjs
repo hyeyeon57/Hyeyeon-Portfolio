@@ -159,13 +159,22 @@ const createApp = ({ withDbMiddleware = false } = {}) => {
 
     // 정적 파일
     try {
+      const fs = require('fs');
+      
+      // server/public 디렉토리 (업로드된 파일들)
       if (PUBLIC_DIR) {
-        const fs = require('fs');
         if (fs.existsSync(PUBLIC_DIR)) {
           app.use(express.static(PUBLIC_DIR));
         } else {
           console.warn('[createApp] PUBLIC_DIR does not exist:', PUBLIC_DIR);
         }
+      }
+      
+      // 프로젝트 루트의 public 디렉토리 (admin.css 등)
+      const rootPublicDir = path.join(__dirname, '..', 'public');
+      if (fs.existsSync(rootPublicDir)) {
+        app.use(express.static(rootPublicDir));
+        console.log('[createApp] Root public directory mounted:', rootPublicDir);
       }
     } catch (staticError) {
       console.warn('[createApp] Static files setup failed:', staticError?.message);
