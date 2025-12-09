@@ -323,8 +323,7 @@ export default function AllProjectsPage() {
     { id: 'renewal', label: '리뉴얼', count: projects.filter(p => p.category === 'renewal').length },
     { id: 'app', label: '앱', count: projects.filter(p => p.category === 'app').length },
     { id: 'web', label: '웹', count: projects.filter(p => p.category === 'web').length },
-    { id: 'proposal', label: '기획안', count: projects.filter(p => p.category === 'proposal').length },
-    { id: 'usability', label: '사용성평가', count: projects.filter(p => p.category === 'usability').length },
+    { id: 'design', label: '화면설계서', count: projects.filter(p => p.category === 'design').length },
   ];
 
   // 필터링된 프로젝트

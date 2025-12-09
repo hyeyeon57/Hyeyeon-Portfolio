@@ -6,6 +6,5 @@ export const categoryLabels = {
   'renewal': '리뉴얼',
   'app': '앱',
   'web': '웹',
-  'proposal': '기획안',
-  'usability': '사용성평가',
+  'design': '화면설계서',
 };

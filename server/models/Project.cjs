@@ -33,7 +33,7 @@ const ProjectSchema = new Schema(
     category: {
       type: String,
       required: true,
-      enum: ['new', 'renewal', 'app', 'web', 'proposal', 'usability'],
+      enum: ['new', 'renewal', 'app', 'web', 'design'],
     },
     date: {
       type: String,
