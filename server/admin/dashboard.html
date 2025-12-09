@@ -905,6 +905,8 @@
         return;
       }
       
+      // 실시간으로 인증 상태 확인
+      await checkAuth();
       if (!isAuthenticated) {
         alert('로그인이 필요합니다.');
         return;
@@ -935,7 +937,9 @@
 
     async function loadProjects() {
       try {
-        console.log('[loadProjects] 프로젝트 목록 로드 시작...', { API_URL, isViewerMode: window.isViewerMode });
+        // 인증 상태 확인
+        await checkAuth();
+        console.log('[loadProjects] 프로젝트 목록 로드 시작...', { API_URL, isViewerMode: window.isViewerMode, isAuthenticated });
         const res = await fetch(`${API_URL}/projects`, { credentials: 'include' });
         
         if (!res.ok) {
@@ -1212,6 +1216,8 @@
         return;
       }
       
+      // 실시간으로 인증 상태 확인
+      await checkAuth();
       if (!isAuthenticated) {
         alert('로그인이 필요합니다.');
         return;
@@ -1479,12 +1485,12 @@
                 if (!img || typeof img !== 'string') return '';
                 const fileNm = fileName(img);
                 return `
-                <div class="border rounded-lg overflow-hidden bg-gray-50 hover:shadow-md transition-shadow relative cursor-move" draggable="true" data-gallery-index="${idx}" data-image-url="${img}" data-image-name="${fileNm}">
+                <div class="border rounded-lg overflow-hidden bg-white hover:shadow-md transition-shadow relative cursor-move" draggable="true" data-gallery-index="${idx}" data-image-url="${img}" data-image-name="${fileNm}">
                   <div class="absolute top-2 left-2 z-10 bg-black/70 text-white text-xs font-bold px-2 py-1 rounded">
                     ${idx + 1}
                   </div>
-                  <div class="bg-gray-100 cursor-pointer" onclick="openImageModal('${img}', '${fileNm}')">
-                    <img src="${img}" alt="${fileNm}" class="w-full h-auto max-h-[150px] object-contain mx-auto" style="display: block; pointer-events: none;" onerror="this.style.display='none'" />
+                  <div class="cursor-pointer" onclick="openImageModal('${img}', '${fileNm}')" style="padding: 0; margin: 0; display: block; line-height: 0;">
+                    <img src="${img}" alt="${fileNm}" class="w-full h-auto max-h-[150px]" style="display: block; pointer-events: none; width: 100%; height: auto; margin: 0; padding: 0; object-fit: contain;" onerror="this.style.display='none'" />
                   </div>
                   <div class="px-2 py-1.5 flex items-center justify-between text-xs text-gray-700 bg-white">
                     <span class="flex-1 break-all" title="${fileNm}">${fileNm}</span>
@@ -2912,6 +2918,8 @@
         return;
       }
       
+      // 실시간으로 인증 상태 확인
+      await checkAuth();
       if (!isAuthenticated) {
         alert('로그인이 필요합니다.');
         return;
