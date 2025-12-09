@@ -80,17 +80,17 @@ export const renderActions = (project) => {
       <div class="flex flex-wrap gap-3">
         ${
           detailPdf
-            ? `<a href="${detailPdf}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow"><i data-lucide="file-text" class="w-4 h-4"></i>프로젝트 상세보기</a>`
+            ? `<a href="${detailPdf}" target="_blank" class="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition shadow"><i data-lucide="file-text" class="w-4 h-4"></i>프로젝트 상세보기</a>`
             : link
-              ? `<a href="${link}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow"><i data-lucide="external-link" class="w-4 h-4"></i>프로젝트 상세보기</a>`
-              : `<button disabled class="inline-flex items-center gap-2 px-4 py-2 bg-gray-300 text-gray-500 rounded-lg cursor-not-allowed opacity-60"><i data-lucide="file-text" class="w-4 h-4"></i>프로젝트 상세보기</button>`
+              ? `<a href="${link}" target="_blank" class="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition shadow"><i data-lucide="external-link" class="w-4 h-4"></i>프로젝트 상세보기</a>`
+              : `<button disabled class="inline-flex items-center gap-2 px-6 py-3 bg-gray-300 text-gray-500 rounded-xl cursor-not-allowed opacity-60"><i data-lucide="file-text" class="w-4 h-4"></i>프로젝트 상세보기</button>`
         }
         ${
           designPdf
-            ? `<a href="${designPdf}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition shadow"><i data-lucide="file-text" class="w-4 h-4"></i>화면 설계서 보기</a>`
+            ? `<a href="${designPdf}" target="_blank" class="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition shadow"><i data-lucide="file-text" class="w-4 h-4"></i>화면 설계서 보기</a>`
             : designLink
-              ? `<a href="${designLink}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition shadow"><i data-lucide="file-text" class="w-4 h-4"></i>화면 설계서 보기</a>`
-              : `<button disabled class="inline-flex items-center gap-2 px-4 py-2 bg-gray-300 text-gray-500 rounded-lg cursor-not-allowed opacity-60"><i data-lucide="file-text" class="w-4 h-4"></i>화면 설계서 보기</button>`
+              ? `<a href="${designLink}" target="_blank" class="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition shadow"><i data-lucide="file-text" class="w-4 h-4"></i>화면 설계서 보기</a>`
+              : `<button disabled class="inline-flex items-center gap-2 px-6 py-3 bg-gray-300 text-gray-500 rounded-xl cursor-not-allowed opacity-60"><i data-lucide="file-text" class="w-4 h-4"></i>화면 설계서 보기</button>`
         }
       </div>
     </div>

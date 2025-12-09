@@ -420,7 +420,7 @@
     const tabButtons = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
 
-    function switchTab(tab) {
+    async function switchTab(tab) {
       tabButtons.forEach(btn => {
         const active = btn.dataset.tab === tab;
         btn.classList.toggle('active', active);
@@ -446,9 +446,10 @@
       } else if (tab === 'contacts') {
         loadContacts();
       } else if (tab === 'visitors') {
-        loadVisitorStatsForTab();
+        // 그래프 로딩 순서를 맞추기 위해 방문자 통계 렌더 후 월간 그래프 호출
+        await loadVisitorStatsForTab();
         loadVisitors();
-        loadMonthlyData(currentMonthlyYear, currentMonthlyMonth);
+        await loadMonthlyData(currentMonthlyYear, currentMonthlyMonth);
       }
     }
     
@@ -460,7 +461,7 @@
       ? savedTab 
       : 'documents';
     
-    // 초기 탭 설정
+    // 초기 탭 설정 (비동기 처리 대기)
     switchTab(initialTab);
     
     tabButtons.forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
@@ -2692,9 +2693,8 @@
     async function loadVisitorStatsForTab() {
       const res = await fetch(`${API_URL}/visitors/stats`);
       const stats = await res.json();
-      
-      // Admin Viewer에서도 그래프를 표시하도록 통합
-      renderVisitorStats(stats);
+      renderVisitorStats(stats); // 오늘/이번주 차트
+      return stats;
     }
 
     function renderVisitorStats(stats) {

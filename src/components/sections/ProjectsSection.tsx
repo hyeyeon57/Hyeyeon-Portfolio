@@ -430,7 +430,10 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
               </div>
 
               {/* Modal Content */}
-              <div className="p-0 -mt-0">
+            <div
+              className="p-0 custom-scrollbar"
+              style={{ overflowY: 'auto', scrollbarGutter: 'stable both-edges' }}
+            >
                 {/* 이미지 세로 스크롤 - 크게 표시 */}
                 {(() => {
                   try {

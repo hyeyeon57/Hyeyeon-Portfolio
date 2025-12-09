@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ExternalLink, Calendar, Users, Award, X, Download, Eye, FileText, ChevronLeft, ChevronRight } from 'lucide-react';
 import { projects as initialProjects } from '@/data/portfolio';
@@ -27,6 +27,7 @@ export default function AllProjectsPage() {
   const [hasShownLightboxTooltip, setHasShownLightboxTooltip] = useState(false); // 이 세션에서 이미 한 번 보여줬는지 여부
   const [isHoveringLightboxImage, setIsHoveringLightboxImage] = useState(false); // 라이트박스 이미지 hover 상태
   const [showImageTooltip, setShowImageTooltip] = useState(false); // 모달 이미지 툴팁 (3초간 표시)
+  const modalContentRef = useRef<HTMLDivElement | null>(null);
 
   // 클라이언트 마운트 시 BO 서버에서 데이터 로드
   useEffect(() => {
@@ -275,6 +276,13 @@ export default function AllProjectsPage() {
     return () => {
       document.body.style.overflow = '';
     };
+  }, [selectedProject]);
+
+  // 모달이 열릴 때 스크롤을 맨 위로 초기화
+  useEffect(() => {
+    if (selectedProject && modalContentRef.current) {
+      modalContentRef.current.scrollTop = 0;
+    }
   }, [selectedProject]);
 
   // 프로젝트 데이터는 BO 서버에서 관리하므로 localStorage 저장 제거
@@ -637,8 +645,8 @@ export default function AllProjectsPage() {
             animate={{ scale: 1, y: 0 }}
             exit={{ scale: 0.9, y: 20 }}
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-3xl overflow-hidden max-w-5xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
-            style={{ padding: 0, margin: 0 }}
+            className="bg-white rounded-3xl overflow-hidden max-w-5xl w-full max-h-[90vh] overflow-y-auto custom-scrollbar shadow-2xl"
+            style={{ padding: 0, margin: 0, borderRadius: '1.5rem 1.5rem 0 0' }}
           >
             {/* Modal Header */}
               <div className="sticky top-0 z-10 bg-white border-b border-line-medium p-4 flex items-start justify-between mb-0">
@@ -659,7 +667,11 @@ export default function AllProjectsPage() {
             </div>
 
             {/* Modal Content (대표 프로젝트와 동일한 구조) */}
-            <div className="p-0 -mt-0">
+            <div
+              className="p-0 custom-scrollbar"
+              style={{ overflowY: 'auto', scrollbarGutter: 'stable both-edges' }}
+              ref={modalContentRef}
+            >
               {/* 이미지 세로 나열 */}
               {(() => {
                 try {
@@ -789,7 +801,7 @@ export default function AllProjectsPage() {
               </div>
 
               {/* Description */}
-                <div className="mb-8">
+                <div className="mb-8 px-8">
                   <h3 className="text-xl font-bold text-text-main mb-4 flex items-center gap-2">
                     <span className="text-brand-main">📋</span>
                     프로젝트 개요
@@ -801,7 +813,7 @@ export default function AllProjectsPage() {
 
               {/* Achievements */}
               {selectedProject.achievements && selectedProject.achievements.length > 0 && (
-                  <div className="mb-8">
+                  <div className="mb-8 px-8">
                     <h3 className="text-xl font-bold text-text-main mb-4 flex items-center gap-2">
                       <span className="text-brand-main">🎯</span>
                       주요 성과
@@ -829,7 +841,7 @@ export default function AllProjectsPage() {
               </div>
 
                 {/* External Links */}
-                <div className="mt-8 pt-8 px-8 border-t border-line-light flex flex-wrap gap-3">
+                <div className="mt-8 pt-8 pb-10 px-8 border-t border-line-light flex flex-wrap gap-3 items-center">
                   {/* 프로젝트 상세보기 - PDF 우선, 없으면 링크 */}
                   {(() => {
                     const detailPdf = (selectedProject as any).detailPdf;
