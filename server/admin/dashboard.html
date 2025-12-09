@@ -951,7 +951,7 @@
         return `
           <tr class="hover:bg-gray-50">
             <td class="px-6 py-3 text-sm text-gray-900">${p.title}</td>
-            <td class="px-6 py-3 text-sm text-gray-600">${categoryLabels[p.category] || p.category}</td>
+            <td class="px-6 py-3 text-sm text-gray-600">${Array.isArray(p.category) ? p.category.map(cat => categoryLabels[cat] || cat).join(', ') : (categoryLabels[p.category] || p.category)}</td>
             <td class="px-6 py-3 text-sm text-gray-600">${(p.tags || []).slice(0,3).join(', ')}</td>
             <td class="px-6 py-3 text-center">
               ${!window.isViewerMode ? `
@@ -1588,6 +1588,13 @@
         }
         e.preventDefault();
         
+        // 카테고리 필수 검증
+        const categoryCheckboxes = form.querySelectorAll('input[name="category"][type="checkbox"]:checked');
+        if (!categoryCheckboxes || categoryCheckboxes.length === 0) {
+          alert('카테고리를 최소 1개 이상 선택해주세요.');
+          return;
+        }
+        
         // 저장 버튼 비활성화 (중복 저장 방지)
         const submitBtn = form.querySelector('button[type="submit"]') || Array.from(form.querySelectorAll('button')).find(btn => btn.textContent.includes('저장'));
         let originalText = '저장';
@@ -1658,7 +1665,13 @@
           subtitle: fd.get('subtitle') || '',
           description: fd.get('description'),
           fullDescription: fd.get('fullDescription') || fd.get('description') || '',
-          category: fd.get('category'),
+          category: (() => {
+            const categories = fd.getAll('category').filter(c => c && c.trim() !== '');
+            if (categories.length === 0) {
+              throw new Error('카테고리를 최소 1개 이상 선택해주세요.');
+            }
+            return categories;
+          })(),
           tags: fd.get('tags') ? fd.get('tags').toString().split(',').map(t => t.trim()).filter(Boolean) : [],
           startDate: fd.get('startDate') || '',
           endDate: fd.get('endDate') || '',
@@ -1968,7 +1981,7 @@
                 const subtitleInput = form.querySelector('input[name="subtitle"]');
                 const descriptionInput = form.querySelector('textarea[name="description"]');
                 const fullDescriptionInput = form.querySelector('textarea[name="fullDescription"]');
-                const categorySelect = form.querySelector('select[name="category"]');
+                const categoryCheckboxes = form.querySelectorAll('input[name="category"][type="checkbox"]');
                 const tagsInput = form.querySelector('input[name="tags"]');
                 const startDateInput = form.querySelector('input[name="startDate"]');
                 const endDateInput = form.querySelector('input[name="endDate"]');
@@ -1978,7 +1991,7 @@
                 const achievementsInput = form.querySelector('textarea[name="achievements"]');
                 
                 // 모든 입력 필드 활성화 및 값 업데이트
-                const inputs = [titleInput, subtitleInput, descriptionInput, fullDescriptionInput, categorySelect, tagsInput, startDateInput, endDateInput, teamInput, roleInput, linkInput, achievementsInput];
+                const inputs = [titleInput, subtitleInput, descriptionInput, fullDescriptionInput, tagsInput, startDateInput, endDateInput, teamInput, roleInput, linkInput, achievementsInput];
                 inputs.forEach(input => {
                   if (input) {
                     input.disabled = false;
@@ -1986,11 +1999,26 @@
                   }
                 });
                 
+                // 체크박스 활성화
+                categoryCheckboxes.forEach(checkbox => {
+                  if (checkbox) {
+                    checkbox.disabled = false;
+                  }
+                });
+                
                 if (titleInput) titleInput.value = updatedProject.title || '';
                 if (subtitleInput) subtitleInput.value = updatedProject.subtitle || '';
                 if (descriptionInput) descriptionInput.value = updatedProject.description || '';
                 if (fullDescriptionInput) fullDescriptionInput.value = updatedProject.fullDescription || updatedProject.description || '';
-                if (categorySelect) categorySelect.value = updatedProject.category || '';
+                if (categoryCheckboxes.length > 0) {
+                  // 카테고리가 배열인 경우 다중 선택 처리
+                  const selectedCategories = Array.isArray(updatedProject.category) 
+                    ? updatedProject.category 
+                    : (updatedProject.category ? [updatedProject.category] : []);
+                  categoryCheckboxes.forEach(checkbox => {
+                    checkbox.checked = selectedCategories.includes(checkbox.value);
+                  });
+                }
                 if (tagsInput) tagsInput.value = (updatedProject.tags || []).join(', ');
                 if (startDateInput) startDateInput.value = updatedProject.startDate || '';
                 if (endDateInput) endDateInput.value = updatedProject.endDate || '';
@@ -2128,7 +2156,13 @@
             }
             if (totalFiles > 0) hideUploadProgress();
             console.error('❌ 저장 실패:', data);
-            alert(data.error || data.message || '수정 실패');
+            let errorMessage = '수정 실패';
+            if (data && typeof data === 'object') {
+              errorMessage = data.error || data.message || data.toString() || JSON.stringify(data);
+            } else if (data) {
+              errorMessage = String(data);
+            }
+            alert(errorMessage);
           }
         } catch (e) {
           // 오류 발생 시 버튼 다시 활성화

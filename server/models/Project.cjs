@@ -31,9 +31,18 @@ const ProjectSchema = new Schema(
       type: String,
     }],
     category: {
-      type: String,
+      type: [String],
       required: true,
-      enum: ['new', 'renewal', 'app', 'web', 'design'],
+      validate: {
+        validator: function(v) {
+          const validCategories = ['new', 'renewal', 'app', 'web', 'design'];
+          if (Array.isArray(v)) {
+            return v.length > 0 && v.every(cat => validCategories.includes(cat));
+          }
+          return validCategories.includes(v);
+        },
+        message: '카테고리는 new, renewal, app, web, design 중 하나 이상이어야 합니다.'
+      }
     },
     date: {
       type: String,

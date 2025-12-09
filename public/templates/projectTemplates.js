@@ -243,7 +243,12 @@ export const renderDetailModal = (project, files, categoryLabels, isAuthenticate
           <div class="grid grid-cols-2 gap-4">
             <div>
               <h3 class="text-sm font-medium text-gray-500 mb-1">카테고리</h3>
-              <span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">${categoryLabels[project.category] || project.category}</span>
+              <div class="flex flex-wrap gap-2">
+                ${Array.isArray(project.category) 
+                  ? project.category.map(cat => `<span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">${categoryLabels[cat] || cat}</span>`).join('')
+                  : `<span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">${categoryLabels[project.category] || project.category}</span>`
+                }
+              </div>
             </div>
             <div>
               <h3 class="text-sm font-medium text-gray-500 mb-1">날짜</h3>
@@ -359,10 +364,21 @@ export const renderEditModal = (project, categoryLabels) => {
               </div>
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-semibold text-gray-900 mb-2">카테고리 <span class="text-red-500">*</span></label>
-                <select name="category" required class="w-full px-4 py-2.5 text-xs text-gray-700 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all bg-white">
-                  ${Object.entries(categoryLabels).map(([key, label]) => `<option value="${key}" ${project.category === key ? 'selected' : ''}>${label}</option>`).join('')}
-                </select>
+                <label class="block text-sm font-semibold text-gray-900 mb-2">카테고리 <span class="text-red-500">*</span> (다중 선택 가능)</label>
+                <div class="space-y-2 border border-gray-300 rounded-lg p-3 bg-white">
+                  ${Object.entries(categoryLabels).map(([key, label]) => {
+                    const isSelected = Array.isArray(project.category) 
+                      ? project.category.includes(key)
+                      : project.category === key;
+                    return `
+                    <label class="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors">
+                      <input type="checkbox" name="category" value="${key}" ${isSelected ? 'checked' : ''} class="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500 focus:ring-2" style="accent-color: #7A68F6;" />
+                      <span class="ml-2 text-xs text-gray-700">${label}</span>
+                    </label>
+                    `;
+                  }).join('')}
+                </div>
+                <p class="text-xs text-gray-500 mt-1">원하는 카테고리를 클릭하여 선택하세요. 여러 개 선택 가능합니다.</p>
               </div>
               <div>
                 <label class="block text-sm font-semibold text-gray-900 mb-2">태그 <span class="text-xs text-gray-500 font-normal">(쉼표로 구분)</span></label>

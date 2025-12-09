@@ -111,6 +111,25 @@ const createProject = async ({ payload, files }) => {
   }
 
   const projectData = payload.project ? JSON.parse(payload.project) : payload;
+  
+  // category 필드를 배열로 정규화 (문자열이면 배열로 변환)
+  if (projectData.category !== undefined) {
+    if (Array.isArray(projectData.category)) {
+      // 이미 배열이면 그대로 사용
+      projectData.category = projectData.category.filter(c => c && c.trim() !== '');
+    } else if (typeof projectData.category === 'string' && projectData.category.trim() !== '') {
+      // 문자열이면 배열로 변환
+      projectData.category = [projectData.category.trim()];
+    } else {
+      // 빈 값이면 빈 배열로 설정
+      projectData.category = [];
+    }
+    // 빈 배열이면 필수 필드이므로 오류
+    if (projectData.category.length === 0) {
+      return { ok: false, status: 400, message: '카테고리를 최소 1개 이상 선택해주세요.' };
+    }
+  }
+  
   if (projectData.startDate && projectData.endDate) {
     projectData.duration = computeDuration(projectData.startDate, projectData.endDate) || projectData.duration;
     projectData.date = formatDateRange(projectData.startDate, projectData.endDate) || projectData.date;
@@ -261,6 +280,24 @@ const updateProject = async ({ id, payload, files }) => {
   if (Array.isArray(projectData.images) && projectData.images.length === 0) {
     projectData.images = [];
     projectData.gallery = [];
+  }
+  
+  // category 필드를 배열로 정규화 (문자열이면 배열로 변환)
+  if (projectData.category !== undefined) {
+    if (Array.isArray(projectData.category)) {
+      // 이미 배열이면 그대로 사용
+      projectData.category = projectData.category.filter(c => c && c.trim() !== '');
+    } else if (typeof projectData.category === 'string' && projectData.category.trim() !== '') {
+      // 문자열이면 배열로 변환
+      projectData.category = [projectData.category.trim()];
+    } else {
+      // 빈 값이면 빈 배열로 설정
+      projectData.category = [];
+    }
+    // 빈 배열이면 필수 필드이므로 제거하지 않음 (기존 값 유지)
+    if (projectData.category.length === 0) {
+      delete projectData.category;
+    }
   }
   
   // undefined/null 필드와 remove 플래그 제거 (MongoDB $set에 포함되지 않도록)
