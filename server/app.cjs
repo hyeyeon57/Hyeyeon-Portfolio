@@ -72,6 +72,7 @@ const createApp = ({ withDbMiddleware = false } = {}) => {
       secret: SESSION_CONFIG.SECRET,
       resave: false,
       saveUninitialized: false,
+      rolling: true, // 활동 시마다 세션 자동 갱신
       cookie: {
         secure: false, // 개발 환경에서는 false, 프로덕션에서는 true
         httpOnly: true,

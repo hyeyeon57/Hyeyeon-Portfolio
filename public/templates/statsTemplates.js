@@ -23,8 +23,8 @@ export const statsCardsTemplate = (stats) => `
         <p class="text-sm text-gray-500">전체 방문자</p>
         <p class="text-2xl font-semibold text-gray-900 mt-1">${stats.total || 0}</p>
       </div>
-      <div class="p-3 bg-green-50 text-green-600 rounded-lg">
-        <i data-lucide="trending-up" class="w-6 h-6"></i>
+      <div class="p-3 rounded-lg" style="background-color: #D1FAE5;">
+        <i data-lucide="trending-up" class="w-6 h-6" style="color: #10b981;"></i>
       </div>
     </div>
   </div>
@@ -58,7 +58,7 @@ export const todayChartTemplate = ({ hourlyData, total, maxValue, chartHeight, b
           return `
             <g>
               <rect x="${x}" y="${y}" width="${barWidth}" height="${barHeight}" 
-                fill="${isCurrentHour ? '#8b5cf6' : '#a78bfa'}" rx="3" 
+                fill="${isCurrentHour ? '#2563eb' : '#3b82f6'}" rx="3" 
                 class="hover:opacity-80 transition-opacity cursor-pointer bar-today"
                 data-hour="${hour}"
                 data-count="${count}" />
@@ -92,7 +92,7 @@ export const weeklyChartTemplate = ({ weeklyData, total, maxValue, chartHeight, 
         return `
           <g>
             <rect x="${x}" y="${y}" width="${barWidth}" height="${barHeight}" 
-              fill="${isCurrentDay ? '#10b981' : '#34d399'}" rx="4"
+              fill="${isCurrentDay ? '#7A68F6' : '#8b5cf6'}" rx="4"
               class="hover:opacity-80 transition-opacity bar-weekly"
               data-label="${dayLabels[idx]}"
               data-count="${count}" />
@@ -157,7 +157,7 @@ export const monthlyChartTemplate = ({ safeData, safeLabels, currentMonthlyYear,
             return `
               <g>
                 <rect x="${x}" y="${y}" width="${barWidth}" height="${barHeight}" 
-                  fill="${isToday ? '#f97316' : '#fb923c'}" rx="3"
+                  fill="${isToday ? '#10b981' : '#34d399'}" rx="3"
                   class="hover:opacity-80 transition-opacity cursor-pointer bar-monthly"
                   data-day="${safeLabels[idx]}"
                   data-count="${count}" />

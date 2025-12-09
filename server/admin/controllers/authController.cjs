@@ -39,6 +39,19 @@ const logout = (req, res) => {
 
 const check = (req, res) => {
   const authenticated = !!(req.session && req.session.isAuthenticated);
+  
+  // 인증된 경우 세션 갱신
+  if (authenticated && req.session) {
+    req.session.touch();
+    req.session.save((err) => {
+      if (err) {
+        console.error('[Auth] check - 세션 갱신 실패:', err);
+      } else {
+        console.log('[Auth] check - 세션 갱신됨');
+      }
+    });
+  }
+  
   console.log('[Auth] 인증 체크:', {
     hasSession: !!req.session,
     sessionID: req.sessionID,

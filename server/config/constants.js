@@ -18,7 +18,7 @@ const ALLOWED_ORIGINS = [
 const SESSION_CONFIG = {
   SECRET: process.env.SESSION_SECRET || 'vibe-coding-portfolio-secret-key-2025',
   COOKIE_NAME: 'admin.sid',
-  MAX_AGE_MS: 24 * 60 * 60 * 1000, // 24시간
+  MAX_AGE_MS: 7 * 24 * 60 * 60 * 1000, // 7일 (24시간에서 7일로 연장)
   CHECK_PERIOD_MS: 86400000, // 24시간
 };
 

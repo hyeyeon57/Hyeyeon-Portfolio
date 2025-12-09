@@ -127,6 +127,7 @@
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">제목</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">카테고리</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">태그</th>
+                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">진척률</th>
                 <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">대표</th>
                 <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">작업</th>
               </tr>
@@ -736,43 +737,78 @@
     async function deleteDocument(type) {
       if (!confirm('정말 삭제하시겠습니까?')) return;
 
+      // Viewer 모드 체크
+      if (window.isViewerMode) {
+        alert('Viewer 모드에서는 삭제가 불가능합니다.');
+        return;
+      }
+
       // 타입을 HTML ID 형식으로 변환 (coverLetter -> coverletter)
       const typeId = type === 'coverLetter' ? 'coverletter' : type;
 
       const deleteBtn = document.getElementById(`${typeId}-delete`);
       const uploadStatus = document.getElementById(`${typeId}-upload-status`);
+      const statusTextEl = document.getElementById(`${typeId}-status-text`);
       
       try {
         if (deleteBtn) deleteBtn.style.pointerEvents = 'none';
         if (deleteBtn) deleteBtn.style.opacity = '0.5';
         if (uploadStatus) uploadStatus.textContent = '삭제 중...';
+        if (uploadStatus) uploadStatus.className = 'text-sm text-gray-600';
 
         const res = await fetch(`${API_URL}/documents/${type}`, {
           method: 'DELETE',
           credentials: 'include',
         });
 
+        if (!res.ok) {
+          const errorText = await res.text();
+          let errorData;
+          try {
+            errorData = JSON.parse(errorText);
+          } catch {
+            errorData = { error: errorText || `서버 오류 (${res.status})` };
+          }
+          throw new Error(errorData.error || errorData.message || `삭제 실패 (${res.status})`);
+        }
+
         const data = await res.json();
 
         if (data.success) {
-          if (uploadStatus) uploadStatus.textContent = '삭제 완료!';
-          if (uploadStatus) uploadStatus.className = 'text-sm text-green-600';
+          // 즉시 UI 업데이트
+          if (statusTextEl) {
+            statusTextEl.innerHTML = '<span class="text-gray-400">선택된 파일 없음</span>';
+          }
+          if (deleteBtn) deleteBtn.style.display = 'none';
+          if (uploadStatus) {
+            uploadStatus.textContent = '삭제 완료!';
+            uploadStatus.className = 'text-sm text-green-600';
+          }
+          
+          // 문서 목록 다시 로드
           await loadDocuments();
+          
           setTimeout(() => {
-            if (uploadStatus) uploadStatus.textContent = '';
-            if (uploadStatus) uploadStatus.className = 'text-sm text-gray-500';
+            if (uploadStatus) {
+              uploadStatus.textContent = '';
+              uploadStatus.className = 'text-sm text-gray-500';
+            }
           }, 2000);
         } else {
-          throw new Error(data.error || '삭제 실패');
+          throw new Error(data.error || data.message || '삭제 실패');
         }
       } catch (error) {
         console.error('문서 삭제 실패:', error);
         alert(`삭제 실패: ${error.message}`);
-        if (uploadStatus) uploadStatus.textContent = '삭제 실패';
-        if (uploadStatus) uploadStatus.className = 'text-sm text-red-600';
+        if (uploadStatus) {
+          uploadStatus.textContent = '삭제 실패';
+          uploadStatus.className = 'text-sm text-red-600';
+        }
       } finally {
-        if (deleteBtn) deleteBtn.style.pointerEvents = 'auto';
-        if (deleteBtn) deleteBtn.style.opacity = '1';
+        if (deleteBtn) {
+          deleteBtn.style.pointerEvents = 'auto';
+          deleteBtn.style.opacity = '1';
+        }
       }
     }
 
@@ -937,7 +973,7 @@
       if (!projects || projects.length === 0) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="5" class="px-6 py-10 text-center text-gray-500">
+            <td colspan="6" class="px-6 py-10 text-center text-gray-500">
               등록된 프로젝트가 없습니다.
             </td>
           </tr>
@@ -948,11 +984,27 @@
       tbody.innerHTML = projects.map(p => {
         const isFeatured = p.featured === true || p.featured === 'true';
         const projectId = p.id || p._id;
+        
+        // 진척률 계산
+        const hasDescription = p.title && p.description && p.category && (Array.isArray(p.category) ? p.category.length > 0 : p.category);
+        const hasPdf = (p.designPdf && p.designPdf.trim() !== '') && (p.detailPdf && p.detailPdf.trim() !== '');
+        // 대표 이미지와 갤러리 이미지가 모두 있어야 완료
+        const hasMainImage = p.image && p.image.trim() !== '';
+        const hasGalleryImages = (p.images && p.images.length > 0) || (p.gallery && p.gallery.length > 0);
+        const hasImage = hasMainImage && hasGalleryImages;
+        
         return `
           <tr class="hover:bg-gray-50">
             <td class="px-6 py-3 text-sm text-gray-900">${p.title}</td>
             <td class="px-6 py-3 text-sm text-gray-600">${Array.isArray(p.category) ? p.category.map(cat => categoryLabels[cat] || cat).join(', ') : (categoryLabels[p.category] || p.category)}</td>
             <td class="px-6 py-3 text-sm text-gray-600">${(p.tags || []).slice(0,3).join(', ')}</td>
+            <td class="px-6 py-3 text-center">
+              <div class="flex items-center justify-center gap-3">
+                <div class="w-3 h-3 rounded-full ${hasDescription ? '' : 'border bg-transparent'}" title="프로젝트 설명 ${hasDescription ? '완료' : '미완료'}" style="transition: all 0.3s; ${hasDescription ? 'background-color: #7A68F6;' : 'border-color: #7A68F6;'}"></div>
+                <div class="w-3 h-3 rounded-full ${hasPdf ? 'bg-blue-500' : 'border border-blue-500 bg-transparent'}" title="PDF 업로드 ${hasPdf ? '완료' : '미완료'}" style="transition: all 0.3s;"></div>
+                <div class="w-3 h-3 rounded-full ${hasImage ? 'bg-emerald-600' : 'border border-emerald-600 bg-transparent'}" title="이미지 업로드 ${hasImage ? '완료' : '미완료'}" style="transition: all 0.3s;"></div>
+              </div>
+            </td>
             <td class="px-6 py-3 text-center">
               ${!window.isViewerMode ? `
                 <button class="inline-flex items-center justify-center p-1 hover:bg-purple-50 rounded" onclick="toggleFeatured('${projectId}')" title="${isFeatured ? '대표 해제' : '대표 설정'}">
@@ -1342,8 +1394,11 @@
       let galleryList = window.editGalleryList;
       let draggedGalleryIndex = null;
       let removeMainImage = false;
-      let removeDesignPdf = false;
-      let removeDetailPdf = false;
+      // PDF 삭제 플래그는 전역 변수로 관리 (PDF 업로드 함수에서 접근 가능하도록)
+      window.removeDesignPdf = false;
+      window.removeDetailPdf = false;
+      let removeDesignPdf = false; // 로컬 변수도 유지 (하위 호환성)
+      let removeDetailPdf = false; // 로컬 변수도 유지 (하위 호환성)
       
       // 기존 PDF 값 초기화 (편집 모달 열 때)
       if (project.designPdf) {
@@ -1383,6 +1438,10 @@
       if (!project.detailPdf) {
         window.editDetailPdfUrl = '';
       }
+      
+      // 삭제 플래그 초기화 (편집 모달 열 때)
+      window.removeDesignPdf = false;
+      window.removeDetailPdf = false;
       
       console.log('📋 편집 모달 PDF 초기화 완료:', {
         designPdf: project.designPdf,
@@ -1425,8 +1484,8 @@
                     <img src="${img}" alt="${fileNm}" class="w-full h-auto max-h-[150px] object-contain mx-auto" style="display: block; pointer-events: none;" onerror="this.style.display='none'" />
                   </div>
                   <div class="px-2 py-1.5 flex items-center justify-between text-xs text-gray-700 bg-white">
-                    <span class="truncate flex-1" title="${img}">${truncate(fileNm, 15)}</span>
-                    <button type="button" class="p-1 text-red-600 hover:bg-red-50 rounded flex-shrink-0" data-remove-gallery="${idx}" title="삭제">
+                    <span class="flex-1 break-all" title="${fileNm}">${fileNm}</span>
+                    <button type="button" class="p-1 text-red-600 hover:bg-red-50 rounded flex-shrink-0 ml-2" data-remove-gallery="${idx}" title="삭제">
                       <i data-lucide="trash-2" class="w-3 h-3"></i>
                     </button>
                   </div>
@@ -1537,24 +1596,148 @@
       if (removeDesignBtn) {
         removeDesignBtn.addEventListener('click', () => {
           removeDesignPdf = true;
+          window.removeDesignPdf = true; // 전역 변수도 업데이트
           const status = document.getElementById('editDesignPdfStatus');
-          if (status) status.textContent = '삭제됨';
+          if (status) status.innerHTML = '<span class="text-gray-400">선택된 파일 없음</span>';
           const hidden = document.getElementById('editDesignPdf');
           if (hidden) hidden.value = '';
+          window.editDesignPdfUrl = ''; // 전역 변수도 초기화
+          // 진척률 업데이트
+          if (window.updateProgressIndicators) {
+            setTimeout(() => window.updateProgressIndicators(), 100);
+          }
         });
       }
       const removeDetailBtn = document.getElementById('removeDetailPdfBtn');
       if (removeDetailBtn) {
         removeDetailBtn.addEventListener('click', () => {
           removeDetailPdf = true;
+          window.removeDetailPdf = true; // 전역 변수도 업데이트
           const status = document.getElementById('editDetailPdfStatus');
-          if (status) status.textContent = '삭제됨';
+          if (status) status.innerHTML = '<span class="text-gray-400">선택된 파일 없음</span>';
           const hidden = document.getElementById('editDetailPdf');
           if (hidden) hidden.value = '';
+          window.editDetailPdfUrl = ''; // 전역 변수도 초기화
+          // 진척률 업데이트
+          if (window.updateProgressIndicators) {
+            setTimeout(() => window.updateProgressIndicators(), 100);
+          }
         });
       }
 
       const form = document.getElementById('editForm');
+      
+      // 진척률 업데이트 함수
+      const updateProgressIndicators = () => {
+        const titleInput = form.querySelector('input[name="title"]');
+        const descriptionInput = form.querySelector('textarea[name="description"]');
+        const categoryCheckboxes = form.querySelectorAll('input[name="category"][type="checkbox"]:checked');
+        const designPdfInput = document.getElementById('editDesignPdf');
+        const detailPdfInput = document.getElementById('editDetailPdf');
+        const mainImageInput = document.getElementById('editMainImageFile');
+        const mainImageStatus = document.getElementById('editMainImageStatus');
+        const galleryStatus = document.getElementById('editGalleryImagesStatus');
+        
+        // 프로젝트 설명 완료 여부 (제목, 설명, 카테고리)
+        const hasDescription = titleInput?.value?.trim() && descriptionInput?.value?.trim() && categoryCheckboxes.length > 0;
+        
+        // PDF 업로드 완료 여부 (화면 설계서 + 프로젝트 상세보기 모두 필요)
+        const hasPdf = !!(designPdfInput?.value?.trim() && detailPdfInput?.value?.trim());
+        
+        // 이미지 업로드 완료 여부 (대표 이미지와 갤러리 이미지가 모두 있어야 완료)
+        const hasMainImage = mainImageInput?.files?.length > 0 || (mainImageStatus?.textContent?.trim() && !mainImageStatus.textContent.includes('선택된 파일 없음') && !mainImageStatus.textContent.includes('삭제됨'));
+        const hasGalleryImages = galleryStatus && (window.editGalleryList?.length > 0 || galleryStatus.querySelectorAll('[draggable="true"]').length > 0);
+        const hasImage = hasMainImage && hasGalleryImages;
+        
+        // 동그라미 업데이트 (모달 헤더에서 찾기)
+        const modal = document.getElementById('editModalBackdrop');
+        if (!modal) return;
+        
+        const indicators = modal.querySelectorAll('.rounded-full[title*="완료"], .rounded-full[title*="미완료"]');
+        if (indicators.length >= 3) {
+          // 보라색 (프로젝트 설명)
+          if (hasDescription) {
+            indicators[0].classList.remove('border', 'bg-transparent');
+            indicators[0].style.backgroundColor = '#7A68F6';
+            indicators[0].style.borderColor = '';
+            indicators[0].setAttribute('title', '프로젝트 설명 완료');
+          } else {
+            indicators[0].classList.add('border', 'bg-transparent');
+            indicators[0].style.backgroundColor = '';
+            indicators[0].style.borderColor = '#7A68F6';
+            indicators[0].setAttribute('title', '프로젝트 설명 미완료');
+          }
+          
+          // 파란색 (PDF 업로드)
+          if (hasPdf) {
+            indicators[1].classList.remove('border', 'border-blue-500', 'bg-transparent');
+            indicators[1].classList.add('bg-blue-500');
+            indicators[1].setAttribute('title', 'PDF 업로드 완료');
+          } else {
+            indicators[1].classList.remove('bg-blue-500');
+            indicators[1].classList.add('border', 'border-blue-500', 'bg-transparent');
+            indicators[1].setAttribute('title', 'PDF 업로드 미완료');
+          }
+          
+          // 초록색 (이미지 업로드)
+          if (hasImage) {
+            indicators[2].classList.remove('border', 'border-emerald-600', 'bg-transparent');
+            indicators[2].classList.add('bg-emerald-600');
+            indicators[2].setAttribute('title', '이미지 업로드 완료');
+          } else {
+            indicators[2].classList.remove('bg-emerald-600');
+            indicators[2].classList.add('border', 'border-emerald-600', 'bg-transparent');
+            indicators[2].setAttribute('title', '이미지 업로드 미완료');
+          }
+        }
+      };
+      
+      // 입력 필드 변경 시 진척률 업데이트
+      form.querySelectorAll('input[name="title"], textarea[name="description"]').forEach(input => {
+        input.addEventListener('input', updateProgressIndicators);
+        input.addEventListener('change', updateProgressIndicators);
+      });
+      
+      // 카테고리 체크박스 변경 시 진척률 업데이트
+      form.querySelectorAll('input[name="category"][type="checkbox"]').forEach(checkbox => {
+        checkbox.addEventListener('change', updateProgressIndicators);
+      });
+      
+      // PDF 업로드 시 진척률 업데이트
+      const designPdfInput = document.getElementById('editDesignPdf');
+      const detailPdfInput = document.getElementById('editDetailPdf');
+      if (designPdfInput) {
+        const observer = new MutationObserver(updateProgressIndicators);
+        observer.observe(designPdfInput, { attributes: true, attributeFilter: ['value'] });
+        designPdfInput.addEventListener('change', updateProgressIndicators);
+      }
+      if (detailPdfInput) {
+        const observer = new MutationObserver(updateProgressIndicators);
+        observer.observe(detailPdfInput, { attributes: true, attributeFilter: ['value'] });
+        detailPdfInput.addEventListener('change', updateProgressIndicators);
+      }
+      
+      // 이미지 업로드 시 진척률 업데이트
+      const mainImageInput = document.getElementById('editMainImageFile');
+      if (mainImageInput) {
+        mainImageInput.addEventListener('change', updateProgressIndicators);
+      }
+      
+      // 갤러리 이미지 변경 시 진척률 업데이트
+      const originalRefreshEditGalleryStatus = window.refreshEditGalleryStatus;
+      if (originalRefreshEditGalleryStatus) {
+        window.refreshEditGalleryStatus = function() {
+          originalRefreshEditGalleryStatus();
+          setTimeout(updateProgressIndicators, 100);
+        };
+      }
+      
+      // 전역 함수로 등록 (업로드 함수에서 호출 가능하도록)
+      window.updateProgressIndicators = updateProgressIndicators;
+      
+      // 초기 진척률 표시
+      setTimeout(updateProgressIndicators, 100);
+      
       const startInput = document.getElementById('editStartDate');
       const endInput = document.getElementById('editEndDate');
       const durationInput = document.getElementById('editDuration');
@@ -1630,13 +1813,36 @@
         const designPdfFromFormData = (fd.get('designPdf') || '').toString().trim();
         const detailPdfFromFormData = (fd.get('detailPdf') || '').toString().trim();
         
-        // 우선순위: Hidden input > 전역 변수 > FormData
-        const finalDesignPdfValue = designPdfFromInput || designPdfFromBackup || designPdfFromFormData;
-        const finalDetailPdfValue = detailPdfFromInput || detailPdfFromBackup || detailPdfFromFormData;
+        // 삭제 플래그 확인 (전역 변수 우선, 없으면 로컬 변수)
+        const currentRemoveDesignPdf = window.removeDesignPdf || removeDesignPdf;
+        const currentRemoveDetailPdf = window.removeDetailPdf || removeDetailPdf;
         
-        // PDF 값이 있으면 삭제 플래그를 false로 리셋
-        const finalRemoveDesignPdf = finalDesignPdfValue ? false : removeDesignPdf;
-        const finalRemoveDetailPdf = finalDetailPdfValue ? false : removeDetailPdf;
+        // 삭제 플래그가 true이면 백업 값이나 FormData 값을 무시하고 삭제 플래그를 유지
+        // 삭제 플래그가 false이면 기존 로직대로 우선순위 적용
+        let finalDesignPdfValue = '';
+        let finalDetailPdfValue = '';
+        let finalRemoveDesignPdf = currentRemoveDesignPdf;
+        let finalRemoveDetailPdf = currentRemoveDetailPdf;
+        
+        if (currentRemoveDesignPdf) {
+          // 삭제 플래그가 true이면 값은 무시하고 삭제 플래그만 유지
+          finalDesignPdfValue = '';
+          finalRemoveDesignPdf = true;
+        } else {
+          // 삭제 플래그가 false이면 우선순위: Hidden input > 전역 변수 > FormData
+          finalDesignPdfValue = designPdfFromInput || designPdfFromBackup || designPdfFromFormData;
+          finalRemoveDesignPdf = false;
+        }
+        
+        if (currentRemoveDetailPdf) {
+          // 삭제 플래그가 true이면 값은 무시하고 삭제 플래그만 유지
+          finalDetailPdfValue = '';
+          finalRemoveDetailPdf = true;
+        } else {
+          // 삭제 플래그가 false이면 우선순위: Hidden input > 전역 변수 > FormData
+          finalDetailPdfValue = detailPdfFromInput || detailPdfFromBackup || detailPdfFromFormData;
+          finalRemoveDetailPdf = false;
+        }
         
         console.log('📋 PDF 값 최종 확인:', {
           designPdf: {
@@ -1686,11 +1892,19 @@
           removeDetailPdf: finalRemoveDetailPdf,
         };
         
-        // PDF 값이 있으면만 payload에 추가 (빈 문자열은 제외)
-        if (finalDesignPdfValue) {
+        // PDF 값 처리
+        // 삭제 플래그가 true이면 명시적으로 null로 설정
+        // 삭제 플래그가 false이고 값이 있으면 그 값을 사용
+        // 삭제 플래그가 false이고 값이 없으면 필드 제외 (기존 값 유지)
+        if (finalRemoveDesignPdf) {
+          payload.designPdf = null; // 명시적으로 null로 설정하여 삭제
+        } else if (finalDesignPdfValue) {
           payload.designPdf = finalDesignPdfValue;
         }
-        if (finalDetailPdfValue) {
+        
+        if (finalRemoveDetailPdf) {
+          payload.detailPdf = null; // 명시적으로 null로 설정하여 삭제
+        } else if (finalDetailPdfValue) {
           payload.detailPdf = finalDetailPdfValue;
         }
         
@@ -1720,11 +1934,16 @@
           : (project.gallery && project.gallery.length > 0 ? project.gallery : []);
         
         let currentGallery = [];
-        if (window.editGalleryList && Array.isArray(window.editGalleryList) && window.editGalleryList.length > 0) {
-          // window.editGalleryList는 순서가 변경된 전체 갤러리 목록
-          currentGallery = window.editGalleryList.filter(img => img && typeof img === 'string' && img.trim() !== '');
+        const hasEditGalleryList = Array.isArray(window.editGalleryList);
+        const filteredEditGallery = hasEditGalleryList
+          ? (window.editGalleryList || []).filter(img => img && typeof img === 'string' && img.trim() !== '')
+          : [];
+        if (hasEditGalleryList) {
+          // 편집 중 갤러리 리스트가 존재하면 길이에 상관없이 그대로 사용 (0개도 허용)
+          currentGallery = filteredEditGallery;
+          window.editGalleryList = filteredEditGallery;
         } else {
-          // window.editGalleryList가 없으면 기존 갤러리 사용
+          // 편집 리스트가 없으면 기존 갤러리 사용
           currentGallery = existingGallery.filter(Boolean);
         }
 
@@ -1742,6 +1961,11 @@
           // S3 직접 업로드 (새로 선택한 파일만)
           let newUploadedUrls = [];
 
+          // 저장 직전에 최신 window.editGalleryList를 다시 확인 (삭제 반영, 0개도 허용)
+          const latestGallery = Array.isArray(window.editGalleryList)
+            ? (window.editGalleryList || []).filter(img => img && typeof img === 'string' && img.trim() !== '')
+            : currentGallery;
+          
           if (totalFiles > 0) {
             const filesToUpload = [];
             if (mainImageFile) filesToUpload.push(mainImageFile);
@@ -1755,14 +1979,14 @@
             if (mainImageFile && newUploadedUrls.length > 0) {
               // 대표 이미지: 새로 업로드한 것을 사용
               payload.image = newUploadedUrls[0];
-              // 갤러리 이미지: 기존 + 이미 업로드된 것 + 새로 업로드된 것
+              // 갤러리 이미지: 최신 갤러리 + 새로 업로드된 것
               const newGalleryUrls = newUploadedUrls.slice(1);
-              payload.images = [...currentGallery, ...newGalleryUrls].filter(Boolean);
-              payload.gallery = [...currentGallery, ...newGalleryUrls].filter(Boolean);
+              payload.images = [...latestGallery, ...newGalleryUrls].filter(Boolean);
+              payload.gallery = [...latestGallery, ...newGalleryUrls].filter(Boolean);
             } else if (galleryFiles && galleryFiles.length > 0) {
               // 갤러리만 새로 업로드한 경우
-              payload.images = [...currentGallery, ...newUploadedUrls].filter(Boolean);
-              payload.gallery = [...currentGallery, ...newUploadedUrls].filter(Boolean);
+              payload.images = [...latestGallery, ...newUploadedUrls].filter(Boolean);
+              payload.gallery = [...latestGallery, ...newUploadedUrls].filter(Boolean);
             }
           } else {
             // 새로 선택한 파일이 없는 경우
@@ -1777,9 +2001,9 @@
               payload.image = project.image;
             }
             
-            // 갤러리 이미지: 기존 + 이미 업로드된 것
-            payload.images = currentGallery;
-            payload.gallery = currentGallery;
+            // 갤러리 이미지: 최신 갤러리 사용 (삭제 반영, 0개 허용)
+            payload.images = latestGallery;
+            payload.gallery = latestGallery;
           }
           
           // 이미 업로드된 이미지가 있으면 사용 (새 파일이 없고 삭제 플래그도 없는 경우)
@@ -1793,46 +2017,63 @@
           const finalDetailPdfCheck = document.getElementById('editDetailPdf')?.value?.trim() || '';
           const finalDesignPdfBackup = (window.editDesignPdfUrl || '').trim();
           const finalDetailPdfBackup = (window.editDetailPdfUrl || '').trim();
+          const currentRemoveDesignPdf = window.removeDesignPdf || removeDesignPdf;
+          const currentRemoveDetailPdf = window.removeDetailPdf || removeDetailPdf;
           
           console.log('🔍 저장 직전 PDF 값 최종 재확인:', {
             designPdfHidden: finalDesignPdfCheck,
             designPdfBackup: finalDesignPdfBackup,
             detailPdfHidden: finalDetailPdfCheck,
             detailPdfBackup: finalDetailPdfBackup,
+            removeDesignPdf: currentRemoveDesignPdf,
+            removeDetailPdf: currentRemoveDetailPdf,
             payloadDesignPdf: payload.designPdf,
             payloadDetailPdf: payload.detailPdf,
           });
           
-          // Hidden input이나 전역 변수에 값이 있으면 payload에 강제로 설정
-          const finalDesignPdfForPayload = finalDesignPdfCheck || finalDesignPdfBackup || payload.designPdf || '';
-          const finalDetailPdfForPayload = finalDetailPdfCheck || finalDetailPdfBackup || payload.detailPdf || '';
-          
-          if (finalDesignPdfForPayload) {
-            payload.designPdf = finalDesignPdfForPayload;
-            // Hidden input에도 다시 설정 (확실하게)
-            const designInput = document.getElementById('editDesignPdf');
-            if (designInput) {
-              designInput.value = finalDesignPdfForPayload;
-            }
-            console.log('✅ designPdf 최종 설정:', finalDesignPdfForPayload);
+          // 삭제 플래그가 true이면 null로 설정, false이면 값 사용
+          if (currentRemoveDesignPdf) {
+            payload.designPdf = null;
+            payload.removeDesignPdf = true;
+            console.log('✅ designPdf 삭제 플래그 설정, null로 설정');
           } else {
-            // 값이 없으면 payload에서 제거
-            delete payload.designPdf;
-            console.log('⚠️ designPdf 값 없음, payload에서 제거');
+            // Hidden input이나 전역 변수에 값이 있으면 payload에 강제로 설정
+            const finalDesignPdfForPayload = finalDesignPdfCheck || finalDesignPdfBackup || payload.designPdf || '';
+            if (finalDesignPdfForPayload) {
+              payload.designPdf = finalDesignPdfForPayload;
+              // Hidden input에도 다시 설정 (확실하게)
+              const designInput = document.getElementById('editDesignPdf');
+              if (designInput) {
+                designInput.value = finalDesignPdfForPayload;
+              }
+              console.log('✅ designPdf 최종 설정:', finalDesignPdfForPayload);
+            } else {
+              // 값이 없으면 payload에서 제거 (기존 값 유지)
+              delete payload.designPdf;
+              console.log('⚠️ designPdf 값 없음, payload에서 제거 (기존 값 유지)');
+            }
           }
           
-          if (finalDetailPdfForPayload) {
-            payload.detailPdf = finalDetailPdfForPayload;
-            // Hidden input에도 다시 설정 (확실하게)
-            const detailInput = document.getElementById('editDetailPdf');
-            if (detailInput) {
-              detailInput.value = finalDetailPdfForPayload;
-            }
-            console.log('✅ detailPdf 최종 설정:', finalDetailPdfForPayload);
+          if (currentRemoveDetailPdf) {
+            payload.detailPdf = null;
+            payload.removeDetailPdf = true;
+            console.log('✅ detailPdf 삭제 플래그 설정, null로 설정');
           } else {
-            // 값이 없으면 payload에서 제거
-            delete payload.detailPdf;
-            console.log('⚠️ detailPdf 값 없음, payload에서 제거');
+            // Hidden input이나 전역 변수에 값이 있으면 payload에 강제로 설정
+            const finalDetailPdfForPayload = finalDetailPdfCheck || finalDetailPdfBackup || payload.detailPdf || '';
+            if (finalDetailPdfForPayload) {
+              payload.detailPdf = finalDetailPdfForPayload;
+              // Hidden input에도 다시 설정 (확실하게)
+              const detailInput = document.getElementById('editDetailPdf');
+              if (detailInput) {
+                detailInput.value = finalDetailPdfForPayload;
+              }
+              console.log('✅ detailPdf 최종 설정:', finalDetailPdfForPayload);
+            } else {
+              // 값이 없으면 payload에서 제거 (기존 값 유지)
+              delete payload.detailPdf;
+              console.log('⚠️ detailPdf 값 없음, payload에서 제거 (기존 값 유지)');
+            }
           }
           
           // 디버깅: payload 확인
@@ -2106,8 +2347,9 @@
               
               // 파일 입력 필드 초기화 및 활성화 (다시 선택할 수 있도록)
               // 약간의 지연을 주어 DOM이 완전히 업데이트된 후 처리
+              let galleryFileInput = null;
               setTimeout(() => {
-                const galleryFileInput = document.getElementById('editGalleryImagesFile');
+                galleryFileInput = document.getElementById('editGalleryImagesFile');
                 if (galleryFileInput) {
                   galleryFileInput.value = ''; // 파일 선택 초기화
                   galleryFileInput.disabled = false;
@@ -2124,18 +2366,18 @@
                   mainImageFileInput.style.pointerEvents = 'auto';
                   mainImageFileInput.style.opacity = '1';
                 }
+                
+                // 폼의 submit 이벤트 리스너가 여전히 작동하는지 확인
+                // (이미 등록되어 있으므로 재등록 불필요, 하지만 확인용)
+                console.log('✅ 저장 후 폼 상태 복원 완료:', {
+                  formDisabled: form.disabled,
+                  submitBtnDisabled: currentSubmitBtn?.disabled,
+                  galleryListLength: window.editGalleryList?.length,
+                  galleryContainerExists: !!galleryContainer,
+                  galleryFileInputExists: !!galleryFileInput,
+                  formHasSubmitListener: true // 이미 등록되어 있음
+                });
               }, 300);
-              
-              // 폼의 submit 이벤트 리스너가 여전히 작동하는지 확인
-              // (이미 등록되어 있으므로 재등록 불필요, 하지만 확인용)
-              console.log('✅ 저장 후 폼 상태 복원 완료:', {
-                formDisabled: form.disabled,
-                submitBtnDisabled: currentSubmitBtn?.disabled,
-                galleryListLength: window.editGalleryList?.length,
-                galleryContainerExists: !!galleryContainer,
-                galleryFileInputExists: !!galleryFileInput,
-                formHasSubmitListener: true // 이미 등록되어 있음
-              });
               
               console.log('✅ 저장 후 프로젝트 데이터:', {
                 id: projectId,
@@ -3567,7 +3809,7 @@
           parentElement: !!statusEl.parentElement,
         });
         
-        // 삭제 버튼 추가 (없으면)
+        // 삭제 버튼 추가/업데이트 (없으면 추가, 있으면 이벤트 리스너만 연결)
         const removeBtnId = `remove${prefix}PdfBtn`;
         let removeBtn = document.getElementById(removeBtnId);
         
@@ -3578,25 +3820,65 @@
           statusElParentClass: statusEl.parentElement?.className,
         });
         
+        // 삭제 버튼 클릭 핸들러 함수
+        const handleRemoveClick = () => {
+          const hidden = document.getElementById(hiddenInputId);
+          const status = document.getElementById(statusElId);
+          if (hidden) hidden.value = '';
+          if (status) {
+            status.innerHTML = '<span class="text-gray-400">선택된 파일 없음</span>';
+          }
+          if (removeBtn) removeBtn.remove();
+          // 로컬 변수 업데이트 (편집 모달 스코프 내의 변수)
+          if (kind === 'design') {
+            window.removeDesignPdf = true;
+            // 로컬 변수도 업데이트 (편집 모달 스코프 내)
+            const editModal = document.getElementById('editModalBackdrop');
+            if (editModal) {
+              // 편집 모달 내의 removeDesignPdf 변수에 접근하기 위해 이벤트로 전달
+              editModal.dispatchEvent(new CustomEvent('pdfRemoved', { detail: { kind: 'design' } }));
+            }
+          } else if (kind === 'detail') {
+            window.removeDetailPdf = true;
+            const editModal = document.getElementById('editModalBackdrop');
+            if (editModal) {
+              editModal.dispatchEvent(new CustomEvent('pdfRemoved', { detail: { kind: 'detail' } }));
+            }
+          }
+          // 전역 변수도 초기화
+          if (kind === 'design') {
+            window.editDesignPdfUrl = '';
+          } else if (kind === 'detail') {
+            window.editDetailPdfUrl = '';
+          }
+          // 진척률 업데이트
+          if (window.updateProgressIndicators) {
+            setTimeout(() => window.updateProgressIndicators(), 100);
+          }
+        };
+        
         if (!removeBtn) {
-          // Status 요소의 부모 요소 찾기 (flex items-center gap-3 flex-wrap)
+          // Status 요소의 부모 요소 찾기 (flex items-center gap-3 flex-wrap 또는 mt-2 flex items-center gap-2)
           const parentContainer = statusEl.parentElement;
           
           if (parentContainer) {
             removeBtn = document.createElement('button');
             removeBtn.id = removeBtnId;
             removeBtn.type = 'button';
-            removeBtn.className = 'px-2 py-1 text-xs text-red-600 border border-red-200 rounded hover:bg-red-50 transition-colors flex-shrink-0 ml-2';
-            removeBtn.textContent = '삭제';
-            removeBtn.onclick = () => {
-              const hidden = document.getElementById(hiddenInputId);
-              const status = document.getElementById(statusElId);
-              if (hidden) hidden.value = '';
-              if (status) status.innerHTML = '<span class="text-gray-400">선택된 파일 없음</span>';
-              removeBtn.remove();
-              if (kind === 'design') window.removeDesignPdf = true;
-              if (kind === 'detail') window.removeDetailPdf = true;
+            removeBtn.className = 'px-2 py-1 text-xs text-white rounded transition-colors flex-shrink-0';
+            removeBtn.style.backgroundColor = '#2563eb';
+            removeBtn.style.border = '1px solid #2563eb';
+            removeBtn.style.color = 'white';
+            removeBtn.onmouseover = function() {
+              this.style.backgroundColor = '#1D4ED8';
+              this.style.borderColor = '#1D4ED8';
             };
+            removeBtn.onmouseout = function() {
+              this.style.backgroundColor = '#2563eb';
+              this.style.borderColor = '#2563eb';
+            };
+            removeBtn.textContent = '삭제';
+            removeBtn.addEventListener('click', handleRemoveClick);
             parentContainer.appendChild(removeBtn);
             console.log(`✅ 삭제 버튼 추가 완료: ${removeBtnId}`, {
               parentContainer: parentContainer.className,
@@ -3606,7 +3888,25 @@
             console.error(`❌ Status 요소의 부모 요소를 찾을 수 없습니다: ${statusElId}`);
           }
         } else {
-          console.log(`ℹ️ 삭제 버튼이 이미 존재합니다: ${removeBtnId}`);
+          // 기존 버튼이 있으면 스타일 업데이트 및 이벤트 리스너 재연결
+          removeBtn.className = 'px-2 py-1 text-xs text-white rounded transition-colors flex-shrink-0';
+          removeBtn.style.backgroundColor = '#2563eb';
+          removeBtn.style.border = '1px solid #2563eb';
+          removeBtn.style.color = 'white';
+          removeBtn.onmouseover = function() {
+            this.style.backgroundColor = '#1D4ED8';
+            this.style.borderColor = '#1D4ED8';
+          };
+          removeBtn.onmouseout = function() {
+            this.style.backgroundColor = '#2563eb';
+            this.style.borderColor = '#2563eb';
+          };
+          removeBtn.replaceWith(removeBtn.cloneNode(true)); // 기존 이벤트 리스너 제거
+          removeBtn = document.getElementById(removeBtnId);
+          if (removeBtn) {
+            removeBtn.addEventListener('click', handleRemoveClick);
+            console.log(`✅ 삭제 버튼 이벤트 리스너 재연결: ${removeBtnId}`);
+          }
         }
         
         // 삭제 플래그 초기화
@@ -3629,6 +3929,11 @@
           design: window.editDesignPdfUrl,
           detail: window.editDetailPdfUrl
         });
+        
+        // 진척률 업데이트
+        if (window.updateProgressIndicators) {
+          setTimeout(() => window.updateProgressIndicators(), 100);
+        }
         
         // 최종 확인 및 재검증
         let finalHiddenValue = document.getElementById(hiddenInputId)?.value;
@@ -3664,25 +3969,80 @@
             finalStatusEl.innerHTML = expectedHTML;
           }
           
-          // 삭제 버튼도 다시 확인
+          // 삭제 버튼도 다시 확인 및 이벤트 리스너 재연결
           const finalRemoveBtn = document.getElementById(removeBtnId);
           if (!finalRemoveBtn && finalStatusEl.parentElement) {
             const newRemoveBtn = document.createElement('button');
             newRemoveBtn.id = removeBtnId;
             newRemoveBtn.type = 'button';
-            newRemoveBtn.className = 'px-2 py-1 text-xs text-red-600 border border-red-200 rounded hover:bg-red-50 transition-colors flex-shrink-0 ml-2';
+            newRemoveBtn.className = 'px-2 py-1 text-xs text-white rounded transition-colors flex-shrink-0';
+            newRemoveBtn.style.backgroundColor = '#2563eb';
+            newRemoveBtn.style.border = '1px solid #2563eb';
+            newRemoveBtn.style.color = 'white';
+            newRemoveBtn.onmouseover = function() {
+              this.style.backgroundColor = '#1D4ED8';
+              this.style.borderColor = '#1D4ED8';
+            };
+            newRemoveBtn.onmouseout = function() {
+              this.style.backgroundColor = '#2563eb';
+              this.style.borderColor = '#2563eb';
+            };
             newRemoveBtn.textContent = '삭제';
-            newRemoveBtn.onclick = () => {
+            newRemoveBtn.addEventListener('click', () => {
               const hidden = document.getElementById(hiddenInputId);
               const status = document.getElementById(statusElId);
               if (hidden) hidden.value = '';
               if (status) status.innerHTML = '<span class="text-gray-400">선택된 파일 없음</span>';
               newRemoveBtn.remove();
-              if (kind === 'design') window.removeDesignPdf = true;
-              if (kind === 'detail') window.removeDetailPdf = true;
-            };
+              if (kind === 'design') {
+                window.removeDesignPdf = true;
+                window.editDesignPdfUrl = '';
+              } else if (kind === 'detail') {
+                window.removeDetailPdf = true;
+                window.editDetailPdfUrl = '';
+              }
+              if (window.updateProgressIndicators) {
+                setTimeout(() => window.updateProgressIndicators(), 100);
+              }
+            });
             finalStatusEl.parentElement.appendChild(newRemoveBtn);
             console.log(`✅ 삭제 버튼 재추가 완료: ${removeBtnId}`);
+          } else if (finalRemoveBtn) {
+            // 기존 버튼이 있으면 스타일 업데이트 및 이벤트 리스너 재연결
+            finalRemoveBtn.className = 'px-2 py-1 text-xs text-white rounded transition-colors flex-shrink-0';
+            finalRemoveBtn.style.backgroundColor = '#2563eb';
+            finalRemoveBtn.style.border = '1px solid #2563eb';
+            finalRemoveBtn.style.color = 'white';
+            finalRemoveBtn.onmouseover = function() {
+              this.style.backgroundColor = '#1D4ED8';
+              this.style.borderColor = '#1D4ED8';
+            };
+            finalRemoveBtn.onmouseout = function() {
+              this.style.backgroundColor = '#2563eb';
+              this.style.borderColor = '#2563eb';
+            };
+            finalRemoveBtn.replaceWith(finalRemoveBtn.cloneNode(true));
+            const reconnectedBtn = document.getElementById(removeBtnId);
+            if (reconnectedBtn) {
+              reconnectedBtn.addEventListener('click', () => {
+                const hidden = document.getElementById(hiddenInputId);
+                const status = document.getElementById(statusElId);
+                if (hidden) hidden.value = '';
+                if (status) status.innerHTML = '<span class="text-gray-400">선택된 파일 없음</span>';
+                reconnectedBtn.remove();
+                if (kind === 'design') {
+                  window.removeDesignPdf = true;
+                  window.editDesignPdfUrl = '';
+                } else if (kind === 'detail') {
+                  window.removeDetailPdf = true;
+                  window.editDetailPdfUrl = '';
+                }
+                if (window.updateProgressIndicators) {
+                  setTimeout(() => window.updateProgressIndicators(), 100);
+                }
+              });
+              console.log(`✅ 삭제 버튼 이벤트 리스너 재연결: ${removeBtnId}`);
+            }
           }
         }
         
@@ -3793,6 +4153,11 @@
             window.editMainImageUrl = imageUrl;
             fileInput.value = '';
             alert('대표 이미지가 업로드되었습니다. 저장 버튼을 눌러주세요.');
+            
+            // 진척률 업데이트
+            if (window.updateProgressIndicators) {
+              setTimeout(() => window.updateProgressIndicators(), 100);
+            }
           } else {
             throw new Error('업로드된 URL을 받지 못했습니다.');
           }
@@ -3882,6 +4247,11 @@
             }
             fileInput.value = '';
             alert(`${uploadedUrls.length}개의 이미지가 업로드되었습니다. 저장 버튼을 눌러주세요.`);
+            
+            // 진척률 업데이트
+            if (window.updateProgressIndicators) {
+              setTimeout(() => window.updateProgressIndicators(), 100);
+            }
           } else {
             throw new Error('업로드된 URL을 받지 못했습니다.');
           }

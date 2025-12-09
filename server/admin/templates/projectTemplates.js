@@ -188,7 +188,7 @@ export const renderDetailModal = (project, files, categoryLabels, isAuthenticate
                 <img src="${img.url}" alt="${img.name}" class="w-full h-auto max-h-[150px] object-contain mx-auto" style="display: block; pointer-events: none;" />
               </div>
               <div class="px-2 py-1.5 flex items-center justify-between text-xs text-gray-700 bg-white">
-                <span class="truncate flex-1" title="${img.name}">${truncate(img.name || '', 15)}</span>
+                <span class="flex-1 break-all" title="${img.name || ''}">${img.name || ''}</span>
                 <button onclick="downloadFile('${projectId}', '${img.name}')" class="p-1 text-green-600 hover:bg-green-50 rounded flex-shrink-0" title="다운로드">
                   <i data-lucide="download" class="w-3 h-3"></i>
                 </button>
@@ -325,11 +325,26 @@ export const renderDetailModal = (project, files, categoryLabels, isAuthenticate
 };
 
 export const renderEditModal = (project, categoryLabels) => {
+  // 완료 상태 체크
+  const hasDescription = project.title && project.description && project.category && (Array.isArray(project.category) ? project.category.length > 0 : project.category);
+  const hasPdf = (project.designPdf && project.designPdf.trim() !== '') && (project.detailPdf && project.detailPdf.trim() !== '');
+  // 대표 이미지와 갤러리 이미지가 모두 있어야 완료
+  const hasMainImage = project.image && project.image.trim() !== '';
+  const hasGalleryImages = (project.images && project.images.length > 0) || (project.gallery && project.gallery.length > 0);
+  const hasImage = hasMainImage && hasGalleryImages;
+  
   return `
     <div class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" id="editModalBackdrop">
       <div class="bg-white rounded-2xl shadow-xl max-w-xl w-full max-h-[90vh] flex flex-col" onclick="event.stopPropagation()">
         <div class="flex-shrink-0 bg-white border-b px-6 py-4 flex justify-between items-center rounded-t-2xl">
-          <h2 class="text-xl font-bold text-gray-900">프로젝트 수정</h2>
+          <div class="flex items-center gap-3">
+            <h2 class="text-xl font-bold text-gray-900">프로젝트 수정</h2>
+            <div class="flex items-center gap-3 ml-2">
+              <div class="w-3 h-3 rounded-full ${hasDescription ? '' : 'border bg-transparent'}" title="프로젝트 설명 ${hasDescription ? '완료' : '미완료'}" style="transition: all 0.3s; ${hasDescription ? 'background-color: #7A68F6;' : 'border-color: #7A68F6;'}"></div>
+              <div class="w-3 h-3 rounded-full ${hasPdf ? 'bg-blue-500' : 'border border-blue-500 bg-transparent'}" title="PDF 업로드 ${hasPdf ? '완료' : '미완료'}" style="transition: all 0.3s;"></div>
+              <div class="w-3 h-3 rounded-full ${hasImage ? 'bg-emerald-600' : 'border border-emerald-600 bg-transparent'}" title="이미지 업로드 ${hasImage ? '완료' : '미완료'}" style="transition: all 0.3s;"></div>
+            </div>
+          </div>
           <button onclick="this.closest('.fixed').remove()" class="p-2 hover:bg-gray-100 rounded-full transition">
             <i data-lucide="x" class="w-5 h-5"></i>
           </button>
@@ -423,29 +438,29 @@ export const renderEditModal = (project, categoryLabels) => {
             </div>
             <div class="space-y-2">
               <label class="block text-sm font-medium text-gray-900">화면 설계서 PDF</label>
-              <div class="flex items-center gap-3 flex-wrap">
-                <input type="file" accept="application/pdf" id="editDesignPdfFile" class="text-sm" />
-                <button type="button" onclick="console.log('🔘 Design PDF 업로드 버튼 클릭'); if (window.uploadPdfInEdit) { window.uploadPdfInEdit('design'); } else { console.error('❌ window.uploadPdfInEdit가 정의되지 않았습니다!'); alert('업로드 함수를 찾을 수 없습니다. 페이지를 새로고침해주세요.'); }" class="px-3 py-2 text-white rounded text-sm" style="background-color: #2563eb;" onmouseover="this.style.backgroundColor='#1D4ED8'" onmouseout="this.style.backgroundColor='#2563eb'">업로드</button>
-                <span id="editDesignPdfStatus" class="text-sm text-gray-600">
+              <input type="file" accept="application/pdf" id="editDesignPdfFile" class="text-sm" />
+              <button type="button" onclick="console.log('🔘 Design PDF 업로드 버튼 클릭'); if (window.uploadPdfInEdit) { window.uploadPdfInEdit('design'); } else { console.error('❌ window.uploadPdfInEdit가 정의되지 않았습니다!'); alert('업로드 함수를 찾을 수 없습니다. 페이지를 새로고침해주세요.'); }" class="px-3 py-2 text-white rounded text-sm" style="background-color: #2563eb;" onmouseover="this.style.backgroundColor='#1D4ED8'" onmouseout="this.style.backgroundColor='#2563eb'">업로드</button>
+              <div class="flex items-center gap-2" id="editDesignPdfStatusWrapper">
+                <span id="editDesignPdfStatus" class="text-sm text-gray-600 break-all">
                   ${project.designPdf 
                     ? `<a href="${project.designPdf}" target="_blank" class="text-blue-600 underline">${truncate(project.designPdf.split('/').pop())}</a>` 
                     : '<span class="text-gray-400">선택된 파일 없음</span>'}
                 </span>
-                ${project.designPdf ? `<button type="button" id="removeDesignPdfBtn" class="px-2 py-1 text-xs text-red-600 border border-red-200 rounded">삭제</button>` : ''}
+                ${project.designPdf ? `<button type="button" id="removeDesignPdfBtn" class="px-2 py-1 text-xs text-white rounded transition-colors" style="background-color: #2563eb; border: 1px solid #2563eb;" onmouseover="this.style.backgroundColor='#1D4ED8'; this.style.borderColor='#1D4ED8'" onmouseout="this.style.backgroundColor='#2563eb'; this.style.borderColor='#2563eb'">삭제</button>` : ''}
               </div>
               <input type="hidden" name="designPdf" id="editDesignPdf" value="${project.designPdf || ''}" />
             </div>
             <div class="space-y-2">
               <label class="block text-sm font-medium text-gray-900">프로젝트 상세보기 PDF</label>
-              <div class="flex items-center gap-3 flex-wrap">
-                <input type="file" accept="application/pdf" id="editDetailPdfFile" class="text-sm" />
-                <button type="button" onclick="console.log('🔘 Detail PDF 업로드 버튼 클릭'); if (window.uploadPdfInEdit) { window.uploadPdfInEdit('detail'); } else { console.error('❌ window.uploadPdfInEdit가 정의되지 않았습니다!'); alert('업로드 함수를 찾을 수 없습니다. 페이지를 새로고침해주세요.'); }" class="px-3 py-2 text-white rounded text-sm" style="background-color: #2563eb;" onmouseover="this.style.backgroundColor='#1D4ED8'" onmouseout="this.style.backgroundColor='#2563eb'">업로드</button>
-                <span id="editDetailPdfStatus" class="text-sm text-gray-600">
+              <input type="file" accept="application/pdf" id="editDetailPdfFile" class="text-sm" />
+              <button type="button" onclick="console.log('🔘 Detail PDF 업로드 버튼 클릭'); if (window.uploadPdfInEdit) { window.uploadPdfInEdit('detail'); } else { console.error('❌ window.uploadPdfInEdit가 정의되지 않았습니다!'); alert('업로드 함수를 찾을 수 없습니다. 페이지를 새로고침해주세요.'); }" class="px-3 py-2 text-white rounded text-sm" style="background-color: #2563eb;" onmouseover="this.style.backgroundColor='#1D4ED8'" onmouseout="this.style.backgroundColor='#2563eb'">업로드</button>
+              <div class="flex items-center gap-2" id="editDetailPdfStatusWrapper">
+                <span id="editDetailPdfStatus" class="text-sm text-gray-600 break-all">
                   ${project.detailPdf 
                     ? `<a href="${project.detailPdf}" target="_blank" class="text-blue-600 underline">${truncate(project.detailPdf.split('/').pop())}</a>` 
                     : '<span class="text-gray-400">선택된 파일 없음</span>'}
                 </span>
-                ${project.detailPdf ? `<button type="button" id="removeDetailPdfBtn" class="px-2 py-1 text-xs text-red-600 border border-red-200 rounded">삭제</button>` : ''}
+                ${project.detailPdf ? `<button type="button" id="removeDetailPdfBtn" class="px-2 py-1 text-xs text-white rounded transition-colors" style="background-color: #2563eb; border: 1px solid #2563eb;" onmouseover="this.style.backgroundColor='#1D4ED8'; this.style.borderColor='#1D4ED8'" onmouseout="this.style.backgroundColor='#2563eb'; this.style.borderColor='#2563eb'">삭제</button>` : ''}
               </div>
               <input type="hidden" name="detailPdf" id="editDetailPdf" value="${project.detailPdf || ''}" />
             </div>
