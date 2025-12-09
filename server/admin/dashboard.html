@@ -2124,11 +2124,13 @@
               // 삭제 플래그가 있으면 이미지를 null로 설정
               payload.image = null;
             } else if (window.editMainImageUrl) {
-              // 이미 업로드된 대표 이미지 URL이 있으면 사용
+              // 이미 업로드된 대표 이미지 URL이 있으면 사용 (업로드 버튼으로 업로드한 경우)
               payload.image = window.editMainImageUrl;
+              console.log('📸 이미 업로드된 대표 이미지 사용:', window.editMainImageUrl);
             } else if (project.image) {
               // 기존 이미지가 있으면 유지
               payload.image = project.image;
+              console.log('📸 기존 대표 이미지 유지:', project.image);
             }
             
             // 갤러리 이미지: 최신 갤러리 사용 (삭제 반영, 0개 허용)
@@ -2136,10 +2138,40 @@
             payload.gallery = latestGallery;
           }
           
-          // 이미 업로드된 이미지가 있으면 사용 (새 파일이 없고 삭제 플래그도 없는 경우)
+          // 대표 이미지 최종 확인 및 강제 설정
+          // 이미 업로드된 이미지가 있으면 우선 사용 (업로드 버튼으로 업로드한 경우)
           if (!mainImageFile && !removeMainImage && window.editMainImageUrl) {
             payload.image = window.editMainImageUrl;
+            console.log('📸 이미 업로드된 대표 이미지 사용 (최종 확인):', window.editMainImageUrl);
           }
+          
+          // payload.image가 빈 문자열이거나 undefined인 경우 처리
+          if (payload.image === '' || payload.image === undefined) {
+            if (removeMainImage) {
+              payload.image = null;
+              console.log('📸 대표 이미지 삭제 (null 설정)');
+            } else if (window.editMainImageUrl) {
+              payload.image = window.editMainImageUrl;
+              console.log('📸 빈 값 감지, 이미 업로드된 이미지로 대체:', window.editMainImageUrl);
+            } else if (project.image) {
+              payload.image = project.image;
+              console.log('📸 빈 값 감지, 기존 이미지 유지:', project.image);
+            } else {
+              // 값이 없으면 필드 제거 (기존 값 유지)
+              delete payload.image;
+              console.log('📸 대표 이미지 값 없음, 필드 제거 (기존 값 유지)');
+            }
+          }
+          
+          // 디버깅: 최종 이미지 값 확인
+          console.log('📸 최종 대표 이미지 값:', {
+            mainImageFile: mainImageFile ? mainImageFile.name : '없음',
+            editMainImageUrl: window.editMainImageUrl || '없음',
+            removeMainImage,
+            finalImage: payload.image || '없음',
+            projectImage: project.image || '없음',
+            imageInPayload: 'image' in payload,
+          });
 
           // 저장 직전 PDF 값 최종 재확인 및 강제 설정
           // 이미지 업로드가 완료된 후이므로, 이 시점에 다시 확인

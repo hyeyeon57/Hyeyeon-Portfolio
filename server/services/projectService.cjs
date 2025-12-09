@@ -202,6 +202,23 @@ const updateProject = async ({ id, payload, files }) => {
   if (projectData.removeMainImage === true) {
     projectData.image = null;
     delete projectData.removeMainImage;
+  } else if (projectData.image !== undefined) {
+    // image 필드가 있으면 유효성 검사
+    if (projectData.image === null) {
+      // null은 명시적 삭제이므로 그대로 사용
+      console.log('[projectService] image null (삭제)');
+    } else if (typeof projectData.image === 'string' && projectData.image.trim() !== '') {
+      // 유효한 URL이 있으면 그대로 사용
+      console.log('[projectService] image 저장:', projectData.image);
+    } else {
+      // 빈 문자열이거나 유효하지 않은 값이면 필드 제거 (기존 값 유지)
+      console.log('[projectService] image 값 없음 또는 빈 문자열, 필드 제거 (기존 값 유지)', {
+        value: projectData.image,
+        type: typeof projectData.image,
+        exists: 'image' in projectData
+      });
+      delete projectData.image;
+    }
   }
   
   // PDF 필드 처리 (단순화)

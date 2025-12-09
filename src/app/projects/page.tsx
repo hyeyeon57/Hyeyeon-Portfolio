@@ -140,7 +140,10 @@ export default function AllProjectsPage() {
             fullDescription: p.fullDescription || '',
             image: p.image || p.images?.[0] || '',
             tags: p.tags || [],
-            category: p.category || 'new',
+            // category가 배열이면 첫 번째 값, 아니면 문자열 값, 둘 다 없으면 'new'
+            category: Array.isArray(p.category) 
+              ? (p.category[0] || 'new')
+              : (p.category || 'new'),
             date: p.date || '',
             startDate: (p as any).startDate || '',
             endDate: (p as any).endDate || '',
@@ -323,14 +326,20 @@ export default function AllProjectsPage() {
     return '';
   };
 
+  // 프로젝트의 카테고리를 추출하는 헬퍼 함수 (배열이면 첫 번째 값)
+  const getCategoryValue = (project: Project) => {
+    const category = project.category;
+    return Array.isArray(category) ? category[0] : category;
+  };
+
   const categories = [
     { id: 'all', label: '전체', count: projects.length },
     { id: 'featured', label: '대표', count: projects.filter(p => p.featured).length },
-    { id: 'new', label: '신규', count: projects.filter(p => p.category === 'new').length },
-    { id: 'renewal', label: '리뉴얼', count: projects.filter(p => p.category === 'renewal').length },
-    { id: 'app', label: '앱', count: projects.filter(p => p.category === 'app').length },
-    { id: 'web', label: '웹', count: projects.filter(p => p.category === 'web').length },
-    { id: 'design', label: '화면설계서', count: projects.filter(p => p.category === 'design').length },
+    { id: 'new', label: '신규', count: projects.filter(p => getCategoryValue(p) === 'new').length },
+    { id: 'renewal', label: '리뉴얼', count: projects.filter(p => getCategoryValue(p) === 'renewal').length },
+    { id: 'app', label: '앱', count: projects.filter(p => getCategoryValue(p) === 'app').length },
+    { id: 'web', label: '웹', count: projects.filter(p => getCategoryValue(p) === 'web').length },
+    { id: 'design', label: '화면설계서', count: projects.filter(p => getCategoryValue(p) === 'design').length },
   ];
 
   // 필터링된 프로젝트
@@ -338,7 +347,10 @@ export default function AllProjectsPage() {
     ? projects
     : selectedCategories.includes('featured')
     ? projects.filter(project => project.featured)
-    : projects.filter(project => selectedCategories.includes(project.category));
+    : projects.filter(project => {
+        const categoryValue = getCategoryValue(project);
+        return selectedCategories.includes(categoryValue);
+      });
 
   const toggleCategory = (categoryId: string) => {
     setSelectedCategories(prev => {

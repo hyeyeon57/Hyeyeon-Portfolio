@@ -202,7 +202,10 @@ export async function GET(request: NextRequest) {
               fullDescription: project.fullDescription || '',
               image: project.image || project.images?.[0] || '',
               tags: Array.isArray(project.tags) ? project.tags : [],
-              category: project.category || 'new',
+              // category가 배열이면 첫 번째 값, 아니면 문자열 값, 둘 다 없으면 'new'
+              category: Array.isArray(project.category) 
+                ? (project.category[0] || 'new')
+                : (project.category || 'new'),
               date: project.date || '',
               role: project.role || '',
               duration: project.duration || '',

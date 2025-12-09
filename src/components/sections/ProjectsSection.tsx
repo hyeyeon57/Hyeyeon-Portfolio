@@ -322,9 +322,25 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                   
                   {/* Gallery Preview Button (아이콘 제거 요청으로 비활성화) */}
                   
-                  <div className="absolute bottom-4 left-4 px-3 py-1.5 bg-white/90 backdrop-blur-sm text-brand-main rounded-lg text-xs font-semibold border border-brand-main/20">
-                    {PROJECT_CATEGORIES.find(c => c.id === project.category)?.label || project.category}
-                  </div>
+                  {/* 카테고리 표시: 배열이면 첫 번째, 없거나 유효하지 않으면 표시하지 않음 */}
+                  {(() => {
+                    // category가 배열인 경우 첫 번째 값 사용
+                    const categoryValue = Array.isArray(project.category) 
+                      ? project.category[0] 
+                      : project.category;
+                    
+                    // 유효한 카테고리인지 확인
+                    const categoryInfo = categoryValue 
+                      ? PROJECT_CATEGORIES.find(c => c.id === categoryValue)
+                      : null;
+                    
+                    // 유효한 카테고리가 있으면 표시
+                    return categoryInfo ? (
+                      <div className="absolute bottom-4 left-4 px-3 py-1.5 bg-white/90 backdrop-blur-sm text-brand-main rounded-lg text-xs font-semibold border border-brand-main/20">
+                        {categoryInfo.label}
+                      </div>
+                    ) : null;
+                  })()}
                 </div>
 
                 {/* Project Content */}
