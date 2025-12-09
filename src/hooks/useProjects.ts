@@ -18,7 +18,8 @@ interface UseProjectsReturn {
 export function useProjects(): UseProjectsReturn {
   // Hydration 에러 방지: 서버와 클라이언트가 같은 초기값 사용
   const [projects, setProjects] = useState<Project[]>([]);
-  const [loading, setLoading] = useState(true);
+  // 초기 로딩 상태를 false로 설정 (캐시 확인 후 필요시에만 true로 변경)
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
   // 초기 로드 완료 여부 추적 (무한 루프 방지)
@@ -170,6 +171,7 @@ export function useProjects(): UseProjectsReturn {
     hasInitialLoad.current = true;
 
     // localStorage와 sessionStorage에서 캐시된 데이터 확인 (localStorage 우선)
+    // 동기적으로 처리하여 즉시 표시
     const CACHE_KEY = 'featured-projects-cache';
     const CACHE_TIMESTAMP_KEY = 'featured-projects-cache-timestamp';
     const CACHE_DURATION = 5 * 60 * 1000; // 5분
@@ -187,7 +189,15 @@ export function useProjects(): UseProjectsReturn {
           const parsed = JSON.parse(cached);
           if (Array.isArray(parsed) && parsed.length > 0) {
             console.log('✅ localStorage 캐시된 프로젝트 데이터 사용:', parsed.length);
-            setProjects(parsed as Project[]);
+            // featured 프로젝트를 상단에 정렬
+            const sortedProjects = [...parsed].sort((a: any, b: any) => {
+              const aFeatured = a.featured === true || a.featured === 'true';
+              const bFeatured = b.featured === true || b.featured === 'true';
+              if (aFeatured && !bFeatured) return -1;
+              if (!aFeatured && bFeatured) return 1;
+              return 0;
+            });
+            setProjects(sortedProjects as Project[]);
             setLoading(false);
             setError(null);
             hasCachedData = true;
@@ -210,7 +220,15 @@ export function useProjects(): UseProjectsReturn {
         if (cached) {
           const parsed = JSON.parse(cached);
           if (Array.isArray(parsed?.data) && parsed.data.length > 0) {
-            setProjects(parsed.data as Project[]);
+            // featured 프로젝트를 상단에 정렬
+            const sortedProjects = [...parsed.data].sort((a: any, b: any) => {
+              const aFeatured = a.featured === true || a.featured === 'true';
+              const bFeatured = b.featured === true || b.featured === 'true';
+              if (aFeatured && !bFeatured) return -1;
+              if (!aFeatured && bFeatured) return 1;
+              return 0;
+            });
+            setProjects(sortedProjects as Project[]);
             setLoading(false);
             setError(null);
             hasCachedData = true;
@@ -233,8 +251,9 @@ export function useProjects(): UseProjectsReturn {
       }
     }
 
-    // 3. 캐시가 없으면 바로 페치
+    // 3. 캐시가 없으면 로딩 상태 표시하고 페치
     if (!hasCachedData) {
+      setLoading(true);
       fetchProjects(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

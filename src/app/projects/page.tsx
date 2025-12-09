@@ -11,7 +11,7 @@ type Project = typeof initialProjects[0];
 export default function AllProjectsPage() {
   const [isMounted, setIsMounted] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]); // 초기값을 빈 배열로 변경 (정적 데이터 사용 안 함)
-  const [loading, setLoading] = useState(true); // 전체 프로젝트 로딩 상태
+  const [loading, setLoading] = useState(false); // 초기 로딩 상태를 false로 설정 (캐시 확인 후 필요시에만 true로 변경)
   const [selectedCategories, setSelectedCategories] = useState<string[]>(['all']);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [showGalleryModal, setShowGalleryModal] = useState(false);
@@ -103,15 +103,16 @@ export default function AllProjectsPage() {
     
     const fetchProjects = async (forceRefresh = false) => {
       // localStorage에서 캐시된 데이터 확인 (5분 이내 데이터만 사용)
+      // 동기적으로 처리하여 즉시 표시
       const CACHE_KEY = 'projects_cache';
       const CACHE_TIMESTAMP_KEY = 'projects_cache_timestamp';
       const CACHE_DURATION = 5 * 60 * 1000; // 5분
       
       let hasCachedData = false;
       
-      try {
-        
-        if (!forceRefresh && typeof window !== 'undefined') {
+      // 캐시 확인을 먼저 수행 (동기적으로)
+      if (!forceRefresh && typeof window !== 'undefined') {
+        try {
           const cachedData = localStorage.getItem(CACHE_KEY);
           const cacheTimestamp = localStorage.getItem(CACHE_TIMESTAMP_KEY);
           
@@ -122,7 +123,13 @@ export default function AllProjectsPage() {
                 const parsedProjects = JSON.parse(cachedData);
                 if (Array.isArray(parsedProjects) && parsedProjects.length > 0) {
                   console.log('✅ 캐시된 프로젝트 데이터 사용:', parsedProjects.length);
-                  setProjects(parsedProjects);
+                  // featured 프로젝트를 상단에 정렬
+                  const sortedProjects = [...parsedProjects].sort((a, b) => {
+                    if (a.featured && !b.featured) return -1;
+                    if (!a.featured && b.featured) return 1;
+                    return 0;
+                  });
+                  setProjects(sortedProjects);
                   setLoading(false);
                   hasCachedData = true;
                   // 백그라운드에서 최신 데이터 가져오기
@@ -133,12 +140,17 @@ export default function AllProjectsPage() {
               }
             }
           }
+        } catch (e) {
+          console.warn('캐시 읽기 실패:', e);
         }
-        
-        // 캐시가 없거나 강제 새로고침인 경우에만 로딩 상태 표시
-        if (!hasCachedData) {
-          setLoading(true);
-        }
+      }
+      
+      // 캐시가 없거나 강제 새로고침인 경우에만 로딩 상태 표시
+      if (!hasCachedData) {
+        setLoading(true);
+      }
+      
+      try {
         
         // 강제 새로고침 시 타임스탬프를 더 크게 만들어 캐시 완전 무효화
         const timestamp = forceRefresh ? Date.now() + Math.random() : Date.now();
@@ -453,36 +465,9 @@ export default function AllProjectsPage() {
     URL.revokeObjectURL(url);
   };
 
-  if (!isMounted || loading) {
-    return (
-      <div className="min-h-screen py-20" style={{
-        background: 'linear-gradient(135deg, #ECE9FF 0%, #F7F7FF 50%, #FFFFFF 100%)'
-      }}>
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold text-text-primary mb-4">전체 프로젝트</h1>
-            <p className="text-text-secondary">프로젝트를 불러오는 중...</p>
-          </div>
-          {/* 스켈레톤 UI */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="bg-white rounded-xl shadow-sm overflow-hidden animate-pulse">
-                <div className="h-48 bg-gray-200"></div>
-                <div className="p-6">
-                  <div className="h-6 bg-gray-200 rounded mb-2"></div>
-                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
-                  <div className="flex gap-2 mb-4">
-                    <div className="h-6 bg-gray-200 rounded w-16"></div>
-                    <div className="h-6 bg-gray-200 rounded w-16"></div>
-                  </div>
-                  <div className="h-4 bg-gray-200 rounded"></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
+  // 로딩 UI 제거 - 캐시된 데이터가 있으면 즉시 표시, 없으면 빈 상태로 시작
+  if (!isMounted) {
+    return null; // 마운트 전에는 아무것도 표시하지 않음
   }
 
   return (

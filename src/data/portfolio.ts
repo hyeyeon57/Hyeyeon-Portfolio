@@ -11,7 +11,7 @@ export const personalInfo: PersonalInfo = {
   location: '경기 군포 거주/ 수도권 근무 가능',
   social: {
     github: '#',
-    linkedin: 'https://www.linkedin.com/feed/',
+    linkedin: 'https://www.linkedin.com/in/hyeyeon-jang57',
     brunch: 'https://brunch.co.kr/ready',
     notion: '#'
   },

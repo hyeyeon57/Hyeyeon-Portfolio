@@ -2683,12 +2683,7 @@
       const res = await fetch(`${API_URL}/visitors/stats`);
       const stats = await res.json();
       
-      // Viewer 모드일 때는 통계만 표시하고 차트는 숨김
-      if (window.isViewerMode) {
-        renderVisitorStatsViewerMode(stats);
-        return;
-      }
-      
+      // Admin Viewer에서도 그래프를 표시하도록 통합
       renderVisitorStats(stats);
     }
 
