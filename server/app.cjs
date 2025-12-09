@@ -3,6 +3,17 @@ const express = require('express');
 const cors = require('cors');
 const session = require('express-session');
 const path = require('path');
+// connect-mongo는 CommonJS와 ES Module을 모두 지원
+let MongoStore;
+try {
+  MongoStore = require('connect-mongo');
+  // ES Module default export 지원
+  if (MongoStore.default) {
+    MongoStore = MongoStore.default;
+  }
+} catch (e) {
+  console.warn('[Session] connect-mongo 모듈 로드 실패:', e?.message);
+}
 
 // 모듈 로드를 try-catch로 감싸서 에러 처리
 let ALLOWED_ORIGINS, SESSION_CONFIG, ADMIN_CONFIG;
@@ -67,20 +78,82 @@ const createApp = ({ withDbMiddleware = false } = {}) => {
     app.use(express.json({ limit: '50mb' }));
     app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
+    // 세션 저장소 설정 (MongoDB 사용)
+    const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1';
+    const isHttps = process.env.VERCEL === '1' || (process.env.NODE_ENV === 'production');
+    
+    // MongoDB 연결 문자열
+    const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/vibe-coding-portfolio';
+    
+    let sessionStore = null;
+    if (MongoStore && mongoURI) {
+      try {
+        // MongoDB 세션 저장소 초기화
+        // connect-mongo는 mongoose 연결과 독립적으로 동작 (내부적으로 자체 연결 관리)
+        sessionStore = MongoStore.create({
+          mongoUrl: mongoURI,
+          dbName: 'vibe-coding-portfolio',
+          collectionName: 'sessions',
+          ttl: Math.floor(SESSION_CONFIG.MAX_AGE_MS / 1000), // 초 단위로 변환 (30일)
+          touchAfter: 24 * 3600, // 24시간마다 갱신 (성능 최적화)
+          stringify: false, // JSON 직렬화 비활성화 (성능 향상)
+          autoRemove: 'native', // MongoDB TTL 인덱스 사용 (자동 삭제)
+        });
+        
+        console.log('[Session] ✅ MongoDB 세션 저장소 초기화 성공');
+        console.log(`[Session] 세션 저장소: MongoDB (collection: sessions, TTL: ${SESSION_CONFIG.MAX_AGE_MS / 1000 / 60 / 60 / 24}일)`);
+      } catch (storeError) {
+        console.error('[Session] ❌ MongoDB 세션 저장소 초기화 실패:', storeError?.message);
+        console.warn('[Session] ⚠️  메모리 저장소로 폴백 (세션이 서버 재시작 시 사라짐)');
+        // MongoDB 연결 실패 시 메모리 저장소 사용 (fallback)
+        sessionStore = undefined;
+      }
+    } else {
+      if (!MongoStore) {
+        console.warn('[Session] ⚠️  connect-mongo 모듈이 없어 메모리 저장소 사용');
+      }
+      if (!mongoURI) {
+        console.warn('[Session] ⚠️  MONGODB_URI가 설정되지 않아 메모리 저장소 사용');
+      }
+      sessionStore = undefined;
+    }
+
+    // 쿠키 설정: sameSite 'none'은 반드시 secure: true와 함께 사용해야 함
+    const cookieSecure = isHttps; // HTTPS 환경에서만 true
+    const cookieSameSite = isHttps ? 'none' : 'lax'; // HTTPS에서는 'none', HTTP에서는 'lax'
+    
+    if (cookieSameSite === 'none' && !cookieSecure) {
+      console.warn('[Session] ⚠️  sameSite "none"은 secure: true와 함께 사용해야 합니다. secure를 true로 설정합니다.');
+    }
+
     app.use(session({
       name: SESSION_CONFIG.COOKIE_NAME,
       secret: SESSION_CONFIG.SECRET,
-      resave: false,
+      store: sessionStore, // MongoDB 세션 저장소 사용
+      resave: false, // MongoDB 저장소는 resave 불필요
       saveUninitialized: false,
       rolling: true, // 활동 시마다 세션 자동 갱신
       cookie: {
-        secure: false, // 개발 환경에서는 false, 프로덕션에서는 true
-        httpOnly: true,
-        sameSite: 'lax', // CSRF 보호
+        secure: cookieSecure, // HTTPS 환경에서는 true 필수 (sameSite 'none' 사용 시)
+        httpOnly: true, // XSS 공격 방지
+        sameSite: cookieSameSite, // HTTPS에서는 'none' (크로스 도메인 지원), HTTP에서는 'lax'
         path: '/',
         maxAge: SESSION_CONFIG.MAX_AGE_MS,
+        domain: process.env.COOKIE_DOMAIN || undefined, // 도메인 설정 (필요시)
       },
     }));
+    
+    // 세션 미들웨어 후 로깅
+    console.log('[Session] ✅ 세션 설정 완료:', {
+      store: sessionStore ? 'MongoDB' : 'Memory (⚠️ 서버 재시작 시 세션 손실)',
+      cookieName: SESSION_CONFIG.COOKIE_NAME,
+      maxAge: `${SESSION_CONFIG.MAX_AGE_MS / 1000 / 60 / 60 / 24}일`,
+      secure: cookieSecure,
+      sameSite: cookieSameSite,
+      rolling: true,
+      isHttps,
+      isProduction,
+    });
 
     if (withDbMiddleware) {
       app.use(asyncHandler(async (req, res, next) => {

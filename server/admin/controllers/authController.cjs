@@ -45,19 +45,33 @@ const check = (req, res) => {
     req.session.touch();
     req.session.save((err) => {
       if (err) {
-        console.error('[Auth] check - 세션 갱신 실패:', err);
+        console.error('[Auth] ❌ 세션 갱신 실패:', {
+          error: err?.message,
+          sessionID: req.sessionID,
+          stack: err?.stack,
+        });
       } else {
-        console.log('[Auth] check - 세션 갱신됨');
+        console.log('[Auth] ✅ 세션 갱신 성공:', {
+          sessionID: req.sessionID,
+          username: req.session?.username,
+        });
       }
     });
   }
   
-  console.log('[Auth] 인증 체크:', {
-    hasSession: !!req.session,
-    sessionID: req.sessionID,
-    isAuthenticated: req.session?.isAuthenticated,
-    authenticated
-  });
+  // 상세 로깅 (개발 환경에서만)
+  const isDev = process.env.NODE_ENV !== 'production';
+  if (isDev) {
+    console.log('[Auth] 인증 체크 상세:', {
+      hasSession: !!req.session,
+      sessionID: req.sessionID,
+      isAuthenticated: req.session?.isAuthenticated,
+      authenticated,
+      cookies: req.headers.cookie ? '쿠키 있음' : '쿠키 없음',
+      cookieHeader: req.headers.cookie?.substring(0, 50) + '...',
+    });
+  }
+  
   return ok(res, { authenticated });
 };
 
