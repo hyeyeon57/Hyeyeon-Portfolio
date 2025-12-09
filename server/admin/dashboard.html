@@ -406,6 +406,16 @@
     let currentMonthlyYear = new Date().getFullYear();
     let currentMonthlyMonth = new Date().getMonth() + 1;
     let isAuthenticated = false;
+    // 방문자 목록 필터/카운트 (그래프/목록에서 공통 사용, 초기 탭 전환 전에 선언)
+    let visitorFilters = {
+      startDate: '',
+      endDate: '',
+      sort: 'newest',
+      page: 1,
+      limit: 20,
+      excludeIp: false
+    };
+    let totalVisitorsCount = 0;
 
     const tabButtons = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
@@ -2984,17 +2994,6 @@
       };
       return pathMap[path] || path || '홈';
     }
-
-    // 방문자 목록 필터 상태
-    let visitorFilters = {
-      startDate: '',
-      endDate: '',
-      sort: 'newest',
-      page: 1,
-      limit: 20,
-      excludeIp: false
-    };
-    let totalVisitorsCount = 0;
 
     // 방문자 목록 로드
     async function loadVisitors(startDate = null, endDate = null, sort = 'newest', page = visitorFilters.page, limit = visitorFilters.limit) {

@@ -16,10 +16,8 @@ interface UseProjectsReturn {
  * - 에러 핸들링
  */
 export function useProjects(): UseProjectsReturn {
-  // Hydration 에러 방지: 서버와 클라이언트가 같은 초기값 사용
   const [projects, setProjects] = useState<Project[]>([]);
-  // 초기 로딩 상태를 false로 설정 (캐시 확인 후 필요시에만 true로 변경)
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
   // 초기 로드 완료 여부 추적 (무한 루프 방지)
@@ -170,92 +168,59 @@ export function useProjects(): UseProjectsReturn {
     if (hasInitialLoad.current) return;
     hasInitialLoad.current = true;
 
-    // localStorage와 sessionStorage에서 캐시된 데이터 확인 (localStorage 우선)
-    // 동기적으로 처리하여 즉시 표시
-    const CACHE_KEY = 'featured-projects-cache';
-    const CACHE_TIMESTAMP_KEY = 'featured-projects-cache-timestamp';
-    const CACHE_DURATION = 5 * 60 * 1000; // 5분
-    
-    let hasCachedData = false;
+    // 캐시 확인 (클라이언트에서만)
+    if (typeof window !== 'undefined') {
+      const CACHE_KEY = 'featured-projects-cache';
+      const CACHE_TIMESTAMP_KEY = 'featured-projects-cache-timestamp';
 
-    // 1. localStorage 캐시 확인 (더 오래 유지됨)
-    try {
-      const cached = window.localStorage.getItem(CACHE_KEY);
-      const cacheTimestamp = window.localStorage.getItem(CACHE_TIMESTAMP_KEY);
-      
-      if (cached && cacheTimestamp) {
-        const cacheAge = Date.now() - parseInt(cacheTimestamp);
-        if (cacheAge < CACHE_DURATION) {
-          const parsed = JSON.parse(cached);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            console.log('✅ localStorage 캐시된 프로젝트 데이터 사용:', parsed.length);
-            // featured 프로젝트를 상단에 정렬
-            const sortedProjects = [...parsed].sort((a: any, b: any) => {
-              const aFeatured = a.featured === true || a.featured === 'true';
-              const bFeatured = b.featured === true || b.featured === 'true';
-              if (aFeatured && !bFeatured) return -1;
-              if (!aFeatured && bFeatured) return 1;
-              return 0;
-            });
-            setProjects(sortedProjects as Project[]);
-            setLoading(false);
-            setError(null);
-            hasCachedData = true;
-            
-            // 백그라운드에서 최신 데이터 가져오기
-            fetchProjects(true).catch((err) => {
-              console.warn('⚠️ 백그라운드 프로젝트 업데이트 실패 (캐시 데이터 유지):', err.message);
-            });
-          }
-        }
-      }
-    } catch {
-      // localStorage 캐시 읽기 실패 시 무시
-    }
-
-    // 2. localStorage 캐시가 없으면 sessionStorage 확인
-    if (!hasCachedData) {
       try {
-        const cached = window.sessionStorage.getItem(CACHE_KEY);
+        const cached = window.localStorage.getItem(CACHE_KEY);
         if (cached) {
           const parsed = JSON.parse(cached);
-          if (Array.isArray(parsed?.data) && parsed.data.length > 0) {
-            // featured 프로젝트를 상단에 정렬
-            const sortedProjects = [...parsed.data].sort((a: any, b: any) => {
-              const aFeatured = a.featured === true || a.featured === 'true';
-              const bFeatured = b.featured === true || b.featured === 'true';
-              if (aFeatured && !bFeatured) return -1;
-              if (!aFeatured && bFeatured) return 1;
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            const sorted = [...parsed].sort((a: any, b: any) => {
+              const af = a.featured === true || a.featured === 'true';
+              const bf = b.featured === true || b.featured === 'true';
+              if (af && !bf) return -1;
+              if (!af && bf) return 1;
               return 0;
             });
-            setProjects(sortedProjects as Project[]);
+            setProjects(sorted as Project[]);
             setLoading(false);
             setError(null);
-            hasCachedData = true;
-            
-            // 캐시가 오래되었는지 확인
-            const updatedAt = typeof parsed?.updatedAt === 'number' ? parsed.updatedAt : 0;
-            const tenMinutes = 10 * 60 * 1000;
-            const shouldRefresh = Date.now() - updatedAt > tenMinutes;
-            
-            // 백그라운드에서 최신 데이터로 업데이트
-            if (shouldRefresh) {
-              fetchProjects(true).catch((err) => {
-                console.warn('⚠️ 백그라운드 프로젝트 업데이트 실패 (캐시 데이터 유지):', err.message);
-              });
-            }
           }
         }
       } catch {
-        // sessionStorage 캐시 읽기 실패 시 무시
+        // ignore
+      }
+
+      // sessionStorage 백업
+      if (projects.length === 0) {
+        try {
+          const cachedSession = window.sessionStorage.getItem(CACHE_KEY);
+          if (cachedSession) {
+            const parsed = JSON.parse(cachedSession);
+            if (Array.isArray(parsed?.data) && parsed.data.length > 0) {
+              const sorted = [...parsed.data].sort((a: any, b: any) => {
+                const af = a.featured === true || a.featured === 'true';
+                const bf = b.featured === true || b.featured === 'true';
+                if (af && !bf) return -1;
+                if (!af && bf) return 1;
+                return 0;
+              });
+              setProjects(sorted as Project[]);
+              setLoading(false);
+              setError(null);
+            }
+          }
+        } catch {
+          // ignore
+        }
       }
     }
 
-    // 3. 캐시가 없으면 로딩 상태 표시하고 페치
-    if (!hasCachedData) {
-      setLoading(true);
-      fetchProjects(false);
-    }
+    // 초기 페치 (백그라운드 최신화)
+    fetchProjects(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // 빈 의존성 배열 - 초기 마운트 시 한 번만 실행 (fetchProjects는 useCallback으로 안정적)
 

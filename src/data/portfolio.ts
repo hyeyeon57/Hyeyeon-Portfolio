@@ -12,7 +12,7 @@ export const personalInfo: PersonalInfo = {
   social: {
     github: '#',
     linkedin: 'https://www.linkedin.com/in/hyeyeon-jang57',
-    brunch: 'https://brunch.co.kr/ready',
+    brunch: 'https://brunch.co.kr/@b5da631e8704468/2',
     notion: '#'
   },
   availableDate: '채용 확정 후 즉시 가능',

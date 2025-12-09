@@ -10,8 +10,8 @@ type Project = typeof initialProjects[0];
 
 export default function AllProjectsPage() {
   const [isMounted, setIsMounted] = useState(false);
-  const [projects, setProjects] = useState<Project[]>([]); // 초기값을 빈 배열로 변경 (정적 데이터 사용 안 함)
-  const [loading, setLoading] = useState(false); // 초기 로딩 상태를 false로 설정 (캐시 확인 후 필요시에만 true로 변경)
+  const [projects, setProjects] = useState<Project[]>([]); // 초기 빈 배열
+  const [loading, setLoading] = useState(true); // 초기 로딩 true
   const [selectedCategories, setSelectedCategories] = useState<string[]>(['all']);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [showGalleryModal, setShowGalleryModal] = useState(false);
@@ -102,51 +102,7 @@ export default function AllProjectsPage() {
     logVisit();
     
     const fetchProjects = async (forceRefresh = false) => {
-      // localStorage에서 캐시된 데이터 확인 (5분 이내 데이터만 사용)
-      // 동기적으로 처리하여 즉시 표시
-      const CACHE_KEY = 'projects_cache';
-      const CACHE_TIMESTAMP_KEY = 'projects_cache_timestamp';
-      const CACHE_DURATION = 5 * 60 * 1000; // 5분
-      
-      let hasCachedData = false;
-      
-      // 캐시 확인을 먼저 수행 (동기적으로)
-      if (!forceRefresh && typeof window !== 'undefined') {
-        try {
-          const cachedData = localStorage.getItem(CACHE_KEY);
-          const cacheTimestamp = localStorage.getItem(CACHE_TIMESTAMP_KEY);
-          
-          if (cachedData && cacheTimestamp) {
-            const cacheAge = Date.now() - parseInt(cacheTimestamp);
-            if (cacheAge < CACHE_DURATION) {
-              try {
-                const parsedProjects = JSON.parse(cachedData);
-                if (Array.isArray(parsedProjects) && parsedProjects.length > 0) {
-                  console.log('✅ 캐시된 프로젝트 데이터 사용:', parsedProjects.length);
-                  // featured 프로젝트를 상단에 정렬
-                  const sortedProjects = [...parsedProjects].sort((a, b) => {
-                    if (a.featured && !b.featured) return -1;
-                    if (!a.featured && b.featured) return 1;
-                    return 0;
-                  });
-                  setProjects(sortedProjects);
-                  setLoading(false);
-                  hasCachedData = true;
-                  // 백그라운드에서 최신 데이터 가져오기
-                  forceRefresh = true;
-                }
-              } catch (e) {
-                console.warn('캐시 데이터 파싱 실패:', e);
-              }
-            }
-          }
-        } catch (e) {
-          console.warn('캐시 읽기 실패:', e);
-        }
-      }
-      
-      // 캐시가 없거나 강제 새로고침인 경우에만 로딩 상태 표시
-      if (!hasCachedData) {
+      if (forceRefresh) {
         setLoading(true);
       }
       
@@ -168,11 +124,6 @@ export default function AllProjectsPage() {
             statusText: response.statusText,
             url: response.url
           });
-          // API 호출 실패 시 캐시된 데이터가 없으면 빈 배열 설정
-          if (!hasCachedData) {
-            setProjects([]);
-            setLoading(false);
-          }
           return;
         }
         
@@ -226,6 +177,8 @@ export default function AllProjectsPage() {
             // localStorage에 캐시 저장
             if (typeof window !== 'undefined') {
               try {
+                const CACHE_KEY = 'projects_cache';
+                const CACHE_TIMESTAMP_KEY = 'projects_cache_timestamp';
                 localStorage.setItem(CACHE_KEY, JSON.stringify(boProjects));
                 localStorage.setItem(CACHE_TIMESTAMP_KEY, Date.now().toString());
               } catch (e) {
@@ -240,23 +193,57 @@ export default function AllProjectsPage() {
         } else {
           // 응답 형식 오류 시 빈 배열 사용 (정적 데이터 사용 안 함)
           console.error('❌ 백엔드 응답 형식 오류:', result);
-          if (!hasCachedData) {
-            setProjects([]);
-          }
+          setProjects([]);
         }
       } catch (error) {
         console.error('❌ 프로젝트 로드 오류:', error);
         // 오류 시 캐시된 데이터가 없으면 빈 배열 설정
-        if (!hasCachedData) {
-          setProjects([]);
-        }
+        setProjects([]);
       } finally {
         setLoading(false);
       }
     };
 
-    // 초기 한 번만 로드
-    fetchProjects(false); // 캐시 우선 사용
+    // 캐시 로드 (클라이언트)
+    const CACHE_KEY = 'projects_cache';
+    try {
+      if (typeof window !== 'undefined') {
+        const cached = localStorage.getItem(CACHE_KEY);
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            const sorted = [...parsed].sort((a, b) => {
+              if (a.featured && !b.featured) return -1;
+              if (!a.featured && b.featured) return 1;
+              return 0;
+            });
+            setProjects(sorted);
+            setLoading(false);
+          }
+        }
+        // sessionStorage 백업
+        if (projects.length === 0) {
+          const cachedSession = sessionStorage.getItem(CACHE_KEY);
+          if (cachedSession) {
+            const parsed = JSON.parse(cachedSession);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              const sorted = [...parsed].sort((a, b) => {
+                if (a.featured && !b.featured) return -1;
+                if (!a.featured && b.featured) return 1;
+                return 0;
+              });
+              setProjects(sorted);
+              setLoading(false);
+            }
+          }
+        }
+      }
+    } catch {
+      // ignore
+    }
+
+    // 초기 로드 (캐시가 있더라도 최신화)
+    fetchProjects(false);
   }, []);
 
   // 모달 이미지 툴팁: 모달 진입 후 3초간 표시
