@@ -589,7 +589,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                     <span className="text-brand-main">📋</span>
                     프로젝트 개요
                   </h3>
-                  <p className="text-text-secondary leading-relaxed">
+                  <p className="text-text-secondary leading-relaxed whitespace-pre-line">
                     {selectedProject.description}
                   </p>
                 </div>
@@ -619,7 +619,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                       <span className="text-brand-main">💭</span>
                       회고
                     </h3>
-                    <p className="text-text-secondary leading-relaxed">
+                    <p className="text-text-secondary leading-relaxed whitespace-pre-line">
                       {selectedProject.retrospective}
                     </p>
                   </div>

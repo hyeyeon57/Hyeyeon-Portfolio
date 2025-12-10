@@ -236,7 +236,7 @@ export const renderDetailModal = (project, files, categoryLabels, isAuthenticate
           </div>
           ${project.fullDescription ? `
             <div>
-              <h3 class="text-sm font-medium text-gray-500 mb-1">상세 설명</h3>
+              <h3 class="text-sm font-medium text-gray-500 mb-1">프로젝트 개요</h3>
               <p class="text-gray-700 whitespace-pre-line">${project.fullDescription}</p>
             </div>
           ` : ''}
@@ -374,7 +374,7 @@ export const renderEditModal = (project, categoryLabels) => {
                 <textarea name="description" required rows="3" class="w-full px-4 py-2.5 text-xs text-gray-700 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all resize-none bg-white">${project.description || ''}</textarea>
               </div>
               <div>
-                <label class="block text-sm font-semibold text-gray-900 mb-2">상세 설명</label>
+                <label class="block text-sm font-semibold text-gray-900 mb-2">프로젝트 개요</label>
                 <textarea name="fullDescription" rows="4" class="w-full px-4 py-2.5 text-xs text-gray-700 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all resize-none bg-white">${project.fullDescription || ''}</textarea>
               </div>
             <div class="grid grid-cols-2 gap-4">
@@ -435,6 +435,10 @@ export const renderEditModal = (project, categoryLabels) => {
             <div>
               <label class="block text-sm font-semibold text-gray-900 mb-2">주요 성과 <span class="text-xs text-gray-500 font-normal">(줄바꿈으로 구분)</span></label>
               <textarea name="achievements" rows="4" class="w-full px-4 py-2.5 text-xs text-gray-700 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all resize-none bg-white" placeholder="각 성과를 새 줄에 입력하세요">${(project.achievements || []).join('\\n')}</textarea>
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-gray-900 mb-2">회고</label>
+              <textarea name="retrospective" rows="5" class="w-full px-4 py-2.5 text-xs text-gray-700 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all resize-none bg-white" placeholder="프로젝트를 진행하며 느낀 점, 배운 점, 개선할 점 등을 작성하세요">${project.retrospective || ''}</textarea>
             </div>
             <div class="flex justify-center pt-4 border-t border-gray-200 mt-4">
               <button type="submit" form="editForm" class="w-full px-6 py-3 text-white rounded-lg text-sm font-medium shadow-sm transition-colors" style="background-color: #7A68F6;" onmouseover="this.style.backgroundColor='#6B5AE5'" onmouseout="this.style.backgroundColor='#7A68F6'">

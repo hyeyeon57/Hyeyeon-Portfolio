@@ -818,7 +818,7 @@ export default function AllProjectsPage() {
                     <span className="text-brand-main">📋</span>
                     프로젝트 개요
                   </h3>
-                <p className="text-text-secondary leading-relaxed">
+                <p className="text-text-secondary leading-relaxed whitespace-pre-line">
                     {selectedProject.description}
                 </p>
               </div>
