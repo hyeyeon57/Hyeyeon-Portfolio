@@ -22,11 +22,16 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSave, onCan
     return `${year}-${month}`;
   };
 
-  const [achievements, setAchievements] = useState<string[]>(
-    (project as any)?.achievements && Array.isArray((project as any).achievements) 
-      ? (project as any).achievements.filter((a: string) => a && a.trim() !== '')
-      : []
-  );
+  const [achievements, setAchievements] = useState<string[]>(() => {
+    const initial = (project as any)?.achievements && Array.isArray((project as any).achievements) 
+      ? (project as any).achievements.slice(0, 3)
+      : [];
+    // 3개로 맞추기 (빈 문자열 포함)
+    while (initial.length < 3) {
+      initial.push('');
+    }
+    return initial.slice(0, 3);
+  });
 
   const [formData, setFormData] = useState({
     title: project?.title || '',
@@ -876,43 +881,43 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSave, onCan
       {/* 주요 성과 (FO 모달과 동일한 순서) */}
       <div>
         <label className="block text-sm font-medium text-text-secondary mb-2">
-          <span className="text-brand-main">🎯</span> 주요 성과
+          <span className="text-brand-main">🎯</span> 주요 성과 (최대 3개)
         </label>
         <div className="space-y-2">
-          {achievements.map((achievement, index) => (
-            <div key={index} className="flex gap-2 items-center">
-              <input
-                type="text"
-                value={achievement}
+          {[0, 1, 2].map((index) => (
+            <div key={index} className="flex gap-2 items-start">
+              <div className="flex items-center justify-center w-8 h-8 mt-1 flex-shrink-0">
+                <span className="text-brand-main text-lg">🎯</span>
+              </div>
+              <textarea
+                value={achievements[index] || ''}
                 onChange={(e) => {
                   const newAchievements = [...achievements];
                   newAchievements[index] = e.target.value;
-                  setAchievements(newAchievements);
+                  // 빈 항목 제거 후 배열 정리
+                  const filtered = newAchievements.filter((_, i) => i <= index || (newAchievements[i] && newAchievements[i].trim() !== ''));
+                  setAchievements(filtered.length > index ? filtered : newAchievements);
                 }}
-                placeholder={`성과 ${index + 1}`}
-                className="flex-1 px-4 py-2 border border-line-medium rounded-lg focus:outline-none focus:border-brand-main"
+                placeholder={`성과 ${index + 1} (엔터로 줄바꿈 가능)`}
+                rows={2}
+                className="flex-1 px-4 py-2 border border-line-medium rounded-lg focus:outline-none focus:border-brand-main resize-y"
               />
-              <button
-                type="button"
-                onClick={() => {
-                  const newAchievements = achievements.filter((_, i) => i !== index);
-                  setAchievements(newAchievements);
-                }}
-                className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
+              {achievements[index] && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const newAchievements = achievements.filter((_, i) => i !== index);
+                    setAchievements(newAchievements);
+                  }}
+                  className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors mt-1"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
             </div>
           ))}
-          <button
-            type="button"
-            onClick={() => setAchievements([...achievements, ''])}
-            className="w-full px-4 py-2 border border-line-medium border-dashed rounded-lg text-text-secondary hover:bg-bg-secondary transition-colors"
-          >
-            + 성과 추가
-          </button>
         </div>
-        <p className="text-xs text-text-secondary mt-1">각 성과를 개별적으로 입력하세요. FO 모달의 "주요 성과" 섹션에 표시됩니다</p>
+        <p className="text-xs text-text-secondary mt-1">최대 3개의 성과를 입력할 수 있습니다. 각 성과 내에서 엔터를 눌러 줄바꿈할 수 있습니다.</p>
       </div>
 
       {/* 회고 (FO 모달과 동일한 순서) */}

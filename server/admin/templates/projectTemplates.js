@@ -276,9 +276,12 @@ export const renderDetailModal = (project, files, categoryLabels, isAuthenticate
           ${(project.achievements || []).length > 0 ? `
             <div>
               <h3 class="text-sm font-medium text-gray-500 mb-2">주요 성과</h3>
-              <ul class="list-disc list-inside space-y-1 text-gray-700">
-                ${(project.achievements || []).map(achievement => `
-                  <li>${achievement}</li>
+              <ul class="list-none space-y-2 text-gray-700">
+                ${(project.achievements || []).slice(0, 3).map(achievement => `
+                  <li class="flex items-start gap-2">
+                    <span class="text-purple-600 mt-0.5">🎯</span>
+                    <span class="whitespace-pre-line">${achievement.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</span>
+                  </li>
                 `).join('')}
               </ul>
             </div>
@@ -426,37 +429,26 @@ export const renderEditModal = (project, categoryLabels) => {
               </div>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-900 mb-2">주요 성과</label>
+              <label class="block text-sm font-medium text-gray-900 mb-2">주요 성과 (최대 3개)</label>
               <div id="achievementsContainer" class="space-y-2">
-                ${(project.achievements || []).map((achievement, index) => `
-                  <div class="flex gap-2 items-center achievement-item">
-                    <input type="text" name="achievements[]" value="${achievement.replace(/"/g, '&quot;')}" placeholder="성과 ${index + 1}" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-xs text-gray-700" />
-                    <button type="button" onclick="this.parentElement.remove()" class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                ${[0, 1, 2].map((index) => {
+                  const achievement = (project.achievements || [])[index] || '';
+                  return `
+                  <div class="flex gap-2 items-start achievement-item">
+                    <div class="flex items-center justify-center w-8 h-8 mt-1 flex-shrink-0">
+                      <span class="text-purple-600 text-lg">🎯</span>
+                    </div>
+                    <textarea name="achievements[]" rows="2" placeholder="성과 ${index + 1} (엔터로 줄바꿈 가능)" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-xs text-gray-700 resize-y">${achievement.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</textarea>
+                    ${achievement ? `
+                    <button type="button" onclick="const item = this.closest('.achievement-item'); const textarea = item.querySelector('textarea'); textarea.value = '';" class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors mt-1">
                       <i data-lucide="x" class="w-4 h-4"></i>
                     </button>
+                    ` : ''}
                   </div>
-                `).join('')}
-                <button type="button" onclick="addAchievementField()" class="w-full px-4 py-2 border border-gray-300 border-dashed rounded-lg text-gray-600 hover:bg-gray-50 transition-colors text-xs">
-                  + 성과 추가
-                </button>
+                `;
+                }).join('')}
               </div>
-              <script>
-                function addAchievementField() {
-                  const container = document.getElementById('achievementsContainer');
-                  const itemCount = container.querySelectorAll('.achievement-item').length;
-                  const newItem = document.createElement('div');
-                  newItem.className = 'flex gap-2 items-center achievement-item';
-                  newItem.innerHTML = \`
-                    <input type="text" name="achievements[]" placeholder="성과 \${itemCount + 1}" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-xs text-gray-700" />
-                    <button type="button" onclick="this.parentElement.remove()" class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors">
-                      <i data-lucide="x" class="w-4 h-4"></i>
-                    </button>
-                  \`;
-                  const addButton = container.querySelector('button[onclick*="addAchievementField"]');
-                  container.insertBefore(newItem, addButton);
-                  if (window.lucide) window.lucide.createIcons();
-                }
-              </script>
+              <p class="text-xs text-gray-500 mt-1">최대 3개의 성과를 입력할 수 있습니다. 각 성과 내에서 엔터를 눌러 줄바꿈할 수 있습니다.</p>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-900 mb-2">회고</label>

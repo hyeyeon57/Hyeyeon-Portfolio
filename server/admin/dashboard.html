@@ -2439,39 +2439,27 @@
                 if (teamInput) teamInput.value = updatedProject.team || '';
                 if (roleInput) roleInput.value = updatedProject.role || '';
                 if (linkInput) linkInput.value = updatedProject.link || '';
-                // 주요 성과 필드 업데이트 (동적 필드)
+                // 주요 성과 필드 업데이트 (최대 3개 고정)
                 if (achievementsContainer && updatedProject.achievements) {
                   achievementsContainer.innerHTML = '';
-                  (updatedProject.achievements || []).forEach((achievement, index) => {
+                  const achievements = (updatedProject.achievements || []).slice(0, 3);
+                  [0, 1, 2].forEach((index) => {
+                    const achievement = achievements[index] || '';
                     const item = document.createElement('div');
-                    item.className = 'flex gap-2 items-center achievement-item';
+                    item.className = 'flex gap-2 items-start achievement-item';
                     item.innerHTML = `
-                      <input type="text" name="achievements[]" value="${achievement.replace(/"/g, '&quot;')}" placeholder="성과 ${index + 1}" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-xs text-gray-700" />
-                      <button type="button" onclick="this.parentElement.remove()" class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                      <div class="flex items-center justify-center w-8 h-8 mt-1 flex-shrink-0">
+                        <span class="text-purple-600 text-lg">🎯</span>
+                      </div>
+                      <textarea name="achievements[]" rows="2" placeholder="성과 ${index + 1} (엔터로 줄바꿈 가능)" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-xs text-gray-700 resize-y">${achievement.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')}</textarea>
+                      ${achievement ? `
+                      <button type="button" onclick="const item = this.closest('.achievement-item'); const textarea = item.querySelector('textarea'); textarea.value = '';" class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors mt-1">
                         <i data-lucide="x" class="w-4 h-4"></i>
                       </button>
+                      ` : ''}
                     `;
                     achievementsContainer.appendChild(item);
                   });
-                  const addButton = document.createElement('button');
-                  addButton.type = 'button';
-                  addButton.onclick = function() {
-                    const container = document.getElementById('achievementsContainer');
-                    const itemCount = container.querySelectorAll('.achievement-item').length;
-                    const newItem = document.createElement('div');
-                    newItem.className = 'flex gap-2 items-center achievement-item';
-                    newItem.innerHTML = `
-                      <input type="text" name="achievements[]" placeholder="성과 ${itemCount + 1}" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-xs text-gray-700" />
-                      <button type="button" onclick="this.parentElement.remove()" class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors">
-                        <i data-lucide="x" class="w-4 h-4"></i>
-                      </button>
-                    `;
-                    container.insertBefore(newItem, addButton);
-                    if (window.lucide) window.lucide.createIcons();
-                  };
-                  addButton.className = 'w-full px-4 py-2 border border-gray-300 border-dashed rounded-lg text-gray-600 hover:bg-gray-50 transition-colors text-xs';
-                  addButton.textContent = '+ 성과 추가';
-                  achievementsContainer.appendChild(addButton);
                   if (window.lucide) window.lucide.createIcons();
                 }
                 if (retrospectiveInput) retrospectiveInput.value = updatedProject.retrospective || '';

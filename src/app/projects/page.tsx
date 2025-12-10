@@ -831,10 +831,10 @@ export default function AllProjectsPage() {
                       주요 성과
                     </h3>
                     <ul className="space-y-3">
-                    {selectedProject.achievements.map((achievement, i) => (
+                    {selectedProject.achievements.slice(0, 3).map((achievement, i) => (
                         <li key={i} className="flex items-start gap-3 text-text-secondary">
                           <Award size={18} className="text-brand-main mt-0.5 flex-shrink-0" />
-                          <span className="leading-relaxed">{achievement}</span>
+                          <span className="leading-relaxed whitespace-pre-line">{achievement}</span>
                         </li>
                       ))}
                     </ul>
