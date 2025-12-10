@@ -366,7 +366,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                   </p>
 
                   {/* Description */}
-                  <p className="text-text-secondary text-sm mb-3 line-clamp-2 flex-1">
+                  <p className="text-text-secondary text-sm mb-3 line-clamp-2 flex-1 whitespace-pre-line">
                     {project.description}
                   </p>
 

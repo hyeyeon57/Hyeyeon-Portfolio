@@ -232,7 +232,7 @@ export const renderDetailModal = (project, files, categoryLabels, isAuthenticate
           </div>
           <div>
             <h3 class="text-sm font-medium text-gray-500 mb-1">설명</h3>
-            <p class="text-gray-700">${project.description || ''}</p>
+            <p class="text-gray-700 whitespace-pre-line">${project.description || ''}</p>
           </div>
           ${project.fullDescription ? `
             <div>
