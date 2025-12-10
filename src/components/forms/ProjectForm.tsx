@@ -530,16 +530,105 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSave, onCan
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-text-secondary mb-2">메인 이미지 경로 (선택)</label>
-        <input
-          type="text"
-          name="image"
-          value={formData.image}
-          onChange={handleChange}
-          placeholder="/projects/image.jpg"
-          className="w-full px-4 py-2 border border-line-medium rounded-lg focus:outline-none focus:border-brand-main"
-        />
-        <p className="text-xs text-text-secondary mt-1">비워두면 저장되지 않습니다</p>
+        <label className="block text-sm font-medium text-text-secondary mb-2">메인 이미지 (선택)</label>
+        <div className="flex gap-2">
+          <input
+            type="file"
+            accept="image/*"
+            disabled={isUploading || !!pdfUploadProgress['mainImage']}
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              
+              if (!file.type.startsWith('image/')) {
+                alert('이미지 파일만 업로드 가능합니다.');
+                e.target.value = '';
+                return;
+              }
+
+              setIsUploading(true);
+              setPdfUploadProgress(prev => ({ ...prev, mainImage: '업로드 중...' }));
+
+              try {
+                const uploadFormData = new FormData();
+                uploadFormData.append('files', file);
+
+                console.log('메인 이미지 업로드 시작:', file.name, file.size, file.type);
+
+                const response = await fetch('/api/upload', {
+                  method: 'POST',
+                  body: uploadFormData,
+                });
+
+                console.log('메인 이미지 업로드 응답 상태:', response.status, response.statusText);
+
+                if (!response.ok) {
+                  const errorText = await response.text();
+                  console.error('메인 이미지 업로드 HTTP 오류:', errorText);
+                  throw new Error(`서버 오류: ${response.status} ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                console.log('메인 이미지 업로드 결과:', result);
+
+                if (result.success && result.paths && result.paths.length > 0) {
+                  setPdfUploadProgress(prev => ({ ...prev, mainImage: `✓ ${result.paths[0]}` }));
+                  setFormData(prev => ({ ...prev, image: result.paths[0] }));
+                  setTimeout(() => setPdfUploadProgress(prev => {
+                    const newProgress = { ...prev };
+                    delete newProgress.mainImage;
+                    return newProgress;
+                  }), 3000);
+                } else {
+                  throw new Error(result.error || '업로드 실패');
+                }
+              } catch (error: any) {
+                console.error('메인 이미지 업로드 오류:', error);
+                alert(`이미지 파일 업로드 중 오류가 발생했습니다: ${error.message || '알 수 없는 오류'}`);
+                setPdfUploadProgress(prev => {
+                  const newProgress = { ...prev };
+                  delete newProgress.mainImage;
+                  return newProgress;
+                });
+              } finally {
+                setIsUploading(false);
+                e.target.value = '';
+              }
+            }}
+            className="flex-1 px-4 py-2 border border-line-medium rounded-lg focus:outline-none focus:border-brand-main file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-brand-main/10 file:text-brand-main hover:file:bg-brand-main/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          />
+          {formData.image && (
+            <button
+              type="button"
+              onClick={() => {
+                setFormData(prev => ({ ...prev, image: '' }));
+              }}
+              className="px-4 py-2 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500/20 transition-colors text-sm font-medium whitespace-nowrap"
+            >
+              이미지 제거
+            </button>
+          )}
+        </div>
+        {pdfUploadProgress['mainImage'] && (
+          <p className="text-xs text-brand-main mt-1">{pdfUploadProgress['mainImage']}</p>
+        )}
+        {formData.image && !pdfUploadProgress['mainImage'] && (
+          <div className="mt-2">
+            <p className="text-xs text-text-secondary mb-1">현재 이미지:</p>
+            <div className="flex items-center gap-2">
+              <img 
+                src={formData.image} 
+                alt="메인 이미지 미리보기"
+                className="w-24 h-24 object-cover rounded border border-line-medium"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
+              />
+              <span className="text-xs text-text-secondary truncate flex-1">{formData.image.split('/').pop()}</span>
+            </div>
+          </div>
+        )}
+        <p className="text-xs text-text-secondary mt-1">또는 직접 경로 입력: <input type="text" name="image" value={formData.image} onChange={handleChange} placeholder="/projects/image.jpg" className="ml-1 px-2 py-1 text-xs border border-line-medium rounded" /></p>
       </div>
 
       <div>
@@ -563,20 +652,31 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSave, onCan
             setUploadProgress('업로드 중...');
 
             try {
-              const formData = new FormData();
+              const uploadFormData = new FormData();
               files.forEach((file) => {
-                formData.append('files', file);
+                uploadFormData.append('files', file);
               });
+
+              console.log('갤러리 이미지 업로드 시작:', files.length, '개 파일');
 
               const response = await fetch('/api/upload', {
                 method: 'POST',
-                body: formData,
+                body: uploadFormData,
               });
 
-              const result = await response.json();
+              console.log('갤러리 이미지 업로드 응답 상태:', response.status, response.statusText);
 
-              if (result.success) {
-                setUploadProgress(`✓ ${result.message}`);
+              if (!response.ok) {
+                const errorText = await response.text();
+                console.error('갤러리 이미지 업로드 HTTP 오류:', errorText);
+                throw new Error(`서버 오류: ${response.status} ${response.statusText}`);
+              }
+
+              const result = await response.json();
+              console.log('갤러리 이미지 업로드 결과:', result);
+
+              if (result.success && result.paths && result.paths.length > 0) {
+                setUploadProgress(`✓ ${result.paths.length}개 이미지 업로드 완료`);
                 setFormData(prev => {
                   const existingGallery = prev.gallery ? prev.gallery.split('\n').filter(Boolean) : [];
                   const newGallery = [...existingGallery, ...result.paths];
@@ -589,9 +689,9 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSave, onCan
               } else {
                 throw new Error(result.error || '업로드 실패');
               }
-            } catch (error) {
-              console.error('업로드 오류:', error);
-              alert('파일 업로드 중 오류가 발생했습니다.');
+            } catch (error: any) {
+              console.error('갤러리 이미지 업로드 오류:', error);
+              alert(`이미지 파일 업로드 중 오류가 발생했습니다: ${error.message || '알 수 없는 오류'}`);
               setUploadProgress('');
             } finally {
               setIsUploading(false);
@@ -741,12 +841,10 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSave, onCan
                     <button
                       type="button"
                       onClick={removeImage}
-                      className="p-1 text-red-500 hover:bg-red-50 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="p-1 text-red-500 hover:bg-red-50 rounded transition-colors"
                       title="이미지 제거"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
+                      <X className="w-4 h-4" />
                     </button>
                   </div>
                 );
