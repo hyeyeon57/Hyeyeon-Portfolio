@@ -334,7 +334,7 @@ export const renderEditModal = (project, categoryLabels) => {
   const hasImage = hasMainImage && hasGalleryImages;
   
   return `
-    <div class="fixed inset-0 bg-black/60 z-[9999] flex items-center justify-center p-4" style="backdrop-filter: blur(4px);" onclick="this.remove()">
+    <div class="fixed inset-0 bg-black/60 z-[9999] flex items-center justify-center p-4" style="backdrop-filter: blur(4px);">
       <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[92vh] flex flex-col relative z-[10000] overflow-hidden border border-gray-100" onclick="event.stopPropagation()">
         <div class="flex-shrink-0 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200 px-6 py-4 flex justify-between items-center">
           <div class="flex items-center gap-3">

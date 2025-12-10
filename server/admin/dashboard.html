@@ -1332,13 +1332,22 @@
         }
       }, 100);
       
-      // 모달 외부 클릭으로 닫히는 기능 비활성화 (저장 후에도 모달이 열려있도록)
+      // 모달 외부 클릭으로 닫히는 기능 완전히 비활성화 (X 버튼으로만 닫히도록)
       const modalBackdrop = document.getElementById('editModalBackdrop');
       if (modalBackdrop) {
-        // 외부 클릭으로 닫히는 기능 제거
+        // 모든 클릭 이벤트 제거
         modalBackdrop.onclick = null;
-        // 대신 더블클릭이나 특정 조건에서만 닫히도록 설정 (선택사항)
-        // 또는 완전히 제거
+        // 이벤트 리스너도 제거
+        modalBackdrop.removeEventListener('click', modalBackdrop.onclick);
+        // 배경 클릭 시 아무 동작도 하지 않도록 명시적으로 설정
+        modalBackdrop.addEventListener('click', (e) => {
+          // 배경 자체를 클릭한 경우에만 이벤트를 막음 (모달 내부는 stopPropagation으로 처리됨)
+          if (e.target === modalBackdrop) {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+          }
+        }, { capture: true });
       }
       
       // 편집 모달이 열려있는 동안 주기적으로 세션 갱신 (5분마다)
