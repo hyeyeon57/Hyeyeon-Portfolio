@@ -2026,6 +2026,7 @@
           duration: fd.get('duration') || '',
           link: fd.get('link') || '',
           achievements: fd.get('achievements') ? fd.get('achievements').toString().split('\\n').map(a => a.trim()).filter(Boolean) : [],
+          retrospective: fd.get('retrospective') || '',
           removeMainImage,
           removeDesignPdf: finalRemoveDesignPdf,
           removeDetailPdf: finalRemoveDetailPdf,
@@ -2401,9 +2402,10 @@
                 const roleInput = form.querySelector('input[name="role"]');
                 const linkInput = form.querySelector('input[name="link"]');
                 const achievementsInput = form.querySelector('textarea[name="achievements"]');
+                const retrospectiveInput = form.querySelector('textarea[name="retrospective"]');
                 
                 // 모든 입력 필드 활성화 및 값 업데이트
-                const inputs = [titleInput, subtitleInput, descriptionInput, fullDescriptionInput, tagsInput, startDateInput, endDateInput, teamInput, roleInput, linkInput, achievementsInput];
+                const inputs = [titleInput, subtitleInput, descriptionInput, fullDescriptionInput, tagsInput, startDateInput, endDateInput, teamInput, roleInput, linkInput, achievementsInput, retrospectiveInput];
                 inputs.forEach(input => {
                   if (input) {
                     input.disabled = false;
@@ -2438,6 +2440,7 @@
                 if (roleInput) roleInput.value = updatedProject.role || '';
                 if (linkInput) linkInput.value = updatedProject.link || '';
                 if (achievementsInput) achievementsInput.value = (updatedProject.achievements || []).join('\\n');
+                if (retrospectiveInput) retrospectiveInput.value = updatedProject.retrospective || '';
                 
                 // 이미지 및 갤러리 상태 업데이트
                 window.editMainImageUrl = updatedProject.image || null;
