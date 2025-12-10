@@ -124,6 +124,7 @@
           <table class="w-full">
             <thead class="bg-gray-50 border-b">
               <tr>
+                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase w-16" title="드래그하여 순서 변경"></th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">제목</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">카테고리</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">태그</th>
@@ -968,13 +969,21 @@
         }
         
         projects = Array.isArray(data.data) ? data.data : [];
-        // featured 프로젝트를 상단에 정렬
+        // order 필드로 정렬 (order가 없으면 0으로 처리), 같은 order면 featured 우선, 그 다음 createdAt 역순
         projects.sort((a, b) => {
+          const aOrder = a.order || 0;
+          const bOrder = b.order || 0;
+          if (aOrder !== bOrder) return aOrder - bOrder;
+          
           const aFeatured = a.featured === true || a.featured === 'true';
           const bFeatured = b.featured === true || b.featured === 'true';
-          if (aFeatured && !bFeatured) return -1; // a가 featured면 위로
-          if (!aFeatured && bFeatured) return 1;  // b가 featured면 위로
-          return 0; // 둘 다 featured이거나 둘 다 아니면 기존 순서 유지
+          if (aFeatured && !bFeatured) return -1;
+          if (!aFeatured && bFeatured) return 1;
+          
+          // createdAt 역순 (최신순)
+          const aDate = new Date(a.createdAt || 0);
+          const bDate = new Date(b.createdAt || 0);
+          return bDate - aDate;
         });
         console.log('[loadProjects] 로드된 프로젝트 수:', projects.length);
         renderProjects();
@@ -1000,7 +1009,7 @@
       if (!projects || projects.length === 0) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="6" class="px-6 py-10 text-center text-gray-500">
+            <td colspan="7" class="px-6 py-10 text-center text-gray-500">
               등록된 프로젝트가 없습니다.
             </td>
           </tr>
@@ -1008,7 +1017,7 @@
         return;
       }
       
-      tbody.innerHTML = projects.map(p => {
+      tbody.innerHTML = projects.map((p, index) => {
         const isFeatured = p.featured === true || p.featured === 'true';
         const projectId = p.id || p._id;
         
@@ -1021,7 +1030,20 @@
         const hasImage = hasMainImage && hasGalleryImages;
         
         return `
-          <tr class="hover:bg-gray-50">
+          <tr class="hover:bg-gray-50 transition-colors" 
+              data-project-id="${projectId}" 
+              data-index="${index}"
+              draggable="true"
+              ondragstart="handleDragStart(event, '${projectId}', ${index})"
+              ondragover="handleDragOver(event)"
+              ondrop="handleDrop(event, '${projectId}', ${index})"
+              ondragend="handleDragEnd(event)"
+              style="cursor: move;">
+            <td class="px-6 py-3 text-center" style="cursor: grab;">
+              <div class="flex items-center justify-center text-gray-400 hover:text-purple-600 transition-colors pointer-events-none">
+                <i data-lucide="grip-vertical" class="w-5 h-5"></i>
+              </div>
+            </td>
             <td class="px-6 py-3 text-sm text-gray-900">${p.title}</td>
             <td class="px-6 py-3 text-sm text-gray-600">${Array.isArray(p.category) ? p.category.map(cat => categoryLabels[cat] || cat).join(', ') : (categoryLabels[p.category] || p.category)}</td>
             <td class="px-6 py-3 text-sm text-gray-600">${(p.tags || []).slice(0,3).join(', ')}</td>
@@ -1033,18 +1055,18 @@
               </div>
             </td>
             <td class="px-6 py-3 text-center">
-              <button class="inline-flex items-center justify-center p-1 hover:bg-purple-50 rounded" onclick="toggleFeatured('${projectId}')" title="${isFeatured ? '대표 해제' : '대표 설정'}">
+              <button class="inline-flex items-center justify-center p-1 hover:bg-purple-50 rounded" onclick="event.stopPropagation(); toggleFeatured('${projectId}')" title="${isFeatured ? '대표 해제' : '대표 설정'}">
                 <i data-lucide="${isFeatured ? 'pin' : 'pin-off'}" class="w-4 h-4" style="color: #7A68F6;" fill="${isFeatured ? 'currentColor' : 'none'}"></i>
               </button>
             </td>
             <td class="px-6 py-3 text-right space-x-2">
-              <button class="inline-flex items-center justify-center p-1.5 hover:bg-purple-50 rounded transition-colors" style="color: #7A68F6;" onclick="viewDetail('${projectId}')" title="상세 보기">
+              <button class="inline-flex items-center justify-center p-1.5 hover:bg-purple-50 rounded transition-colors" style="color: #7A68F6;" onclick="event.stopPropagation(); viewDetail('${projectId}')" title="상세 보기">
                 <i data-lucide="search" class="w-4 h-4"></i>
               </button>
-              <button class="inline-flex items-center justify-center p-1.5 hover:bg-purple-50 rounded transition-colors" style="color: #7A68F6;" onclick="editProject('${projectId}')" title="수정하기">
+              <button class="inline-flex items-center justify-center p-1.5 hover:bg-purple-50 rounded transition-colors" style="color: #7A68F6;" onclick="event.stopPropagation(); editProject('${projectId}')" title="수정하기">
                 <i data-lucide="pencil" class="w-4 h-4"></i>
               </button>
-              <button class="inline-flex items-center justify-center p-1.5 hover:bg-purple-50 rounded transition-colors" style="color: #7A68F6;" onclick="deleteProject('${projectId}')" title="삭제하기">
+              <button class="inline-flex items-center justify-center p-1.5 hover:bg-purple-50 rounded transition-colors" style="color: #7A68F6;" onclick="event.stopPropagation(); deleteProject('${projectId}')" title="삭제하기">
                 <i data-lucide="trash-2" class="w-4 h-4"></i>
               </button>
             </td>
@@ -3098,6 +3120,184 @@
       return parts.join(' ');
     }
 
+    let draggedElement = null;
+    let draggedIndex = null;
+
+    function handleDragStart(e, id, index) {
+      // Viewer 모드 체크
+      if (window.isViewerMode) {
+        e.preventDefault();
+        return false;
+      }
+      
+      // 버튼이나 링크에서 드래그 시작 방지
+      if (e.target.tagName === 'BUTTON' || e.target.closest('button')) {
+        e.preventDefault();
+        return false;
+      }
+      
+      draggedElement = e.target.closest('tr[data-project-id]');
+      if (!draggedElement) return false;
+      
+      draggedIndex = index;
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', id);
+      
+      draggedElement.style.opacity = '0.5';
+      draggedElement.style.cursor = 'grabbing';
+    }
+
+    function handleDragOver(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      e.dataTransfer.dropEffect = 'move';
+      
+      const targetRow = e.target.closest('tr[data-project-id]');
+      if (targetRow && targetRow !== draggedElement) {
+        const allRows = Array.from(targetRow.parentNode.querySelectorAll('tr[data-project-id]'));
+        allRows.forEach(row => {
+          row.classList.remove('border-t-2', 'border-purple-500', 'bg-purple-50');
+        });
+        targetRow.classList.add('border-t-2', 'border-purple-500', 'bg-purple-50');
+      }
+      return false;
+    }
+
+    function handleDrop(e, targetId, targetIndex) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      console.log('handleDrop 호출:', { draggedElement: !!draggedElement, draggedIndex, targetId, targetIndex });
+      
+      if (!draggedElement || draggedIndex === null) {
+        console.log('드래그 요소 없음, 드롭 취소');
+        handleDragEnd(e);
+        return false;
+      }
+      
+      const targetRow = e.currentTarget || e.target.closest('tr[data-project-id]');
+      if (!targetRow) {
+        console.log('타겟 행 없음, 드롭 취소');
+        handleDragEnd(e);
+        return false;
+      }
+      
+      // 실제 드롭된 행의 인덱스 가져오기
+      const actualTargetIndex = parseInt(targetRow.getAttribute('data-index'));
+      console.log('드롭 타겟 인덱스:', { actualTargetIndex, draggedIndex, targetIndex });
+      
+      if (isNaN(actualTargetIndex)) {
+        console.log('인덱스 파싱 실패, 드롭 취소');
+        handleDragEnd(e);
+        return false;
+      }
+      
+      if (actualTargetIndex === draggedIndex) {
+        console.log('같은 위치, 드롭 취소');
+        handleDragEnd(e);
+        return false;
+      }
+      
+      const tbody = targetRow.closest('tbody');
+      if (!tbody) {
+        console.log('tbody 없음, 드롭 취소');
+        handleDragEnd(e);
+        return false;
+      }
+      
+      const allRows = Array.from(tbody.querySelectorAll('tr[data-project-id]'));
+      allRows.forEach(row => {
+        row.classList.remove('border-t-2', 'border-purple-500', 'bg-purple-50');
+        row.style.opacity = '1';
+        row.style.cursor = '';
+      });
+      
+      console.log('순서 변경 실행:', { from: draggedIndex, to: actualTargetIndex });
+      updateProjectOrder(draggedIndex, actualTargetIndex);
+      
+      return false;
+    }
+
+    function handleDragLeave(e) {
+      // 드래그가 행 밖으로 나갔을 때만 스타일 제거 (자식 요소로 이동 시에는 제거하지 않음)
+      const targetRow = e.target.closest('tr[data-project-id]');
+      if (!targetRow || !e.currentTarget.contains(e.relatedTarget)) {
+        const allRows = document.querySelectorAll('tr[data-project-id]');
+        allRows.forEach(row => {
+          if (row !== draggedElement) {
+            row.classList.remove('border-t-2', 'border-purple-500', 'bg-purple-50');
+          }
+        });
+      }
+    }
+
+    function handleDragEnd(e) {
+      if (draggedElement) {
+        draggedElement.style.opacity = '1';
+        draggedElement.style.cursor = '';
+      }
+      const allRows = document.querySelectorAll('tr[data-project-id]');
+      allRows.forEach(row => {
+        row.classList.remove('border-t-2', 'border-purple-500', 'bg-purple-50');
+        row.style.opacity = '1';
+        row.style.cursor = '';
+      });
+      draggedElement = null;
+      draggedIndex = null;
+    }
+
+    async function updateProjectOrder(fromIndex, toIndex) {
+      // Viewer 모드 체크
+      if (window.isViewerMode) {
+        alert('Viewer 모드에서는 순서 변경이 불가능합니다.');
+        return;
+      }
+      
+      await checkAuth();
+      if (!isAuthenticated) {
+        alert('로그인이 필요합니다.');
+        return;
+      }
+      
+      console.log('순서 변경:', { fromIndex, toIndex, projectsLength: projects.length });
+      
+      // 배열에서 요소 이동
+      const [movedProject] = projects.splice(fromIndex, 1);
+      projects.splice(toIndex, 0, movedProject);
+      
+      console.log('이동 후 프로젝트 순서:', projects.map((p, i) => ({ index: i, id: p.id || p._id, title: p.title })));
+      
+      // 모든 프로젝트의 order를 새로운 인덱스로 업데이트
+      try {
+        const updatePromises = projects.map((project, index) => {
+          const projectId = project.id || project._id;
+          return fetch(`${API_URL}/projects/${projectId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ order: index }),
+          });
+        });
+        
+        const results = await Promise.all(updatePromises);
+        const responses = await Promise.all(results.map(r => r.json()));
+        const allSuccess = responses.every(data => data.success);
+        
+        if (allSuccess) {
+          renderProjects();
+        } else {
+          // 실패 시 원래 상태로 복구
+          await loadProjects();
+          alert('순서 변경에 실패했습니다.');
+        }
+      } catch (e) {
+        console.error('순서 변경 오류:', e);
+        // 실패 시 원래 상태로 복구
+        await loadProjects();
+        alert('순서 변경 중 오류가 발생했습니다.');
+      }
+    }
+
     async function deleteProject(id) {
       // Viewer 모드 체크
       if (window.isViewerMode) {
@@ -4684,6 +4884,10 @@
     window.updateUploadProgress = updateUploadProgress;
     window.hideUploadProgress = hideUploadProgress;
     window.uploadWithProgress = uploadWithProgress;
+    window.handleDragStart = handleDragStart;
+    window.handleDragOver = handleDragOver;
+    window.handleDrop = handleDrop;
+    window.handleDragEnd = handleDragEnd;
 
     // Viewer 모드 감지 및 설정
     const isViewerMode = window.location.pathname.includes('/admin/viewer');

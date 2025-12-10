@@ -163,11 +163,19 @@ export default function AllProjectsPage() {
           
           // BO에 프로젝트가 있으면 BO 데이터 사용, 없으면 빈 배열 사용
           if (boProjects.length > 0) {
-            // featured 프로젝트를 상단에 정렬
-            const sortedProjects = [...boProjects].sort((a, b) => {
-              if (a.featured && !b.featured) return -1; // a가 featured면 위로
-              if (!a.featured && b.featured) return 1;  // b가 featured면 위로
-              return 0; // 둘 다 featured이거나 둘 다 아니면 기존 순서 유지
+            // order 필드로 정렬 (order가 없으면 0으로 처리), 같은 order면 featured 우선, 그 다음 createdAt 역순
+            const sortedProjects = [...boProjects].sort((a: any, b: any) => {
+              const aOrder = a.order || 0;
+              const bOrder = b.order || 0;
+              if (aOrder !== bOrder) return aOrder - bOrder;
+              
+              if (a.featured && !b.featured) return -1;
+              if (!a.featured && b.featured) return 1;
+              
+              // createdAt 역순 (최신순)
+              const aDate = new Date(a.createdAt || 0);
+              const bDate = new Date(b.createdAt || 0);
+              return bDate.getTime() - aDate.getTime();
             });
             
             const featuredCount = sortedProjects.filter(p => p.featured).length;
