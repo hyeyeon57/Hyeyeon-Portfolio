@@ -22,6 +22,12 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSave, onCan
     return `${year}-${month}`;
   };
 
+  const [achievements, setAchievements] = useState<string[]>(
+    (project as any)?.achievements && Array.isArray((project as any).achievements) 
+      ? (project as any).achievements.filter((a: string) => a && a.trim() !== '')
+      : []
+  );
+
   const [formData, setFormData] = useState({
     title: project?.title || '',
     subtitle: project?.subtitle || '',
@@ -39,9 +45,6 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSave, onCan
     detailPdf: (project as any)?.detailPdf || '',
     previewPdf: (project as any)?.previewPdf || '',
     image: project?.image || '',
-    achievements: (project as any)?.achievements && Array.isArray((project as any).achievements) 
-      ? (project as any).achievements.join('\n') 
-      : '',
     gallery: (project as any)?.gallery && Array.isArray((project as any).gallery) 
       ? (project as any).gallery.join('\n') 
       : '',
@@ -85,7 +88,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSave, onCan
       team: formData.team || '미정',
       role: formData.role || '미정',
       duration: formData.duration || '미정',
-      achievements: formData.achievements ? formData.achievements.split('\n').map((a: string) => a.trim()).filter(Boolean) : [],
+      achievements: achievements.filter((a: string) => a && a.trim() !== ''),
       ...(formData.link && { link: formData.link }),
       ...(formData.designLink && { designLink: formData.designLink }),
       ...(formData.designPdf && { designPdf: formData.designPdf }),
@@ -873,17 +876,43 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSave, onCan
       {/* 주요 성과 (FO 모달과 동일한 순서) */}
       <div>
         <label className="block text-sm font-medium text-text-secondary mb-2">
-          <span className="text-brand-main">🎯</span> 주요 성과 (줄바꿈으로 구분)
+          <span className="text-brand-main">🎯</span> 주요 성과
         </label>
-        <textarea
-          name="achievements"
-          value={formData.achievements}
-          onChange={handleChange}
-          placeholder="주요 성과를 한 줄씩 입력하세요&#10;예: 사용자 만족도 20% 향상&#10;예: 예매 단계 7→4단계 축소"
-          rows={5}
-          className="w-full px-4 py-2 border border-line-medium rounded-lg focus:outline-none focus:border-brand-main resize-y"
-        />
-        <p className="text-xs text-text-secondary mt-1">각 성과를 줄바꿈으로 구분하여 입력하세요. FO 모달의 "주요 성과" 섹션에 표시됩니다</p>
+        <div className="space-y-2">
+          {achievements.map((achievement, index) => (
+            <div key={index} className="flex gap-2 items-center">
+              <input
+                type="text"
+                value={achievement}
+                onChange={(e) => {
+                  const newAchievements = [...achievements];
+                  newAchievements[index] = e.target.value;
+                  setAchievements(newAchievements);
+                }}
+                placeholder={`성과 ${index + 1}`}
+                className="flex-1 px-4 py-2 border border-line-medium rounded-lg focus:outline-none focus:border-brand-main"
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  const newAchievements = achievements.filter((_, i) => i !== index);
+                  setAchievements(newAchievements);
+                }}
+                className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() => setAchievements([...achievements, ''])}
+            className="w-full px-4 py-2 border border-line-medium border-dashed rounded-lg text-text-secondary hover:bg-bg-secondary transition-colors"
+          >
+            + 성과 추가
+          </button>
+        </div>
+        <p className="text-xs text-text-secondary mt-1">각 성과를 개별적으로 입력하세요. FO 모달의 "주요 성과" 섹션에 표시됩니다</p>
       </div>
 
       {/* 회고 (FO 모달과 동일한 순서) */}

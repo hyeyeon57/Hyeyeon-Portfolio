@@ -433,8 +433,37 @@ export const renderEditModal = (project, categoryLabels) => {
               </div>
             </div>
             <div>
-              <label class="block text-sm font-semibold text-gray-900 mb-2">주요 성과 <span class="text-xs text-gray-500 font-normal">(줄바꿈으로 구분)</span></label>
-              <textarea name="achievements" rows="4" class="w-full px-4 py-2.5 text-xs text-gray-700 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all resize-none bg-white" placeholder="각 성과를 새 줄에 입력하세요">${(project.achievements || []).join('\\n')}</textarea>
+              <label class="block text-sm font-semibold text-gray-900 mb-2">주요 성과</label>
+              <div id="achievementsContainer" class="space-y-2">
+                ${(project.achievements || []).map((achievement, index) => `
+                  <div class="flex gap-2 items-center achievement-item">
+                    <input type="text" name="achievements[]" value="${achievement.replace(/"/g, '&quot;')}" placeholder="성과 ${index + 1}" class="flex-1 px-4 py-2.5 text-xs text-gray-700 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all bg-white" />
+                    <button type="button" onclick="this.parentElement.remove()" class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                      <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                  </div>
+                `).join('')}
+                <button type="button" onclick="addAchievementField()" class="w-full px-4 py-2 border border-gray-300 border-dashed rounded-lg text-gray-600 hover:bg-gray-50 transition-colors text-xs">
+                  + 성과 추가
+                </button>
+              </div>
+              <script>
+                function addAchievementField() {
+                  const container = document.getElementById('achievementsContainer');
+                  const itemCount = container.querySelectorAll('.achievement-item').length;
+                  const newItem = document.createElement('div');
+                  newItem.className = 'flex gap-2 items-center achievement-item';
+                  newItem.innerHTML = \`
+                    <input type="text" name="achievements[]" placeholder="성과 \${itemCount + 1}" class="flex-1 px-4 py-2.5 text-xs text-gray-700 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all bg-white" />
+                    <button type="button" onclick="this.parentElement.remove()" class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                      <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                  \`;
+                  const addButton = container.querySelector('button[onclick*="addAchievementField"]');
+                  container.insertBefore(newItem, addButton);
+                  if (window.lucide) window.lucide.createIcons();
+                }
+              </script>
             </div>
             <div>
               <label class="block text-sm font-semibold text-gray-900 mb-2">회고</label>

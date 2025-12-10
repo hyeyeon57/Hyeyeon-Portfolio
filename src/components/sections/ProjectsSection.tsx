@@ -613,28 +613,17 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                 )}
 
                 {/* Retrospective */}
-                {selectedProject.retrospective && (
+                {(selectedProject as typeof selectedProject & { retrospective?: string }).retrospective && (
                   <div className="mb-8 px-8">
                     <h3 className="text-xl font-bold text-text-main mb-4 flex items-center gap-2">
                       <span className="text-brand-main">💭</span>
                       회고
                     </h3>
                     <p className="text-text-secondary leading-relaxed whitespace-pre-line">
-                      {selectedProject.retrospective}
+                      {(selectedProject as typeof selectedProject & { retrospective?: string }).retrospective}
                     </p>
                   </div>
                 )}
-
-                {/* Retrospective */}
-                <div className="mb-8 px-8">
-                  <h3 className="text-xl font-bold text-text-main mb-4 flex items-center gap-2">
-                    <span className="text-brand-main">💭</span>
-                    회고
-                  </h3>
-                  <p className="text-text-secondary leading-relaxed whitespace-pre-line">
-                    {(selectedProject as typeof selectedProject & { retrospective?: string }).retrospective || '회고 내용이 없습니다.'}
-                  </p>
-                </div>
 
                 {/* External Links */}
                 <div className="mt-8 pt-8 pb-8 border-t border-line-light flex flex-wrap gap-3 px-8">

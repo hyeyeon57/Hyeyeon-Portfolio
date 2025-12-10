@@ -2025,7 +2025,7 @@
           role: fd.get('role') || '',
           duration: fd.get('duration') || '',
           link: fd.get('link') || '',
-          achievements: fd.get('achievements') ? fd.get('achievements').toString().split('\\n').map(a => a.trim()).filter(Boolean) : [],
+          achievements: fd.getAll('achievements[]').filter(a => a && a.trim() !== '').map(a => a.trim()),
           retrospective: fd.get('retrospective') || '',
           removeMainImage,
           removeDesignPdf: finalRemoveDesignPdf,
@@ -2401,11 +2401,11 @@
                 const teamInput = form.querySelector('input[name="team"]');
                 const roleInput = form.querySelector('input[name="role"]');
                 const linkInput = form.querySelector('input[name="link"]');
-                const achievementsInput = form.querySelector('textarea[name="achievements"]');
+                const achievementsContainer = form.querySelector('#achievementsContainer');
                 const retrospectiveInput = form.querySelector('textarea[name="retrospective"]');
                 
                 // 모든 입력 필드 활성화 및 값 업데이트
-                const inputs = [titleInput, subtitleInput, descriptionInput, fullDescriptionInput, tagsInput, startDateInput, endDateInput, teamInput, roleInput, linkInput, achievementsInput, retrospectiveInput];
+                const inputs = [titleInput, subtitleInput, descriptionInput, fullDescriptionInput, tagsInput, startDateInput, endDateInput, teamInput, roleInput, linkInput, retrospectiveInput];
                 inputs.forEach(input => {
                   if (input) {
                     input.disabled = false;
@@ -2439,7 +2439,41 @@
                 if (teamInput) teamInput.value = updatedProject.team || '';
                 if (roleInput) roleInput.value = updatedProject.role || '';
                 if (linkInput) linkInput.value = updatedProject.link || '';
-                if (achievementsInput) achievementsInput.value = (updatedProject.achievements || []).join('\\n');
+                // 주요 성과 필드 업데이트 (동적 필드)
+                if (achievementsContainer && updatedProject.achievements) {
+                  achievementsContainer.innerHTML = '';
+                  (updatedProject.achievements || []).forEach((achievement, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'flex gap-2 items-center achievement-item';
+                    item.innerHTML = `
+                      <input type="text" name="achievements[]" value="${achievement.replace(/"/g, '&quot;')}" placeholder="성과 ${index + 1}" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-xs text-gray-700" />
+                      <button type="button" onclick="this.parentElement.remove()" class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                      </button>
+                    `;
+                    achievementsContainer.appendChild(item);
+                  });
+                  const addButton = document.createElement('button');
+                  addButton.type = 'button';
+                  addButton.onclick = function() {
+                    const container = document.getElementById('achievementsContainer');
+                    const itemCount = container.querySelectorAll('.achievement-item').length;
+                    const newItem = document.createElement('div');
+                    newItem.className = 'flex gap-2 items-center achievement-item';
+                    newItem.innerHTML = `
+                      <input type="text" name="achievements[]" placeholder="성과 ${itemCount + 1}" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-xs text-gray-700" />
+                      <button type="button" onclick="this.parentElement.remove()" class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                      </button>
+                    `;
+                    container.insertBefore(newItem, addButton);
+                    if (window.lucide) window.lucide.createIcons();
+                  };
+                  addButton.className = 'w-full px-4 py-2 border border-gray-300 border-dashed rounded-lg text-gray-600 hover:bg-gray-50 transition-colors text-xs';
+                  addButton.textContent = '+ 성과 추가';
+                  achievementsContainer.appendChild(addButton);
+                  if (window.lucide) window.lucide.createIcons();
+                }
                 if (retrospectiveInput) retrospectiveInput.value = updatedProject.retrospective || '';
                 
                 // 이미지 및 갤러리 상태 업데이트
