@@ -25,9 +25,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (files.length > 30) {
+    if (files.length > 70) {
       return NextResponse.json(
-        { error: '최대 30개의 파일만 업로드할 수 있습니다.' },
+        { error: '최대 70개의 파일만 업로드할 수 있습니다.' },
         { status: 400 }
       );
     }
