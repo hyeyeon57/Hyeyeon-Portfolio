@@ -100,16 +100,20 @@ export function useProjects(): UseProjectsReturn {
       const result = await response.json();
 
       if (result.success && Array.isArray(result.data)) {
+        // featured 값을 boolean으로 변환
+        const normalizedProjects = result.data.map((p: any) => ({
+          ...p,
+          featured: p.featured === true || p.featured === 'true',
+        }));
+        
         // order 필드로 정렬 (order가 없으면 0으로 처리), 같은 order면 featured 우선, 그 다음 createdAt 역순
-        const sortedProjects = [...result.data].sort((a: any, b: any) => {
+        const sortedProjects = [...normalizedProjects].sort((a: any, b: any) => {
           const aOrder = a.order || 0;
           const bOrder = b.order || 0;
           if (aOrder !== bOrder) return aOrder - bOrder;
           
-          const aFeatured = a.featured === true || a.featured === 'true';
-          const bFeatured = b.featured === true || b.featured === 'true';
-          if (aFeatured && !bFeatured) return -1;
-          if (!aFeatured && bFeatured) return 1;
+          if (a.featured && !b.featured) return -1;
+          if (!a.featured && b.featured) return 1;
           
           // createdAt 역순 (최신순)
           const aDate = new Date(a.createdAt || 0);
@@ -186,12 +190,24 @@ export function useProjects(): UseProjectsReturn {
         if (cached) {
           const parsed = JSON.parse(cached);
           if (Array.isArray(parsed) && parsed.length > 0) {
-            const sorted = [...parsed].sort((a: any, b: any) => {
-              const af = a.featured === true || a.featured === 'true';
-              const bf = b.featured === true || b.featured === 'true';
-              if (af && !bf) return -1;
-              if (!af && bf) return 1;
-              return 0;
+            // featured 값을 boolean으로 변환
+            const normalized = parsed.map((p: any) => ({
+              ...p,
+              featured: p.featured === true || p.featured === 'true',
+            }));
+            
+            const sorted = [...normalized].sort((a: any, b: any) => {
+              const aOrder = a.order || 0;
+              const bOrder = b.order || 0;
+              if (aOrder !== bOrder) return aOrder - bOrder;
+              
+              if (a.featured && !b.featured) return -1;
+              if (!a.featured && b.featured) return 1;
+              
+              // createdAt 역순 (최신순)
+              const aDate = new Date(a.createdAt || 0);
+              const bDate = new Date(b.createdAt || 0);
+              return bDate.getTime() - aDate.getTime();
             });
             setProjects(sorted as Project[]);
             setLoading(false);
@@ -209,15 +225,19 @@ export function useProjects(): UseProjectsReturn {
           if (cachedSession) {
             const parsed = JSON.parse(cachedSession);
             if (Array.isArray(parsed?.data) && parsed.data.length > 0) {
-              const sorted = [...parsed.data].sort((a: any, b: any) => {
+              // featured 값을 boolean으로 변환
+              const normalized = parsed.data.map((p: any) => ({
+                ...p,
+                featured: p.featured === true || p.featured === 'true',
+              }));
+              
+              const sorted = [...normalized].sort((a: any, b: any) => {
                 const aOrder = a.order || 0;
                 const bOrder = b.order || 0;
                 if (aOrder !== bOrder) return aOrder - bOrder;
                 
-                const af = a.featured === true || a.featured === 'true';
-                const bf = b.featured === true || b.featured === 'true';
-                if (af && !bf) return -1;
-                if (!af && bf) return 1;
+                if (a.featured && !b.featured) return -1;
+                if (!a.featured && b.featured) return 1;
                 
                 // createdAt 역순 (최신순)
                 const aDate = new Date(a.createdAt || 0);

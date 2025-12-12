@@ -138,10 +138,13 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
 
   // BO에서 featured=true로 설정된 프로젝트를 대표 프로젝트로 표시
   // featured 프로젝트만 표시 (개수 제한 없음 - 백엔드에서 설정한 대로)
-  // API route에서 이미 boolean으로 변환되어 전달됨
   // useMemo로 필터링 결과 메모이제이션하여 불필요한 재계산 방지
   const displayedProjects = useMemo(() => {
-    return projects.filter(project => project.featured);
+    return projects.filter(project => {
+      // featured 값을 안전하게 boolean으로 변환하여 필터링
+      const isFeatured = project.featured === true || project.featured === 'true';
+      return isFeatured;
+    });
   }, [projects]);
 
   // 로딩 UI 제거 - 캐시된 데이터가 있으면 즉시 표시, 없으면 빈 상태로 시작
