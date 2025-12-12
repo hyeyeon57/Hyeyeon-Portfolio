@@ -185,7 +185,10 @@ const updateProject = async ({ id, payload, files }) => {
   const projectData = payload.project ? JSON.parse(payload.project) : payload;
   
   // 디버깅: 받은 payload 확인
-  console.log('[projectService] 받은 payload에서 PDF 필드 확인:', {
+  console.log('[projectService] 받은 payload 확인:', {
+    featured: projectData.featured,
+    featuredType: typeof projectData.featured,
+    featuredExists: 'featured' in projectData,
     designPdf: projectData.designPdf,
     detailPdf: projectData.detailPdf,
     designPdfType: typeof projectData.designPdf,
@@ -317,10 +320,25 @@ const updateProject = async ({ id, payload, files }) => {
     }
   }
   
+  // featured 필드를 boolean으로 명시적 변환
+  if ('featured' in projectData) {
+    if (projectData.featured === 'true' || projectData.featured === true) {
+      projectData.featured = true;
+    } else if (projectData.featured === 'false' || projectData.featured === false) {
+      projectData.featured = false;
+    }
+    console.log('[projectService] featured 필드 처리:', {
+      original: projectData.featured,
+      converted: projectData.featured,
+      type: typeof projectData.featured
+    });
+  }
+  
   // undefined/null 필드와 remove 플래그 제거 (MongoDB $set에 포함되지 않도록)
   const cleanedProjectData = {};
   for (const [key, value] of Object.entries(projectData)) {
-    // undefined, null이 아닌 값만 포함 (단, null은 명시적 삭제이므로 포함)
+    // undefined가 아닌 값만 포함 (null, false, 0, '' 등은 포함)
+    // featured는 boolean이므로 false도 포함해야 함
     if (value !== undefined) {
       cleanedProjectData[key] = value;
     }
@@ -334,9 +352,12 @@ const updateProject = async ({ id, payload, files }) => {
   delete cleanedProjectData.removeDesignPdf;
   delete cleanedProjectData.removeDetailPdf;
   
-  // 디버깅: PDF 필드가 cleanedProjectData에 포함되었는지 확인
+  // 디버깅: PDF 필드와 featured 필드가 cleanedProjectData에 포함되었는지 확인
   console.log('[projectService] 정리된 프로젝트 데이터:', {
     id: cleanedProjectData.id,
+    featured: cleanedProjectData.featured,
+    featuredType: typeof cleanedProjectData.featured,
+    featuredInObject: 'featured' in cleanedProjectData,
     image: cleanedProjectData.image,
     images: cleanedProjectData.images,
     gallery: cleanedProjectData.gallery,
@@ -377,6 +398,8 @@ const updateProject = async ({ id, payload, files }) => {
 
   console.log('[projectService] MongoDB 업데이트 완료:', {
     id: updatedProject?.id || updatedProject?._id,
+    featured: updatedProject?.featured,
+    featuredType: typeof updatedProject?.featured,
     image: updatedProject?.image,
     images: updatedProject?.images,
     gallery: updatedProject?.gallery,

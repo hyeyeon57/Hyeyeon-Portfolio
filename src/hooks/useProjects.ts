@@ -129,14 +129,20 @@ export function useProjects(): UseProjectsReturn {
             const CACHE_KEY = 'featured-projects-cache';
             const CACHE_TIMESTAMP_KEY = 'featured-projects-cache-timestamp';
             
+            // featured 값을 boolean으로 변환한 데이터를 캐시에 저장
+            const normalizedForCache = result.data.map((p: any) => ({
+              ...p,
+              featured: p.featured === true || p.featured === 'true',
+            }));
+            
             // localStorage에 저장 (더 오래 유지)
-            window.localStorage.setItem(CACHE_KEY, JSON.stringify(result.data));
+            window.localStorage.setItem(CACHE_KEY, JSON.stringify(normalizedForCache));
             window.localStorage.setItem(CACHE_TIMESTAMP_KEY, Date.now().toString());
             
             // sessionStorage에도 저장 (호환성)
             window.sessionStorage.setItem(
               CACHE_KEY,
-              JSON.stringify({ data: result.data, updatedAt: Date.now() }),
+              JSON.stringify({ data: normalizedForCache, updatedAt: Date.now() }),
             );
           } catch {
             // 스토리지 제한 등은 조용히 무시
