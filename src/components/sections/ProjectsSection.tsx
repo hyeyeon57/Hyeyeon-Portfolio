@@ -137,14 +137,16 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
   }, [selectedProject]);
 
   // BO에서 featured=true로 설정된 프로젝트를 대표 프로젝트로 표시
-  // featured 프로젝트만 표시 (개수 제한 없음 - 백엔드에서 설정한 대로)
+  // 대표 프로젝트는 최대 3개까지만 표시
   // useMemo로 필터링 결과 메모이제이션하여 불필요한 재계산 방지
   const displayedProjects = useMemo(() => {
-    return projects.filter(project => {
+    const featuredProjects = projects.filter(project => {
       // featured 값을 안전하게 boolean으로 변환하여 필터링
       const isFeatured = project.featured === true || project.featured === 'true';
       return isFeatured;
     });
+    // 최대 3개까지만 표시
+    return featuredProjects.slice(0, 3);
   }, [projects]);
 
   // 로딩 UI 제거 - 캐시된 데이터가 있으면 즉시 표시, 없으면 빈 상태로 시작
@@ -427,7 +429,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-3xl overflow-hidden max-w-6xl w-full max-h-[90vh] overflow-y-auto custom-scrollbar shadow-2xl"
+              className="bg-white rounded-3xl overflow-hidden max-w-7xl w-full max-h-[90vh] overflow-y-auto custom-scrollbar shadow-2xl"
               style={{ borderRadius: '1.5rem 1.5rem 0 0' }}
             >
               {/* Modal Header */}
