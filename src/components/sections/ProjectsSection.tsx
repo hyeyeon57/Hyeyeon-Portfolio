@@ -427,7 +427,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-3xl overflow-hidden max-w-5xl w-full max-h-[90vh] overflow-y-auto custom-scrollbar shadow-2xl"
+              className="bg-white rounded-3xl overflow-hidden max-w-6xl w-full max-h-[90vh] overflow-y-auto custom-scrollbar shadow-2xl"
               style={{ borderRadius: '1.5rem 1.5rem 0 0' }}
             >
               {/* Modal Header */}
