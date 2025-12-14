@@ -714,15 +714,24 @@ export default function AllProjectsPage() {
                               initial={{ opacity: 0, y: 20 }}
                               animate={{ opacity: 1, y: 0 }}
                               transition={{ duration: 0.3, delay: index * 0.05 }}
-                              className="group relative w-full cursor-pointer hover:opacity-90 transition-opacity"
-                              style={{ margin: 0, padding: 0, width: '100%', display: 'block', overflow: 'visible', minHeight: 'auto' }}
+                              className="group relative w-full cursor-pointer hover:opacity-90 transition-opacity flex items-center justify-center"
+                              style={{ margin: 0, padding: 0, width: '100%', display: 'flex', overflow: 'visible' }}
                               onClick={() => handleImageClickForLightbox(image, index)}
                             >
                                 <img
                                   src={image}
                                   alt={`${selectedProject?.title || ''} - 이미지 ${index + 1}`}
-                                  className="w-full h-auto object-contain"
-                                  style={{ width: '100%', maxWidth: '100%', height: 'auto', margin: 0, padding: 0, display: 'block', objectFit: 'contain' }}
+                                  className="w-full h-auto"
+                                  style={{ 
+                                    width: '100%', 
+                                    maxWidth: '100%', 
+                                    height: 'auto', 
+                                    margin: 0, 
+                                    padding: 0, 
+                                    display: 'block', 
+                                    objectFit: 'contain',
+                                    objectPosition: 'center'
+                                  }}
                                   loading="lazy"
                                   onError={(e) => {
                                     console.error('이미지 로드 실패:', image);

@@ -479,23 +479,29 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.3, delay: index * 0.05 }}
-                                className="group relative w-full cursor-pointer hover:opacity-90 transition-opacity"
-                                style={{ margin: 0, padding: 0, width: '100%', display: 'block', overflow: 'visible', minHeight: 'auto' }}
+                                className="group relative w-full cursor-pointer hover:opacity-90 transition-opacity flex items-center justify-center"
+                                style={{ margin: 0, padding: 0, width: '100%', display: 'flex', overflow: 'visible' }}
                                 onClick={() => handleImageClickForLightbox(image, index)}
                               >
-                                <Image
+                                <img
                                   src={image}
                                   alt={`${selectedProject?.title || ''} - 이미지 ${index + 1}`}
-                                  width={1200}
-                                  height={800}
-                                  className="w-full h-auto object-contain"
-                                  style={{ width: '100%', maxWidth: '100%', height: 'auto', margin: 0, padding: 0, display: 'block', objectFit: 'contain' }}
+                                  className="w-full h-auto"
+                                  style={{ 
+                                    width: '100%', 
+                                    maxWidth: '100%', 
+                                    height: 'auto', 
+                                    margin: 0, 
+                                    padding: 0, 
+                                    display: 'block', 
+                                    objectFit: 'contain',
+                                    objectPosition: 'center'
+                                  }}
                                   loading="lazy"
                                   onError={(e) => {
                                     console.error('이미지 로드 실패:', image);
                                     (e.target as HTMLImageElement).style.display = 'none';
                                   }}
-                                  unoptimized={image?.startsWith('http') || image?.startsWith('//')}
                                 />
                                 
                                 {/* 클릭 안내 툴팁 (모달 진입 후 3초간 표시, 첫 번째 이미지에만) */}
