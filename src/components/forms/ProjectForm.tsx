@@ -87,7 +87,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSave, onCan
       subtitle: formData.subtitle || '제목 없음',
       description: formData.description || '설명 없음',
       fullDescription: formData.fullDescription || formData.description || '설명 없음',
-      category: formData.category as 'new' | 'renewal' | 'app' | 'web' | 'design',
+      category: formData.category as 'new' | 'renewal' | 'proposal' | 'etc' | 'design',
       tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()).filter(Boolean) : ['미분류'],
       date: formData.date || '날짜 미정',
       team: formData.team || '미정',
@@ -149,9 +149,9 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSave, onCan
           >
             <option value="new">신규</option>
             <option value="renewal">리뉴얼</option>
-            <option value="app">앱</option>
-            <option value="web">웹</option>
+            <option value="proposal">제안서</option>
             <option value="design">화면설계서</option>
+            <option value="etc">기타</option>
           </select>
         </div>
         <div>

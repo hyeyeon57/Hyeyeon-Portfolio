@@ -7,9 +7,9 @@
 export const PROJECT_CATEGORIES = [
   { id: 'new', label: '신규' },
   { id: 'renewal', label: '리뉴얼' },
-  { id: 'app', label: '앱' },
-  { id: 'web', label: '웹' },
+  { id: 'proposal', label: '제안서' },
   { id: 'design', label: '화면설계서' },
+  { id: 'etc', label: '기타' },
 ] as const;
 
 // 카테고리 ID만 추출한 배열 (MongoDB enum 용)

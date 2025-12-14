@@ -35,13 +35,13 @@ const ProjectSchema = new Schema(
       required: true,
       validate: {
         validator: function(v) {
-          const validCategories = ['new', 'renewal', 'app', 'web', 'design'];
+          const validCategories = ['new', 'renewal', 'proposal', 'etc', 'design'];
           if (Array.isArray(v)) {
             return v.length > 0 && v.every(cat => validCategories.includes(cat));
           }
           return validCategories.includes(v);
         },
-        message: '카테고리는 new, renewal, app, web, design 중 하나 이상이어야 합니다.'
+        message: '카테고리는 new, renewal, proposal, etc, design 중 하나 이상이어야 합니다.'
       }
     },
     date: {

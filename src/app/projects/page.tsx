@@ -346,8 +346,8 @@ export default function AllProjectsPage() {
     { id: 'new', label: '신규', count: projects.filter(p => getCategoryValue(p) === 'new').length },
     { id: 'renewal', label: '리뉴얼', count: projects.filter(p => getCategoryValue(p) === 'renewal').length },
     { id: 'proposal', label: '제안서', count: projects.filter(p => getCategoryValue(p) === 'proposal').length },
-    { id: 'etc', label: '기타', count: projects.filter(p => getCategoryValue(p) === 'etc').length },
     { id: 'design', label: '화면설계서', count: projects.filter(p => getCategoryValue(p) === 'design').length },
+    { id: 'etc', label: '기타', count: projects.filter(p => getCategoryValue(p) === 'etc').length },
   ];
 
   // 필터링된 프로젝트

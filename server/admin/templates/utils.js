@@ -4,7 +4,7 @@ export const truncate = (text = '', len = 320) =>
 export const categoryLabels = {
   'new': '신규',
   'renewal': '리뉴얼',
-  'app': '앱',
-  'web': '웹',
+  'proposal': '제안서',
   'design': '화면설계서',
+  'etc': '기타',
 };
