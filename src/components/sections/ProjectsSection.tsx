@@ -455,7 +455,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
               className="custom-scrollbar"
               style={{ overflowY: 'auto', scrollbarGutter: 'stable both-edges' }}
             >
-                {/* 이미지 세로 스크롤 - 여백 없이 최대 크기로 표시 */}
+                {/* 이미지 - 한 장씩 딱 맞게 표시 */}
                 {(() => {
                   try {
                     const images: string[] = [];
@@ -468,8 +468,8 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                     if (total === 0) return null;
                     
                     return (
-                      <div className="w-full" style={{ margin: 0, padding: 0 }}>
-                        <div className="w-full" style={{ margin: 0, padding: 0 }}>
+                      <div className="w-full" style={{ margin: 0, padding: 0, height: 'calc(90vh - 120px)', overflow: 'hidden', position: 'relative' }}>
+                        <div className="w-full h-full" style={{ margin: 0, padding: 0, display: 'flex', flexDirection: 'column' }}>
                           {images.map((image, index) => {
                             if (!image) return null;
                             return (
@@ -478,18 +478,28 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.3, delay: index * 0.05 }}
-                                className="group relative w-full cursor-pointer hover:opacity-90 transition-opacity"
-                                style={{ margin: 0, padding: 0, width: '100%' }}
+                                className="group relative w-full cursor-pointer hover:opacity-90 transition-opacity flex-shrink-0"
+                                style={{ 
+                                  margin: 0, 
+                                  padding: 0, 
+                                  width: '100%',
+                                  height: '100%',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  overflow: 'hidden'
+                                }}
                                 onClick={() => handleImageClickForLightbox(image, index)}
                               >
                                 <img
                                   src={image}
                                   alt={`${selectedProject?.title || ''} - 이미지 ${index + 1}`}
-                                  className="w-full h-auto block"
+                                  className="block"
                                   style={{ 
                                     width: '100%', 
-                                    maxWidth: '100%', 
-                                    height: 'auto', 
+                                    height: '100%',
+                                    maxWidth: '100%',
+                                    maxHeight: '100%',
                                     margin: 0, 
                                     padding: 0, 
                                     display: 'block', 

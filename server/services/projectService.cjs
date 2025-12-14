@@ -34,8 +34,21 @@ const listProjects = async () => {
 
     console.log(`[projectService] 프로젝트 조회 완료: ${projects.length}개`);
 
+    // "웹 앱" 관련 카테고리 자동 제거
+    const webAppCategories = ['webapp', 'web-app', '웹앱', '웹 앱', 'webapp'];
+    const normalizeCategory = (category) => {
+      if (!category) return category;
+      const categories = Array.isArray(category) ? category : [category];
+      const filtered = categories.filter(cat => {
+        const catLower = (cat || '').toLowerCase().trim();
+        return !webAppCategories.some(webApp => webApp.toLowerCase() === catLower);
+      });
+      return Array.isArray(category) ? filtered : (filtered.length > 0 ? filtered[0] : category);
+    };
+
     const normalized = projects.map((p) => ({
       ...p,
+      category: normalizeCategory(p.category),
       images: (p.images && p.images.length ? p.images : (p.gallery || [])),
     }));
 
@@ -59,9 +72,24 @@ const getProject = async (id) => {
   if (!project) {
     return { ok: false, status: 404, message: '프로젝트를 찾을 수 없습니다.' };
   }
+  
+  // "웹 앱" 관련 카테고리 자동 제거
+  const webAppCategories = ['webapp', 'web-app', '웹앱', '웹 앱', 'webapp'];
+  const normalizeCategory = (category) => {
+    if (!category) return category;
+    const categories = Array.isArray(category) ? category : [category];
+    const filtered = categories.filter(cat => {
+      const catLower = (cat || '').toLowerCase().trim();
+      return !webAppCategories.some(webApp => webApp.toLowerCase() === catLower);
+    });
+    return Array.isArray(category) ? filtered : (filtered.length > 0 ? filtered[0] : category);
+  };
+  
+  const projectObj = project.toObject ? project.toObject() : project;
   const normalized = {
-    ...project.toObject ? project.toObject() : project,
-    images: (project.images && project.images.length ? project.images : (project.gallery || [])),
+    ...projectObj,
+    category: normalizeCategory(projectObj.category),
+    images: (projectObj.images && projectObj.images.length ? projectObj.images : (projectObj.gallery || [])),
   };
   return { ok: true, data: normalized };
 };
