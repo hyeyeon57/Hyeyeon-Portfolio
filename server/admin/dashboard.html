@@ -1056,7 +1056,18 @@
               </div>
             </td>
             <td class="px-6 py-3 text-sm text-gray-900">${p.title}</td>
-            <td class="px-6 py-3 text-sm text-gray-600">${Array.isArray(p.category) ? p.category.map(cat => categoryLabels[cat] || cat).join(', ') : (categoryLabels[p.category] || p.category)}</td>
+            <td class="px-6 py-3 text-sm text-gray-600">${(() => {
+              // "웹 앱" 관련 카테고리 필터링
+              const webAppCategories = ['webapp', 'web-app', '웹앱', '웹 앱', 'webapp'];
+              const categories = Array.isArray(p.category) ? p.category : (p.category ? [p.category] : []);
+              const filteredCategories = categories.filter(cat => {
+                const catLower = (cat || '').toLowerCase().trim();
+                return !webAppCategories.some(webApp => webApp.toLowerCase() === catLower);
+              });
+              return filteredCategories.length > 0 
+                ? filteredCategories.map(cat => categoryLabels[cat] || cat).join(', ')
+                : (filteredCategories.length === 0 && categories.length > 0 ? '(카테고리 없음)' : '');
+            })()}</td>
             <td class="px-6 py-3 text-sm text-gray-600">${(p.tags || []).slice(0,3).join(', ')}</td>
             <td class="px-6 py-3 text-center">
               <div class="flex items-center justify-center gap-3">

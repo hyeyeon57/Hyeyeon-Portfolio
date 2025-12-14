@@ -452,10 +452,10 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
 
               {/* Modal Content */}
             <div
-              className="p-0 custom-scrollbar"
+              className="custom-scrollbar"
               style={{ overflowY: 'auto', scrollbarGutter: 'stable both-edges' }}
             >
-                {/* 이미지 세로 스크롤 - 크게 표시 */}
+                {/* 이미지 세로 스크롤 - 여백 없이 최대 크기로 표시 */}
                 {(() => {
                   try {
                     const images: string[] = [];
@@ -468,9 +468,8 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                     if (total === 0) return null;
                     
                     return (
-                      <div className="overflow-visible" style={{ marginTop: 0, marginLeft: 0, marginRight: 0, width: '100%' }}>
-                        {/* 이미지 영역 - 풀블리드 레이아웃 */}
-                        <div className="space-y-0" style={{ margin: 0, padding: 0, width: '100%' }}>
+                      <div className="w-full" style={{ margin: 0, padding: 0 }}>
+                        <div className="w-full" style={{ margin: 0, padding: 0 }}>
                           {images.map((image, index) => {
                             if (!image) return null;
                             return (
@@ -479,14 +478,14 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.3, delay: index * 0.05 }}
-                                className="group relative w-full cursor-pointer hover:opacity-90 transition-opacity flex items-center justify-center"
-                                style={{ margin: 0, padding: 0, width: '100%', display: 'flex', overflow: 'visible' }}
+                                className="group relative w-full cursor-pointer hover:opacity-90 transition-opacity"
+                                style={{ margin: 0, padding: 0, width: '100%' }}
                                 onClick={() => handleImageClickForLightbox(image, index)}
                               >
                                 <img
                                   src={image}
                                   alt={`${selectedProject?.title || ''} - 이미지 ${index + 1}`}
-                                  className="w-full h-auto"
+                                  className="w-full h-auto block"
                                   style={{ 
                                     width: '100%', 
                                     maxWidth: '100%', 
@@ -513,7 +512,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, y: 10 }}
                                         transition={{ duration: 0.3 }}
-                                        className="pointer-events-none absolute bottom-4 left-0 right-0 mx-auto w-fit bg-black/85 text-white text-sm px-4 py-2 rounded-full shadow-lg flex items-center justify-center gap-2 z-10"
+                                        className="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 w-fit bg-black/85 text-white text-sm px-4 py-2 rounded-full shadow-lg flex items-center justify-center gap-2 z-10"
                                       >
                                         <Eye size={16} className="opacity-90" />
                                         <span className="font-medium">이미지 클릭 시 더 크게 볼 수 있어요!</span>

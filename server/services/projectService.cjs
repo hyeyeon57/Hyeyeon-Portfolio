@@ -124,6 +124,14 @@ const createProject = async ({ payload, files }) => {
       // 빈 값이면 빈 배열로 설정
       projectData.category = [];
     }
+    
+    // "웹 앱" 관련 카테고리 자동 제거
+    const webAppCategories = ['webapp', 'web-app', '웹앱', '웹 앱', 'webapp'];
+    projectData.category = projectData.category.filter(cat => {
+      const catLower = (cat || '').toLowerCase().trim();
+      return !webAppCategories.some(webApp => webApp.toLowerCase() === catLower);
+    });
+    
     // 빈 배열이면 필수 필드이므로 오류
     if (projectData.category.length === 0) {
       return { ok: false, status: 400, message: '카테고리를 최소 1개 이상 선택해주세요.' };
@@ -314,6 +322,14 @@ const updateProject = async ({ id, payload, files }) => {
       // 빈 값이면 빈 배열로 설정
       projectData.category = [];
     }
+    
+    // "웹 앱" 관련 카테고리 자동 제거
+    const webAppCategories = ['webapp', 'web-app', '웹앱', '웹 앱', 'webapp'];
+    projectData.category = projectData.category.filter(cat => {
+      const catLower = (cat || '').toLowerCase().trim();
+      return !webAppCategories.some(webApp => webApp.toLowerCase() === catLower);
+    });
+    
     // 빈 배열이면 필수 필드이므로 제거하지 않음 (기존 값 유지)
     if (projectData.category.length === 0) {
       delete projectData.category;

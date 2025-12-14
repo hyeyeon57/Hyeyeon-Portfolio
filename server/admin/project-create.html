@@ -245,14 +245,24 @@
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">주요 성과 (최대 3개)</label>
           <div id="achievementsContainer" class="space-y-2">
-            ${[0, 1, 2].map((index) => `
-              <div class="flex gap-2 items-start achievement-item">
-                <div class="flex items-center justify-center w-8 h-8 mt-1 flex-shrink-0">
-                  <span class="text-purple-600 text-lg">🎯</span>
-                </div>
-                <textarea name="achievements[]" rows="2" placeholder="성과 ${index + 1} (엔터로 줄바꿈 가능)" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-y"></textarea>
+            <div class="flex gap-2 items-start achievement-item">
+              <div class="flex items-center justify-center w-8 h-8 mt-1 flex-shrink-0">
+                <span class="text-purple-600 text-lg">🎯</span>
               </div>
-            `).join('')}
+              <textarea name="achievements[]" rows="2" placeholder="성과 1 (엔터로 줄바꿈 가능)" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-y"></textarea>
+            </div>
+            <div class="flex gap-2 items-start achievement-item">
+              <div class="flex items-center justify-center w-8 h-8 mt-1 flex-shrink-0">
+                <span class="text-purple-600 text-lg">🎯</span>
+              </div>
+              <textarea name="achievements[]" rows="2" placeholder="성과 2 (엔터로 줄바꿈 가능)" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-y"></textarea>
+            </div>
+            <div class="flex gap-2 items-start achievement-item">
+              <div class="flex items-center justify-center w-8 h-8 mt-1 flex-shrink-0">
+                <span class="text-purple-600 text-lg">🎯</span>
+              </div>
+              <textarea name="achievements[]" rows="2" placeholder="성과 3 (엔터로 줄바꿈 가능)" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-y"></textarea>
+            </div>
           </div>
           <p class="text-xs text-gray-500 mt-1">최대 3개의 성과를 입력할 수 있습니다. 각 성과 내에서 엔터를 눌러 줄바꿈할 수 있습니다.</p>
         </div>

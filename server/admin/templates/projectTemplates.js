@@ -244,10 +244,18 @@ export const renderDetailModal = (project, files, categoryLabels, isAuthenticate
             <div>
               <h3 class="text-sm font-medium text-gray-500 mb-1">카테고리</h3>
               <div class="flex flex-wrap gap-2">
-                ${Array.isArray(project.category) 
-                  ? project.category.map(cat => `<span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">${categoryLabels[cat] || cat}</span>`).join('')
-                  : `<span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">${categoryLabels[project.category] || project.category}</span>`
-                }
+                ${(() => {
+                  // "웹 앱" 관련 카테고리 필터링
+                  const webAppCategories = ['webapp', 'web-app', '웹앱', '웹 앱', 'webapp'];
+                  const categories = Array.isArray(project.category) ? project.category : (project.category ? [project.category] : []);
+                  const filteredCategories = categories.filter(cat => {
+                    const catLower = (cat || '').toLowerCase().trim();
+                    return !webAppCategories.some(webApp => webApp.toLowerCase() === catLower);
+                  });
+                  return filteredCategories.length > 0
+                    ? filteredCategories.map(cat => `<span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">${categoryLabels[cat] || cat}</span>`).join('')
+                    : '<span class="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-600">카테고리 없음</span>';
+                })()}
               </div>
             </div>
             <div>
