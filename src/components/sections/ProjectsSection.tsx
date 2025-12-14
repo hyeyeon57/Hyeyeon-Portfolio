@@ -429,13 +429,13 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-3xl overflow-hidden w-[95vw] max-w-[1920px] max-h-[90vh] overflow-y-auto custom-scrollbar shadow-2xl"
-              style={{ borderRadius: '1.5rem 1.5rem 0 0', padding: 0, margin: 0 }}
+              className="bg-white rounded-3xl overflow-hidden max-w-5xl w-full max-h-[92vh] overflow-y-auto custom-scrollbar shadow-2xl"
+              style={{ borderRadius: '1.5rem 1.5rem 0 0', padding: 0, margin: 0, boxSizing: 'border-box' }}
             >
               {/* Modal Header */}
-              <div className="sticky top-0 z-10 bg-white border-b border-line-medium p-4 flex items-start justify-between mb-0">
+              <div className="sticky top-0 z-10 bg-white border-b border-line-medium flex items-start justify-between" style={{ margin: 0, padding: '1rem', marginBottom: 0 }}>
                 <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-1">
+                  <div className="flex items-center gap-3" style={{ marginBottom: '0.25rem' }}>
                     <h2 className="text-xl md:text-2xl font-bold text-text-main">
                   {selectedProject.title}
                     </h2>
@@ -453,7 +453,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
               {/* Modal Content */}
             <div
               className="custom-scrollbar"
-              style={{ overflowY: 'auto', scrollbarGutter: 'stable both-edges', padding: 0, margin: 0 }}
+              style={{ overflowY: 'auto', scrollbarGutter: 'stable both-edges', padding: 0, margin: 0, marginTop: 0, width: '100%', height: '100%' }}
             >
                 {/* 이미지 세로 나열 - 각 이미지가 모달 너비에 딱 맞게 */}
                 {(() => {
@@ -468,8 +468,8 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                     if (total === 0) return null;
                     
                     return (
-                      <div className="w-full" style={{ margin: 0, padding: 0, width: '100%' }}>
-                        <div className="w-full" style={{ margin: 0, padding: 0, width: '100%' }}>
+                      <div className="w-full" style={{ margin: 0, padding: 0, width: '100%', height: '100%', boxSizing: 'border-box' }}>
+                        <div className="w-full" style={{ margin: 0, padding: 0, width: '100%', height: '100%', boxSizing: 'border-box' }}>
                           {images.map((image, index) => {
                             if (!image) return null;
                             return (
@@ -483,12 +483,16 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                                   margin: 0, 
                                   padding: 0, 
                                   width: '100%',
+                                  height: 'calc(92vh - 100px)',
+                                  minHeight: 'calc(92vh - 100px)',
                                   display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  overflow: 'visible',
+                                  alignItems: 'stretch',
+                                  justifyContent: 'stretch',
+                                  overflow: 'hidden',
                                   border: 'none',
-                                  outline: 'none'
+                                  outline: 'none',
+                                  boxSizing: 'border-box',
+                                  position: 'relative'
                                 }}
                                 onClick={() => handleImageClickForLightbox(image, index)}
                               >
@@ -498,13 +502,17 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                                   className="block"
                                   style={{ 
                                     width: '100%', 
-                                    height: 'auto',
+                                    height: '100%',
+                                    minWidth: '100%',
+                                    minHeight: '100%',
                                     maxWidth: '100%',
+                                    maxHeight: '100%',
                                     margin: 0, 
                                     padding: 0, 
                                     display: 'block', 
                                     objectFit: 'contain',
-                                    objectPosition: 'center'
+                                    objectPosition: 'center',
+                                    flexShrink: 0
                                   }}
                                   loading="lazy"
                                   onError={(e) => {
@@ -518,11 +526,18 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                                   <AnimatePresence>
                                     {showImageTooltip && (
                                       <motion.div
-                                        initial={{ opacity: 0, scale: 0.9 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        exit={{ opacity: 0, scale: 0.9 }}
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: 10 }}
                                         transition={{ duration: 0.3 }}
-                                        className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-fit bg-black/85 text-white text-sm px-4 py-2 rounded-full shadow-lg flex items-center justify-center gap-2 z-10"
+                                        className="pointer-events-none absolute bg-black/85 text-white text-sm px-4 py-2 rounded-full shadow-lg flex items-center justify-center gap-2 z-10"
+                                        style={{ 
+                                          left: 0,
+                                          right: 0,
+                                          bottom: '1rem',
+                                          margin: '0 auto',
+                                          width: 'fit-content'
+                                        }}
                                       >
                                         <Eye size={16} className="opacity-90" />
                                         <span className="font-medium">이미지 클릭 시 더 크게 볼 수 있어요!</span>
