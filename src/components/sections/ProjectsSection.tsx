@@ -483,9 +483,11 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                                   margin: 0, 
                                   padding: 0, 
                                   width: '100%',
+                                  minHeight: 'calc(90vh - 120px)',
                                   display: 'flex',
                                   alignItems: 'center',
-                                  justifyContent: 'center'
+                                  justifyContent: 'center',
+                                  overflow: 'hidden'
                                 }}
                                 onClick={() => handleImageClickForLightbox(image, index)}
                               >
@@ -495,8 +497,9 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                                   className="block"
                                   style={{ 
                                     width: '100%', 
+                                    height: '100%',
                                     maxWidth: '100%',
-                                    height: 'auto',
+                                    maxHeight: '100%',
                                     margin: 0, 
                                     padding: 0, 
                                     display: 'block', 
