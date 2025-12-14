@@ -715,7 +715,15 @@ export default function AllProjectsPage() {
                               animate={{ opacity: 1, y: 0 }}
                               transition={{ duration: 0.3, delay: index * 0.05 }}
                               className="group relative w-full cursor-pointer hover:opacity-90 transition-opacity flex items-center justify-center"
-                              style={{ margin: 0, padding: 0, width: '100%', display: 'flex', overflow: 'visible' }}
+                              style={{ 
+                                margin: 0, 
+                                padding: 0, 
+                                width: '100%', 
+                                display: 'flex', 
+                                overflow: 'visible',
+                                maxHeight: 'calc(90vh - 120px)',
+                                minHeight: 0
+                              }}
                               onClick={() => handleImageClickForLightbox(image, index)}
                             >
                                 <img
@@ -725,6 +733,7 @@ export default function AllProjectsPage() {
                                   style={{ 
                                     width: '100%', 
                                     maxWidth: '100%', 
+                                    maxHeight: 'calc(90vh - 120px)',
                                     height: 'auto', 
                                     margin: 0, 
                                     padding: 0, 
