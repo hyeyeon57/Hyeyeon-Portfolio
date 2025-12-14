@@ -429,7 +429,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-3xl overflow-hidden max-w-7xl w-full max-h-[90vh] overflow-y-auto custom-scrollbar shadow-2xl"
+              className="bg-white rounded-3xl overflow-hidden w-[95vw] max-w-[1920px] max-h-[90vh] overflow-y-auto custom-scrollbar shadow-2xl"
               style={{ borderRadius: '1.5rem 1.5rem 0 0', padding: 0, margin: 0 }}
             >
               {/* Modal Header */}
@@ -518,11 +518,11 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                                   <AnimatePresence>
                                     {showImageTooltip && (
                                       <motion.div
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: 10 }}
+                                        initial={{ opacity: 0, scale: 0.9 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        exit={{ opacity: 0, scale: 0.9 }}
                                         transition={{ duration: 0.3 }}
-                                        className="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 w-fit bg-black/85 text-white text-sm px-4 py-2 rounded-full shadow-lg flex items-center justify-center gap-2 z-10"
+                                        className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-fit bg-black/85 text-white text-sm px-4 py-2 rounded-full shadow-lg flex items-center justify-center gap-2 z-10"
                                       >
                                         <Eye size={16} className="opacity-90" />
                                         <span className="font-medium">이미지 클릭 시 더 크게 볼 수 있어요!</span>
