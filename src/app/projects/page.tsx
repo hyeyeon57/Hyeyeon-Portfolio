@@ -719,11 +719,10 @@ export default function AllProjectsPage() {
                                 margin: 0, 
                                 padding: 0, 
                                 width: '100%',
-                                minHeight: 'calc(90vh - 120px)',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                overflow: 'hidden',
+                                overflow: 'visible',
                                 border: 'none',
                                 outline: 'none'
                               }}
@@ -735,9 +734,8 @@ export default function AllProjectsPage() {
                                   className="block"
                                   style={{ 
                                     width: '100%', 
-                                    height: '100%',
+                                    height: 'auto',
                                     maxWidth: '100%',
-                                    maxHeight: '100%',
                                     margin: 0, 
                                     padding: 0, 
                                     display: 'block', 
