@@ -715,14 +715,14 @@ export default function AllProjectsPage() {
                               animate={{ opacity: 1, y: 0 }}
                               transition={{ duration: 0.3, delay: index * 0.05 }}
                               className="group relative w-full cursor-pointer hover:opacity-90 transition-opacity"
-                              style={{ margin: 0, padding: 0, width: '100%', display: 'block', overflow: 'visible' }}
+                              style={{ margin: 0, padding: 0, width: '100%', display: 'block', overflow: 'visible', minHeight: 'auto' }}
                               onClick={() => handleImageClickForLightbox(image, index)}
                             >
                                 <img
                                   src={image}
                                   alt={`${selectedProject?.title || ''} - 이미지 ${index + 1}`}
                                   className="w-full h-auto object-contain"
-                                  style={{ width: '100%', margin: 0, padding: 0, display: 'block', objectFit: 'contain' }}
+                                  style={{ width: '100%', maxWidth: '100%', height: 'auto', margin: 0, padding: 0, display: 'block', objectFit: 'contain' }}
                                   loading="lazy"
                                   onError={(e) => {
                                     console.error('이미지 로드 실패:', image);
