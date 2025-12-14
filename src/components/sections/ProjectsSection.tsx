@@ -430,7 +430,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
               exit={{ scale: 0.9, y: 20 }}
               onClick={(e) => e.stopPropagation()}
               className="bg-white rounded-3xl overflow-hidden max-w-7xl w-full max-h-[90vh] overflow-y-auto custom-scrollbar shadow-2xl"
-              style={{ borderRadius: '1.5rem 1.5rem 0 0' }}
+              style={{ borderRadius: '1.5rem 1.5rem 0 0', padding: 0, margin: 0 }}
             >
               {/* Modal Header */}
               <div className="sticky top-0 z-10 bg-white border-b border-line-medium p-4 flex items-start justify-between mb-0">
@@ -453,7 +453,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
               {/* Modal Content */}
             <div
               className="custom-scrollbar"
-              style={{ overflowY: 'auto', scrollbarGutter: 'stable both-edges' }}
+              style={{ overflowY: 'auto', scrollbarGutter: 'stable both-edges', padding: 0, margin: 0 }}
             >
                 {/* 이미지 세로 나열 - 각 이미지가 모달 너비에 딱 맞게 */}
                 {(() => {
@@ -468,8 +468,8 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                     if (total === 0) return null;
                     
                     return (
-                      <div className="w-full" style={{ margin: 0, padding: 0 }}>
-                        <div className="w-full" style={{ margin: 0, padding: 0 }}>
+                      <div className="w-full" style={{ margin: 0, padding: 0, width: '100%' }}>
+                        <div className="w-full" style={{ margin: 0, padding: 0, width: '100%' }}>
                           {images.map((image, index) => {
                             if (!image) return null;
                             return (
@@ -487,7 +487,9 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                                   display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: 'center',
-                                  overflow: 'hidden'
+                                  overflow: 'hidden',
+                                  border: 'none',
+                                  outline: 'none'
                                 }}
                                 onClick={() => handleImageClickForLightbox(image, index)}
                               >

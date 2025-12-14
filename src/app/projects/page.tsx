@@ -689,7 +689,7 @@ export default function AllProjectsPage() {
             {/* Modal Content (대표 프로젝트와 동일한 구조) */}
             <div
               className="custom-scrollbar"
-              style={{ overflowY: 'auto', scrollbarGutter: 'stable both-edges' }}
+              style={{ overflowY: 'auto', scrollbarGutter: 'stable both-edges', padding: 0, margin: 0 }}
               ref={modalContentRef}
             >
               {/* 이미지 세로 나열 - 각 이미지가 모달 너비에 딱 맞게 */}
@@ -704,8 +704,8 @@ export default function AllProjectsPage() {
                   if (total === 0) return null;
                   
                   return (
-                    <div className="w-full" style={{ margin: 0, padding: 0 }}>
-                      <div className="w-full" style={{ margin: 0, padding: 0 }}>
+                    <div className="w-full" style={{ margin: 0, padding: 0, width: '100%' }}>
+                      <div className="w-full" style={{ margin: 0, padding: 0, width: '100%' }}>
                         {images.map((image, index) => {
                           if (!image) return null;
                           return (
@@ -723,7 +723,9 @@ export default function AllProjectsPage() {
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                overflow: 'hidden'
+                                overflow: 'hidden',
+                                border: 'none',
+                                outline: 'none'
                               }}
                               onClick={() => handleImageClickForLightbox(image, index)}
                             >
