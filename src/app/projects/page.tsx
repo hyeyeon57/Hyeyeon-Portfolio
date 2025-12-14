@@ -345,8 +345,8 @@ export default function AllProjectsPage() {
     { id: 'featured', label: '대표', count: projects.filter(p => p.featured).length },
     { id: 'new', label: '신규', count: projects.filter(p => getCategoryValue(p) === 'new').length },
     { id: 'renewal', label: '리뉴얼', count: projects.filter(p => getCategoryValue(p) === 'renewal').length },
-    { id: 'app', label: '앱', count: projects.filter(p => getCategoryValue(p) === 'app').length },
-    { id: 'web', label: '웹', count: projects.filter(p => getCategoryValue(p) === 'web').length },
+    { id: 'proposal', label: '제안서', count: projects.filter(p => getCategoryValue(p) === 'proposal').length },
+    { id: 'etc', label: '기타', count: projects.filter(p => getCategoryValue(p) === 'etc').length },
     { id: 'design', label: '화면설계서', count: projects.filter(p => getCategoryValue(p) === 'design').length },
   ];
 
