@@ -481,10 +481,12 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                                 className="group relative w-full cursor-pointer hover:opacity-90 transition-opacity"
                                 style={{ 
                                   margin: 0, 
+                                  marginBottom: index < images.length - 1 ? '0.5rem' : 0,
                                   padding: 0, 
                                   width: '100%',
-                                  height: 'calc(92vh - 100px)',
-                                  minHeight: 'calc(92vh - 100px)',
+                                  height: 'auto',
+                                  minHeight: 'auto',
+                                  maxHeight: '70vh',
                                   display: 'flex',
                                   alignItems: 'stretch',
                                   justifyContent: 'stretch',
@@ -502,11 +504,11 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                                   className="block"
                                   style={{ 
                                     width: '100%', 
-                                    height: '100%',
+                                    height: 'auto',
                                     minWidth: '100%',
-                                    minHeight: '100%',
+                                    minHeight: 'auto',
                                     maxWidth: '100%',
-                                    maxHeight: '100%',
+                                    maxHeight: '70vh',
                                     margin: 0, 
                                     padding: 0, 
                                     display: 'block', 
