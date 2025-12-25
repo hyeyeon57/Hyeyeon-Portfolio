@@ -135,7 +135,7 @@ export const Header: React.FC = () => {
                 href="/" 
                 className="text-xl md:text-2xl font-light text-text-main hover:text-text-sub transition-colors tracking-tight"
               >
-                Portfolio
+                Janghyeyeon
               </Link>
             </motion.div>
 
