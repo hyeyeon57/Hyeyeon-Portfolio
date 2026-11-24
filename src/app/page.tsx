@@ -6,6 +6,7 @@ import { HeroSection } from '@/components/sections/HeroSection';
 import { ProjectsSection } from '@/components/sections/ProjectsSection';
 import { ExperienceSection } from '@/components/sections/ExperienceSection';
 import { HearSeeFeelSection } from '@/components/sections/HearSeeFeelSection';
+import { AllPortfolioSection } from '@/components/sections/AllPortfolioSection';
 import { SkillsSection } from '@/components/sections/SkillsSection';
 import { ContactSection } from '@/components/sections/ContactSection';
 
@@ -88,6 +89,7 @@ export default function Home() {
         <ProjectsSection theme={theme} />
         <ExperienceSection theme={theme} />
         <HearSeeFeelSection theme={theme} />
+        <AllPortfolioSection />
         <SkillsSection theme={theme} />
         <ContactSection theme={theme} />
       </motion.main>

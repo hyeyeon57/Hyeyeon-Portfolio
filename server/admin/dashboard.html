@@ -25,6 +25,7 @@
           <nav class="-mb-px flex space-x-6 items-center" aria-label="Tabs">
             <button class="tab-btn" data-tab="documents">문서 관리</button>
             <button class="tab-btn" data-tab="projects">프로젝트</button>
+            <button class="tab-btn" data-tab="magazines">매거진</button>
             <button class="tab-btn" data-tab="banners">배너 관리</button>
             <button class="tab-btn" data-tab="contacts">연락</button>
             <button class="tab-btn" data-tab="visitors">방문자</button>
@@ -142,6 +143,104 @@
             </thead>
             <tbody id="projectsTable" class="divide-y divide-gray-200"></tbody>
           </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 매거진(회고) 탭 -->
+    <div id="content-magazines" class="tab-content hidden">
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+          <div>
+            <h2 class="text-xl font-bold text-gray-900">매거진(회고) 관리</h2>
+            <p class="text-sm text-gray-500 mt-1">포트폴리오 메인 하단 Magazine 섹션과 상세 블로그 페이지에 표시되는 회고 글을 관리합니다.</p>
+          </div>
+          <button type="button" onclick="openMagazineForm()" class="px-4 py-2 rounded-lg text-white font-medium text-sm transition" style="background-color: #0EA5E9;">
+            + 새 매거진 글 작성
+          </button>
+        </div>
+
+        <!-- 작성/수정 폼 -->
+        <div id="magazineFormWrap" class="hidden mb-8 p-6 rounded-xl border border-sky-200 bg-sky-50/40">
+          <div class="flex items-center justify-between mb-4">
+            <h3 id="magazineFormTitle" class="text-lg font-bold text-gray-900">새 매거진 글 작성</h3>
+            <button type="button" onclick="closeMagazineForm()" class="text-sm text-gray-500 hover:text-gray-800">닫기 ✕</button>
+          </div>
+          <form id="magazineForm" onsubmit="submitMagazineForm(event)" class="space-y-4">
+            <input type="hidden" id="magEditId" value="" />
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-xs font-semibold text-gray-700 mb-1">슬러그(URL ID) *</label>
+                <input id="magSlug" type="text" required placeholder="예: yogiyo-ux-retrospective" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-700 mb-1">프로젝트 태그 *</label>
+                <input id="magProjectTag" type="text" required placeholder="예: YOGIYO · UX/UI RENEWAL" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white" />
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block text-xs font-semibold text-gray-700 mb-1">작성일 *</label>
+                  <input id="magDate" type="text" required placeholder="2026.04.12" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white" />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-gray-700 mb-1">읽기 시간</label>
+                  <input id="magReadTime" type="text" placeholder="5 min read" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white" />
+                </div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-semibold text-gray-700 mb-1">제목 *</label>
+                <input id="magTitle" type="text" required placeholder="매거진 글 제목" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-700 mb-1">대표 이미지 URL (비워두면 회색 박스)</label>
+                <input id="magImage" type="text" placeholder="/projects/yogiyo.png (선택)" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white" />
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-gray-700 mb-1">부제목</label>
+              <input id="magSubtitle" type="text" placeholder="상세 페이지 상단에 표시될 부제목" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white" />
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-gray-700 mb-1">요약(메인 리스트 노출) *</label>
+              <textarea id="magExcerpt" rows="2" required placeholder="메인 Magazine 리스트에 노출될 요약 문구" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white"></textarea>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-semibold text-gray-700 mb-1">태그 (쉼표로 구분)</label>
+                <input id="magTags" type="text" placeholder="UX Renewal, Food Tech, User Flow" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-700 mb-1">정렬 순서 (낮을수록 위)</label>
+                <input id="magOrder" type="number" value="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white" />
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-gray-700 mb-1">본문 섹션 (## 소제목 으로 구분, 문단은 빈 줄로 구분)</label>
+              <textarea id="magSections" rows="8" placeholder="## 01. 문제 정의&#10;첫 번째 문단 내용&#10;&#10;두 번째 문단 내용&#10;&#10;## 02. 해결 과정&#10;내용..." class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono bg-white"></textarea>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-gray-700 mb-1">Key Takeaways (한 줄에 하나씩 입력)</label>
+              <textarea id="magTakeaways" rows="3" placeholder="핵심 배움 1&#10;핵심 배움 2" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white"></textarea>
+            </div>
+
+            <div class="flex justify-end gap-2 pt-2">
+              <button type="button" onclick="closeMagazineForm()" class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 text-sm hover:bg-gray-100">취소</button>
+              <button type="submit" class="px-5 py-2 rounded-lg text-white font-medium text-sm" style="background-color: #0EA5E9;">저장하기</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- 매거진 목록 -->
+        <div id="magazinesList" class="space-y-4">
+          <p class="text-sm text-gray-500 py-8 text-center">매거진 목록을 불러오는 중...</p>
         </div>
       </div>
     </div>
@@ -541,6 +640,8 @@
         loadDocuments();
       } else if (tab === 'projects') {
         loadProjects();
+      } else if (tab === 'magazines') {
+        loadMagazines();
       } else if (tab === 'banners') {
         loadHeroSliders();
       } else if (tab === 'contacts') {
@@ -557,7 +658,7 @@
     const savedTab = typeof window !== 'undefined' && window.localStorage 
       ? localStorage.getItem('admin-dashboard-active-tab') 
       : null;
-    const initialTab = savedTab && ['documents', 'projects', 'banners', 'contacts', 'visitors'].includes(savedTab) 
+    const initialTab = savedTab && ['documents', 'projects', 'magazines', 'banners', 'contacts', 'visitors'].includes(savedTab) 
       ? savedTab 
       : 'documents';
     
@@ -5764,6 +5865,183 @@
 
       ensureLucide();
     })();
+
+    // ==================== 매거진(회고) 관리 ====================
+    let cachedMagazines = [];
+
+    function serializeSections(sections) {
+      if (!Array.isArray(sections)) return '';
+      return sections
+        .map((sec) => `## ${sec.heading || ''}\n${(sec.paragraphs || []).join('\n\n')}`)
+        .join('\n\n');
+    }
+
+    function parseSections(rawText) {
+      const text = (rawText || '').trim();
+      if (!text) return [];
+      const blocks = text.split(/^##\s+/m).filter((b) => b.trim());
+      return blocks.map((block) => {
+        const lines = block.split('\n');
+        const heading = (lines.shift() || '').trim();
+        const body = lines.join('\n').trim();
+        const paragraphs = body
+          .split(/\n\s*\n/)
+          .map((p) => p.trim())
+          .filter(Boolean);
+        return { heading, paragraphs };
+      });
+    }
+
+    async function loadMagazines() {
+      const container = document.getElementById('magazinesList');
+      if (!container) return;
+      container.innerHTML = '<p class="text-sm text-gray-500 py-8 text-center">매거진 목록을 불러오는 중...</p>';
+      try {
+        const res = await fetch(`${API_URL}/magazines`, { credentials: 'include' });
+        const json = await res.json();
+        if (!json.success) throw new Error(json.message || '조회 실패');
+        cachedMagazines = json.data || [];
+
+        if (cachedMagazines.length === 0) {
+          container.innerHTML = '<p class="text-sm text-gray-500 py-8 text-center">등록된 매거진 글이 없습니다. 새 글을 작성해보세요.</p>';
+          return;
+        }
+
+        container.innerHTML = cachedMagazines
+          .map((item) => {
+            const safeId = escapeHtml(item.id || item._id);
+            const thumbHtml = item.image
+              ? `<img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title)}" class="w-24 h-16 object-cover rounded-lg border border-gray-100 flex-shrink-0 bg-[#D9D9D9]" />`
+              : `<div class="w-24 h-16 rounded-lg border border-gray-100 flex-shrink-0 bg-[#D9D9D9]"></div>`;
+            return `
+              <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-xl border border-gray-200 hover:border-sky-300 transition bg-white">
+                <div class="flex items-start gap-4 flex-1 min-w-0">
+                  ${thumbHtml}
+                  <div class="min-w-0 flex-1">
+                    <div class="flex flex-wrap items-center gap-2 text-xs text-gray-500 mb-1">
+                      <span class="px-2 py-0.5 rounded bg-purple-50 text-purple-700 font-medium">${escapeHtml(item.projectTag || '')}</span>
+                      <span>${escapeHtml(item.date || '')}</span>
+                      <span>· 순서 ${item.order ?? 0}</span>
+                    </div>
+                    <h4 class="font-bold text-gray-900 text-base truncate">${escapeHtml(item.title)}</h4>
+                    <p class="text-xs text-gray-500 line-clamp-1 mt-0.5">${escapeHtml(item.excerpt || '')}</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2 flex-shrink-0">
+                  <a href="http://localhost:3000/magazine/${encodeURIComponent(item.id)}" target="_blank" class="px-3 py-1.5 rounded-lg border border-gray-200 text-xs text-gray-600 hover:bg-gray-50">보기</a>
+                  <button type="button" onclick="openMagazineForm('${safeId}')" class="px-3 py-1.5 rounded-lg bg-sky-50 text-sky-700 text-xs font-medium hover:bg-sky-100">수정</button>
+                  <button type="button" onclick="deleteMagazine('${safeId}')" class="px-3 py-1.5 rounded-lg bg-red-50 text-red-600 text-xs font-medium hover:bg-red-100">삭제</button>
+                </div>
+              </div>
+            `;
+          })
+          .join('');
+      } catch (err) {
+        console.error('매거진 로드 실패:', err);
+        container.innerHTML = `<p class="text-sm text-red-500 py-8 text-center">불러오기 실패: ${escapeHtml(err.message)}</p>`;
+      }
+    }
+
+    function openMagazineForm(id) {
+      const wrap = document.getElementById('magazineFormWrap');
+      const titleEl = document.getElementById('magazineFormTitle');
+      const editIdEl = document.getElementById('magEditId');
+      wrap.classList.remove('hidden');
+
+      if (id) {
+        const item = cachedMagazines.find((m) => m.id === id || m._id === id);
+        if (!item) return;
+        titleEl.textContent = '매거진 글 수정';
+        editIdEl.value = item.id || item._id;
+        document.getElementById('magSlug').value = item.id || '';
+        document.getElementById('magProjectTag').value = item.projectTag || '';
+        document.getElementById('magDate').value = item.date || '';
+        document.getElementById('magReadTime').value = item.readTime || '5 min read';
+        document.getElementById('magTitle').value = item.title || '';
+        document.getElementById('magImage').value = item.image || '';
+        document.getElementById('magSubtitle').value = item.subtitle || '';
+        document.getElementById('magExcerpt').value = item.excerpt || '';
+        document.getElementById('magTags').value = (item.tags || []).join(', ');
+        document.getElementById('magOrder').value = item.order ?? 0;
+        document.getElementById('magSections').value = serializeSections(item.sections);
+        document.getElementById('magTakeaways').value = (item.takeaways || []).join('\n');
+      } else {
+        titleEl.textContent = '새 매거진 글 작성';
+        editIdEl.value = '';
+        document.getElementById('magazineForm').reset();
+        document.getElementById('magReadTime').value = '5 min read';
+        document.getElementById('magOrder').value = cachedMagazines.length;
+      }
+      wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function closeMagazineForm() {
+      const wrap = document.getElementById('magazineFormWrap');
+      if (wrap) wrap.classList.add('hidden');
+    }
+
+    async function submitMagazineForm(e) {
+      e.preventDefault();
+      const editId = document.getElementById('magEditId').value.trim();
+      const payload = {
+        slug: document.getElementById('magSlug').value.trim(),
+        projectTag: document.getElementById('magProjectTag').value.trim(),
+        date: document.getElementById('magDate').value.trim(),
+        readTime: document.getElementById('magReadTime').value.trim() || '5 min read',
+        title: document.getElementById('magTitle').value.trim(),
+        image: document.getElementById('magImage').value.trim(),
+        subtitle: document.getElementById('magSubtitle').value.trim(),
+        excerpt: document.getElementById('magExcerpt').value.trim(),
+        tags: document.getElementById('magTags').value
+          .split(',')
+          .map((t) => t.trim())
+          .filter(Boolean),
+        order: Number(document.getElementById('magOrder').value) || 0,
+        sections: parseSections(document.getElementById('magSections').value),
+        takeaways: document.getElementById('magTakeaways').value
+          .split('\n')
+          .map((t) => t.trim())
+          .filter(Boolean),
+      };
+
+      const url = editId ? `${API_URL}/magazines/${encodeURIComponent(editId)}` : `${API_URL}/magazines`;
+      const method = editId ? 'PUT' : 'POST';
+
+      try {
+        const res = await fetch(url, {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(payload),
+        });
+        const json = await res.json();
+        if (!res.ok || !json.success) {
+          throw new Error(json.message || '저장에 실패했습니다.');
+        }
+        closeMagazineForm();
+        await loadMagazines();
+        alert(editId ? '매거진 글이 수정되었습니다.' : '새 매거진 글이 등록되었습니다.');
+      } catch (err) {
+        alert(`오류: ${err.message}`);
+      }
+    }
+
+    async function deleteMagazine(id) {
+      if (!confirm('이 매거진 글을 삭제하시겠습니까?')) return;
+      try {
+        const res = await fetch(`${API_URL}/magazines/${encodeURIComponent(id)}`, {
+          method: 'DELETE',
+          credentials: 'include',
+        });
+        const json = await res.json();
+        if (!res.ok || !json.success) {
+          throw new Error(json.message || '삭제 실패');
+        }
+        await loadMagazines();
+      } catch (err) {
+        alert(`삭제 오류: ${err.message}`);
+      }
+    }
   </script>
   </div>
   </div>

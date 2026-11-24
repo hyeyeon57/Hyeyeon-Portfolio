@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ExternalLink, Calendar, Users, Award, FileText, ChevronLeft, ChevronRight, Eye, ArrowRight } from 'lucide-react';
+import { X, ExternalLink, Calendar, Users, Award, FileText, ChevronLeft, ChevronRight, Eye, ArrowDownRight, Pause, Play } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { PROJECT_CATEGORIES } from '@/constants/categories';
@@ -30,6 +30,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
   const [hasShownLightboxTooltip, setHasShownLightboxTooltip] = useState(false); // 이 세션에서 이미 한 번 보여줬는지 여부
   const [showImageTooltip, setShowImageTooltip] = useState(false); // 모달 이미지 툴팁 (3초간 표시)
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0); // 현재 슬라이드 인덱스
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true); // 자동 재생 여부
   const [isDragging, setIsDragging] = useState(false); // 드래그 중인지 여부
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 }); // 드래그 시작 위치
   const [dragOffset, setDragOffset] = useState(0); // 드래그 오프셋
@@ -143,9 +144,11 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
     };
   }, [selectedProject]);
 
-  // 모든 프로젝트를 가져오되, featured 프로젝트를 먼저 정렬
+  // 모든 프로젝트를 가져오되, 요기요 및 featured 프로젝트를 먼저 정렬
   const allProjects = useMemo(() => {
     const sortedProjects = [...projects].sort((a, b) => {
+      if (a.title === '요기요' && b.title !== '요기요') return -1;
+      if (b.title === '요기요' && a.title !== '요기요') return 1;
       const aFeatured = a.featured === true || a.featured === 'true';
       const bFeatured = b.featured === true || b.featured === 'true';
       if (aFeatured && !bFeatured) return -1;
@@ -338,44 +341,81 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
     );
   }
 
-  const featuredPair = displayedProjects.slice(0, 2);
+  const featuredTriplet = useMemo(() => {
+    if (allProjects.length === 0) return [];
+    const result = [];
+    for (let i = 0; i < Math.min(3, allProjects.length); i++) {
+      result.push(allProjects[(currentSlideIndex + i) % allProjects.length]);
+    }
+    return result;
+  }, [allProjects, currentSlideIndex]);
+
+  useEffect(() => {
+    if (!isAutoPlaying || allProjects.length <= 2) return;
+    const timer = setInterval(() => {
+      setCurrentSlideIndex((prev) => (prev + 1) % allProjects.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [isAutoPlaying, allProjects.length]);
+
   const barColors = ['#16035E', '#000000'];
   const totalCount = Math.max(allProjects.length, 8);
-  const currentNum = String(currentSlideIndex + 1).padStart(2, '0');
+  const currentNum = String((currentSlideIndex % totalCount) + 1).padStart(2, '0');
   const totalNum = String(Math.min(totalCount, 8)).padStart(2, '0');
-  const progressRatio = Math.min((currentSlideIndex + 1) / Math.max(Math.ceil(allProjects.length / visibleCards), 1), 1);
+  const progressRatio = Math.min(((currentSlideIndex % totalCount) + 1) / Math.min(totalCount, 8), 1);
 
   return (
-    <section id="projects" className="relative overflow-visible bg-white w-full">
-      <div className="max-w-container mx-auto relative z-10 px-5 sm:px-8 lg:px-[60px] pt-24 sm:pt-32 md:pt-40 pb-16">
+    <section id="projects" className="relative overflow-x-hidden bg-white w-full">
+      <div className="max-w-container mx-auto relative z-10 px-5 sm:px-8 lg:px-[60px] pt-24 sm:pt-32 md:pt-36 pb-10">
         {/* Explore heading + progress */}
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-          className="mb-10 sm:mb-14"
+          className="mb-8 sm:mb-10"
         >
           <h2 className="display-xl text-[clamp(2.75rem,6vw,80px)] leading-[1.1] text-black max-w-md whitespace-pre-line">
             {'Explore\nUX Portfolio.'}
           </h2>
 
-          <div className="mt-8 sm:mt-10 flex items-center gap-3 max-w-md">
+          <div className="mt-8 sm:mt-10 flex items-center gap-3 max-w-[454px]">
             <span className="text-xs font-medium tracking-[-0.025em] text-black tabular-nums">{currentNum}</span>
             <div className="relative flex-1 h-px bg-black/20">
-              <div className="absolute left-0 top-0 h-px bg-black" style={{ width: `${Math.max(progressRatio * 100, 12)}%` }} />
+              <div
+                className="absolute left-0 top-0 h-px bg-black transition-all duration-300"
+                style={{ width: `${Math.max(progressRatio * 100, 12)}%` }}
+              />
             </div>
             <span className="text-xs font-medium tracking-[-0.025em] text-black tabular-nums">{totalNum}</span>
-            <div className="flex items-center gap-2 ml-2">
+            <div className="flex items-center gap-1 ml-2">
               <button
-                onClick={handlePrevSlide}
+                type="button"
+                onClick={() =>
+                  setCurrentSlideIndex((prev) =>
+                    allProjects.length ? (prev - 1 + allProjects.length) % allProjects.length : 0
+                  )
+                }
                 className="w-6 h-6 flex items-center justify-center text-black/40 hover:text-black transition-colors"
                 aria-label="이전"
               >
                 <ChevronLeft size={16} />
               </button>
               <button
-                onClick={handleNextSlide}
+                type="button"
+                onClick={() => setIsAutoPlaying((prev) => !prev)}
+                className="w-6 h-6 flex items-center justify-center text-black hover:opacity-70 transition-opacity"
+                aria-label={isAutoPlaying ? '일시정지' : '재생'}
+              >
+                {isAutoPlaying ? <Pause size={12} fill="currentColor" /> : <Play size={12} fill="currentColor" />}
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  setCurrentSlideIndex((prev) =>
+                    allProjects.length ? (prev + 1) % allProjects.length : 0
+                  )
+                }
                 className="w-6 h-6 flex items-center justify-center text-black hover:opacity-70 transition-opacity"
                 aria-label="다음"
               >
@@ -384,10 +424,12 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
             </div>
           </div>
         </motion.div>
+      </div>
 
-        {/* Featured large cards (Figma: 800x480 + colored info bar) */}
+      {/* Featured large cards: 2 cards flush (gap-0) + 3rd dark peek card on right edge */}
+      <div className="max-w-container mx-auto pl-5 sm:pl-8 lg:pl-[60px] pb-16 sm:pb-24">
         <div
-          className="relative select-none mb-20 sm:mb-28"
+          className="relative select-none"
           onMouseDown={handleDragStart}
           onMouseMove={handleDragMove}
           onMouseUp={handleDragEnd}
@@ -403,17 +445,17 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
               animate={{ opacity: 1, x: isDragging ? dragOffset : 0 }}
               exit={{ opacity: 0, x: -24 }}
               transition={{ duration: isDragging ? 0 : 0.35 }}
-              className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-5"
+              className="flex flex-col md:flex-row items-stretch"
               style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
             >
-              {featuredPair.map((project, index) => (
+              {featuredTriplet.slice(0, 2).map((project, index) => (
                 <motion.div
-                  key={project.id}
-                  initial={{ opacity: 0, y: 24 }}
+                  key={`${project.id}-${index}`}
+                  initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.08 }}
-                  className="group"
+                  className="group w-full md:w-[44%] flex-shrink-0"
                   style={{ pointerEvents: isDragging ? 'none' : 'auto' }}
                   onClick={() => handleCardClick(project)}
                 >
@@ -424,113 +466,52 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                         alt={project.title}
                         fill
                         className="object-cover group-hover:scale-105 transition-transform duration-700"
-                        unoptimized={project.image?.startsWith('http') || project.image?.startsWith('//')}
+                        unoptimized={
+                          project.image?.startsWith('http') ||
+                          project.image?.startsWith('//') ||
+                          project.image?.endsWith('.svg')
+                        }
                       />
                     )}
-                    <div
-                      className="absolute inset-0 pointer-events-none"
-                      style={{
-                        background:
-                          'linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0) 51.56%, rgba(0,0,0,0.3) 100%)',
-                      }}
-                    />
-                    <div className="absolute inset-y-0 left-0 w-1/2 pointer-events-none bg-gradient-to-r from-black/30 to-transparent" />
-                    <p className="absolute left-8 bottom-6 text-lg font-medium tracking-[-0.025em] text-white">
-                      PROJECT {String(currentSlideIndex * visibleCards + index + 1).padStart(2, '0')}
+                    <p className="absolute left-8 bottom-6 text-lg font-medium tracking-[-0.025em] text-white drop-shadow">
+                      PROJECT {String(((currentSlideIndex + index) % Math.max(allProjects.length, 1)) + 1).padStart(2, '0')}
                     </p>
                   </div>
                   <div
-                    className="px-8 sm:px-9 py-5 min-h-[135px] flex flex-col justify-center"
+                    className="px-8 sm:px-9 py-6 min-h-[135px] flex items-center justify-between gap-4"
                     style={{ background: barColors[index % barColors.length] }}
                   >
-                    <h3 className="text-white text-xl sm:text-2xl font-semibold tracking-[-0.025em] mb-2 line-clamp-1">
-                      {project.title}
-                    </h3>
-                    <p className="text-white/70 text-sm font-light leading-[130%] tracking-[-0.5px] line-clamp-2 max-w-sm">
-                      {project.description || project.subtitle}
-                    </p>
+                    <div className="min-w-0">
+                      <h3 className="text-white text-xl sm:text-2xl font-semibold tracking-[-0.025em] mb-2 line-clamp-1">
+                        {project.title}
+                      </h3>
+                      <p className="text-white/70 text-sm font-light leading-[130%] tracking-[-0.5px] line-clamp-2 max-w-[334px]">
+                        {project.description || project.subtitle}
+                      </p>
+                    </div>
+                    <span className="w-12 h-12 rounded-full border border-[#E5E5EC]/70 flex items-center justify-center text-white flex-shrink-0 group-hover:bg-white group-hover:text-black transition-colors">
+                      <ArrowDownRight size={18} />
+                    </span>
                   </div>
                 </motion.div>
               ))}
+
+              {/* 우측 3번째 다크 피크 카드 (이미지 영역 높이에만 맞춤, 하단 바 영역은 흰 배경 유지) */}
+              <div
+                onClick={() =>
+                  setCurrentSlideIndex((prev) =>
+                    allProjects.length ? (prev + 1) % allProjects.length : 0
+                  )
+                }
+                className="hidden md:block w-[44%] flex-shrink-0 self-start ml-1.5 aspect-[800/480] cursor-pointer overflow-hidden relative"
+                style={{
+                  background:
+                    'linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0) 51.56%, rgba(0,0,0,0.3) 100%), rgba(0,0,0,0.84)',
+                }}
+                title="다음 프로젝트 보기"
+              />
             </motion.div>
           </AnimatePresence>
-        </div>
-
-        {/* Artwork discovery browse grid */}
-        <div className="mb-10">
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-10">
-            <h3 className="text-[clamp(2.5rem,5vw,80px)] font-normal tracking-[-0.03em] text-text-main leading-none">
-              Browse
-            </h3>
-            <p className="max-w-sm text-lg text-text-secondary leading-[160%]">
-              {t('projects.description') || '사용자 경험과 비즈니스 가치를 함께 고민한 프로젝트들을 담았습니다.'}
-            </p>
-          </div>
-
-          <div className="flex flex-wrap gap-3 mb-7">
-            {[{ id: 'all', label: 'All Works' }, ...PROJECT_CATEGORIES].map((cat, i) => (
-              <span
-                key={cat.id}
-                className={`inline-flex items-center px-5 py-[13px] rounded-full border border-line-light text-base ${
-                  i === 0 ? 'bg-text-main text-white' : 'bg-transparent text-text-main'
-                }`}
-              >
-                {cat.label}
-              </span>
-            ))}
-          </div>
-          <div className="h-px w-full bg-line-light mb-6" />
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7 mb-12">
-            {allProjects.slice(0, 6).map((project) => (
-              <button
-                key={`browse-${project.id}`}
-                type="button"
-                onClick={() => handleCardClick(project)}
-                className="group text-left"
-              >
-                <div className="relative w-full aspect-[581/470] bg-[#D9D9D9] overflow-hidden mb-5">
-                  {project.image && (
-                    <Image
-                      src={project.image}
-                      alt={project.title}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-700"
-                      unoptimized={project.image?.startsWith('http') || project.image?.startsWith('//')}
-                    />
-                  )}
-                </div>
-                <div className="flex items-center justify-between gap-3 mb-2 text-[15px] text-text-secondary">
-                  <span className="truncate">
-                    {Array.isArray(project.category)
-                      ? PROJECT_CATEGORIES.find((c) => c.id === project.category[0])?.label
-                      : PROJECT_CATEGORIES.find((c) => c.id === project.category)?.label || 'Project'}
-                  </span>
-                  <span>{project.date}</span>
-                </div>
-                <div className="flex items-center justify-between gap-3 mb-2">
-                  <h4 className="text-[28px] font-medium tracking-[-0.02em] text-text-main line-clamp-1">
-                    {project.title}
-                  </h4>
-                  <ArrowRight size={22} className="flex-shrink-0 text-text-main" />
-                </div>
-                <p className="text-[17px] text-text-secondary line-clamp-1">{project.subtitle}</p>
-              </button>
-            ))}
-          </div>
-
-          <div className="border-t border-line-light pt-8 flex flex-col sm:flex-row items-center justify-between gap-6">
-            <p className="text-base text-text-secondary">
-              Showing {Math.min(6, allProjects.length)} of {allProjects.length}
-            </p>
-            <Link href="/projects" prefetch={true}>
-              <button className="inline-flex items-center justify-center gap-8 w-[300px] h-16 border border-text-main text-lg text-text-main hover:bg-text-main hover:text-white transition-colors">
-                {t('projects.viewAll')}
-                <span className="text-xl leading-none">+</span>
-              </button>
-            </Link>
-            <p className="text-base text-text-secondary hidden sm:block">Next up</p>
-          </div>
         </div>
       </div>
 

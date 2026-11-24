@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 640" width="800" height="640">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF2970"/>
+      <stop offset="55%" stop-color="#FA0050"/>
+      <stop offset="100%" stop-color="#E00046"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="85%" cy="80%" r="55%">
+      <stop offset="0%" stop-color="#FF6B9D" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#FA0050" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="800" height="640" fill="url(#bg)"/>
+  <circle cx="680" cy="510" r="320" fill="url(#glow)"/>
+  <circle cx="720" cy="480" r="220" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="48"/>
+  <text x="64" y="136" fill="#FFFFFF" font-family="'Pretendard', 'Noto Sans KR', sans-serif" font-size="68" font-weight="800" letter-spacing="-2">”0”</text>
+  <text x="68" y="184" fill="rgba(255,255,255,0.85)" font-family="'Pretendard', 'Inter', sans-serif" font-size="22" font-weight="500" letter-spacing="-0.5">UX/UI Renewal Project</text>
+</svg>
