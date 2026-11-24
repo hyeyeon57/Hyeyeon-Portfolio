@@ -1,317 +1,142 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
-import { useRef } from 'react';
-import { ChevronDown } from 'lucide-react';
-import { personalInfo } from '@/data/portfolio';
-
-interface DocumentInfo {
-  resume?: { url: string; fileName: string };
-  coverLetter?: { url: string; fileName: string };
-}
+import { ArrowRight } from 'lucide-react';
 
 interface HeroSectionProps {
   theme?: 'light' | 'dark';
 }
 
+const rise = {
+  hidden: { opacity: 0, y: 36 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.85, ease: [0.22, 1, 0.36, 1] } },
+};
+
+const container = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.08, delayChildren: 0.12 } },
+};
+
 export const HeroSection: React.FC<HeroSectionProps> = () => {
-  const ref = useRef(null);
-  const [documents, setDocuments] = useState<DocumentInfo | null>(null);
-
-  useEffect(() => {
-    // 캐시에서 먼저 로드 (즉시 표시)
-    const cacheKey = 'documents-cache';
-    try {
-      const cached = sessionStorage.getItem(cacheKey);
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        const cacheTime = parsed?.timestamp || 0;
-        const fiveMinutes = 5 * 60 * 1000;
-        
-        // 5분 이내 캐시면 즉시 사용
-        if (Date.now() - cacheTime < fiveMinutes) {
-          setDocuments(parsed.data);
-        }
-      }
-    } catch (e) {
-      // 캐시 읽기 실패 시 무시
-    }
-
-    // 백그라운드에서 최신 데이터 가져오기
-    const fetchDocuments = async () => {
-      try {
-        const response = await fetch('/api/documents');
-        if (response.ok) {
-          const result = await response.json();
-          if (result.success) {
-            setDocuments(result.data);
-            // 캐시에 저장
-            try {
-              sessionStorage.setItem(cacheKey, JSON.stringify({
-                data: result.data,
-                timestamp: Date.now()
-              }));
-            } catch (e) {
-              // 캐시 저장 실패 시 무시
-            }
-          }
-        }
-      } catch (error) {
-        console.error('문서 데이터를 가져오는 중 오류 발생:', error);
-      }
-    };
-
-    fetchDocuments();
-  }, []);
-
-  // personalInfo의 URL을 먼저 사용하고, API 응답이 오면 업데이트
-  const resumeUrl = documents?.resume?.url || personalInfo.resumeUrl;
-  const coverLetterUrl = documents?.coverLetter?.url || personalInfo.coverLetterUrl;
-
   return (
-    <section 
-      ref={ref}
-      id="home" 
-      className="relative min-h-screen flex items-center overflow-hidden"
-      style={{
-        background: `
-          radial-gradient(45% 40% at 75% 15%, rgba(252,235,255,0.12) 0%, rgba(252,235,255,0) 65%),
-          radial-gradient(50% 45% at 85% 60%, rgba(231,240,255,0.10) 0%, rgba(231,240,255,0) 65%),
-          radial-gradient(40% 40% at 20% 80%, rgba(243,233,255,0.12) 0%, rgba(243,233,255,0) 60%),
-          radial-gradient(35% 35% at 50% 50%, rgba(240,242,255,0.08) 0%, rgba(240,242,255,0) 70%),
-          radial-gradient(30% 35% at 10% 50%, rgba(122,104,246,0.08) 0%, rgba(122,104,246,0) 65%),
-          linear-gradient(135deg, #ECE9FF 0%, #FFFFFF 48%, #F7F7FF 100%)
-        `
-      }}
+    <section
+      id="home"
+      className="relative w-full min-h-screen bg-bg-black overflow-hidden flex items-center"
     >
+      {/* 우측 이미지 영역 + 상하 그라데이션 오버레이 */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-y-0 right-0 w-[55%] max-w-[1186px]"
+        style={{
+          background:
+            'linear-gradient(180deg, rgba(0,0,0,0.87) 0%, rgba(0,0,0,0) 48.44%, rgba(0,0,0,0.87) 100%), radial-gradient(ellipse at 40% 45%, rgba(180,160,220,0.35) 0%, rgba(80,60,140,0.2) 35%, rgba(0,0,0,0) 70%)',
+        }}
+      />
 
-      <div className="max-w-container mx-auto px-container-x relative z-10 w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-20 items-center">
-          {/* 텍스트 콘텐츠 */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-left"
-          >
-            {/* 질문 */}
-            <motion.h2
-              className="text-lg md:text-xl font-light mb-8 leading-tight tracking-tight text-text-main"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
+      {/* 좌·우·상·하 페이드 마스크 */}
+      <div
+        aria-hidden
+        className="absolute inset-y-0 right-0 w-[22%] pointer-events-none"
+        style={{ background: 'linear-gradient(270deg, #000000 52%, rgba(0,0,0,0) 100%)' }}
+      />
+      <div
+        aria-hidden
+        className="absolute inset-y-0 left-[42%] w-[22%] pointer-events-none"
+        style={{ background: 'linear-gradient(90deg, #000000 52%, rgba(0,0,0,0) 100%)' }}
+      />
+
+      {/* 떠다니는 구체 악센트 */}
+      <motion.div
+        aria-hidden
+        animate={{ y: [0, -18, 0] }}
+        transition={{ repeat: Infinity, duration: 8, ease: 'easeInOut' }}
+        className="pointer-events-none absolute right-[18%] top-[42%] w-[min(28vw,420px)] h-[min(28vw,420px)] rounded-full"
+        style={{
+          background:
+            'radial-gradient(circle at 35% 30%, rgba(200,180,255,0.55), rgba(90,70,180,0.25) 45%, rgba(0,0,0,0) 70%)',
+          filter: 'blur(2px)',
+        }}
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute right-[6%] top-[22%] w-2 h-2 rounded-full bg-white/40"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute right-[7%] top-[52%] w-4 h-4 rounded-full bg-white/25"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute right-[22%] top-[65%] w-2 h-2 rounded-full bg-white/30"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute right-[14%] top-[40%] w-6 h-6 rounded-full bg-white/20"
+      />
+
+      <div className="relative z-10 w-full px-5 sm:px-8 lg:px-[60px] pt-28 pb-20">
+        <div className="max-w-container mx-auto">
+          <motion.div variants={container} initial="hidden" animate="show" className="max-w-5xl">
+            <motion.p
+              variants={rise}
+              className="text-white text-lg font-medium tracking-[-0.025em] mb-5"
             >
-              장혜연은 어떤 기획자인가?
-            </motion.h2>
+              작은 디테일에서 발견한 가능성
+            </motion.p>
 
-            {/* 자기소개 */}
+            <motion.h1
+              variants={rise}
+              className="text-white font-normal tracking-[-0.02em] leading-[1.05] text-[clamp(2.4rem,7.2vw,100px)]"
+            >
+              AN INNOCEAN OF DETAILS
+            </motion.h1>
+            <motion.h1
+              variants={rise}
+              className="text-white font-normal tracking-[-0.02em] leading-[1.05] text-[clamp(2.4rem,7.2vw,100px)] mt-1 sm:mt-0 sm:pl-[min(20vw,308px)]"
+            >
+              &amp; POSSIBILITIES
+            </motion.h1>
+            <motion.h1
+              variants={rise}
+              className="text-white font-normal tracking-[-0.02em] leading-[1.05] text-[clamp(2.4rem,7.2vw,100px)]"
+            >
+              THOUGHT INTO ACTION
+            </motion.h1>
+            <motion.h1
+              variants={rise}
+              className="text-white font-normal tracking-[-0.02em] leading-[1.05] text-[clamp(2.4rem,7.2vw,100px)]"
+            >
+              MADE REAL
+            </motion.h1>
+
             <motion.div
-              className="text-lg md:text-2xl lg:text-3xl font-light leading-relaxed max-w-2xl mb-24 text-text-sub"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
+              variants={rise}
+              className="mt-6 sm:mt-8 flex flex-wrap items-center gap-3 sm:gap-4"
             >
-              <div className="whitespace-nowrap">막다른 길에서도 또 다른 경로를 찾아내는</div>
-              <div><span className="font-bold">내비게이션 같은 기획자</span>입니다.</div>
+              <span className="text-white text-xl sm:text-2xl font-semibold tracking-[-0.025em]">
+                Execution
+              </span>
+              <span className="hidden sm:inline-block w-px h-5 bg-white/60" />
+              <span className="text-white text-base sm:text-lg font-medium tracking-[-0.025em]">
+                무한한 가능성에 실행력을 더해 완성합니다.
+              </span>
             </motion.div>
 
-            {/* CTA 버튼 */}
-            <motion.div
-              className="flex flex-col sm:flex-row gap-4"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.6 }}
-            >
-              {resumeUrl && (
-                <a
-                  href={`${resumeUrl}#view=Fit`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center px-8 py-4 text-sm font-light text-white bg-brand-main hover:opacity-90 transition-all duration-300 rounded-lg"
-                >
-                  이력서 다운로드
-                </a>
-              )}
-              {coverLetterUrl && (
-                <a
-                  href={`${coverLetterUrl}#view=Fit`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center px-8 py-4 text-sm font-light text-white bg-brand-main hover:opacity-90 transition-all duration-300 rounded-lg"
-                >
-                  자기소개서 다운로드
-                </a>
-              )}
-            </motion.div>
-          </motion.div>
-
-          {/* 우측 자동차 애니메이션 */}
-          <motion.div
-            className="hidden lg:flex items-center justify-center relative h-[400px] w-full"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-          >
-            {/* 자동차 SVG - 심플한 아이콘 스타일 (먼저 렌더링) */}
-            <svg 
-              className="absolute inset-0 w-full h-full pointer-events-none" 
-              viewBox="0 0 500 400"
-              preserveAspectRatio="xMidYMid meet"
-              style={{ zIndex: 2 }}
-            >
-              <defs>
-                <filter id="carShadow" x="-50%" y="-50%" width="200%" height="200%">
-                  <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
-                  <feOffset dx="0" dy="2" result="offsetblur"/>
-                  <feComponentTransfer>
-                    <feFuncA type="linear" slope="0.25"/>
-                  </feComponentTransfer>
-                  <feMerge>
-                    <feMergeNode/>
-                    <feMergeNode in="SourceGraphic"/>
-                  </feMerge>
-                </filter>
-              </defs>
-              
-              <g filter="url(#carShadow)">
-                {/* 심플한 자동차 아이콘 - 원근감 적용 */}
-                <g transform="translate(-60, -36)">
-                  <g>
-                    {/* 자동차 몸체 - 심플한 형태 */}
-                    <rect x="5" y="15" width="30" height="12" rx="2" fill="#7A68F6"/>
-                    
-                    {/* 자동차 지붕 */}
-                    <path
-                      d="M 12 15 L 15 8 L 25 8 L 28 15 Z"
-                      fill="#7A68F6"
-                    />
-                    
-                    {/* 창문 */}
-                    <rect x="16" y="10" width="8" height="5" rx="1" fill="rgba(255,255,255,0.3)"/>
-                    
-                    {/* 바퀴 */}
-                    <circle cx="12" cy="27" r="3.5" fill="#5A4ED6"/>
-                    <circle cx="12" cy="27" r="2" fill="#FFFFFF" opacity="0.3"/>
-                    <circle cx="28" cy="27" r="3.5" fill="#5A4ED6"/>
-                    <circle cx="28" cy="27" r="2" fill="#FFFFFF" opacity="0.3"/>
-                    
-                    {/* 헤드라이트 */}
-                    <circle cx="34" cy="20" r="1.5" fill="#FFFFFF" opacity="0.8"/>
-                    
-                    {/* 크기 애니메이션 (원근감) */}
-                    <animateTransform
-                      attributeName="transform"
-                      type="scale"
-                      values="3;1.5;1.5"
-                      keyTimes="0;1;1"
-                      dur="4s"
-                      repeatCount="indefinite"
-                      additive="sum"
-                    />
-                  </g>
-                </g>
-                
-                {/* 애니메이션 모션 */}
-                <animateMotion
-                  dur="4s"
-                  repeatCount="indefinite"
-                  path="M 50 350 Q 150 250, 250 200 T 450 100"
-                  rotate="auto"
-                />
-              </g>
-              
-              <path id="carPath" d="M 50 350 Q 150 250, 250 200 T 450 100" fill="none" />
-            </svg>
-
-            {/* 길 SVG 경로 - 자동차가 지나간 자리에만 생김 (뒤에 렌더링) */}
-            <svg 
-              className="absolute inset-0 w-full h-full" 
-              viewBox="0 0 500 400"
-              preserveAspectRatio="xMidYMid meet"
-              style={{ zIndex: 1 }}
-            >
-              {/* 길 그리기 (자동차가 지나간 자리만 표시) */}
-              <path
-                d="M 50 350 Q 150 250, 250 200 T 450 100"
-                fill="none"
-                stroke="#7A68F6"
-                strokeWidth="8"
-                strokeLinecap="round"
-                pathLength="1"
-                strokeDasharray="1"
-                strokeDashoffset="1"
-                style={{ opacity: 0.3 }}
+            <motion.div variants={rise} className="mt-10 sm:mt-12">
+              <motion.a
+                href="#projects"
+                whileHover={{ y: -2 }}
+                whileTap={{ scale: 0.97 }}
+                className="inline-flex items-center justify-center gap-3 h-[72px] px-9 rounded-full bg-white text-text-main text-xl font-semibold tracking-[-0.025em]"
               >
-                <animate
-                  attributeName="stroke-dashoffset"
-                  values="1;0;1"
-                  keyTimes="0;1;1"
-                  dur="4s"
-                  repeatCount="indefinite"
-                />
-              </path>
-            </svg>
-
-            {/* 장식용 점들 */}
-            <motion.div
-              className="absolute top-1/4 left-1/4 w-3 h-3 rounded-full bg-brand-main"
-              animate={{ 
-                scale: [1, 1.5, 1],
-                opacity: [0.3, 0.8, 0.3]
-              }}
-              transition={{ 
-                duration: 2,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
-            />
-            <motion.div
-              className="absolute top-1/2 right-1/3 w-2 h-2 rounded-full bg-brand-main"
-              animate={{ 
-                scale: [1, 1.5, 1],
-                opacity: [0.3, 0.8, 0.3]
-              }}
-              transition={{ 
-                duration: 2,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: 0.5
-              }}
-            />
-            <motion.div
-              className="absolute bottom-1/4 left-1/2 w-2.5 h-2.5 rounded-full bg-brand-main"
-              animate={{ 
-                scale: [1, 1.5, 1],
-                opacity: [0.3, 0.8, 0.3]
-              }}
-              transition={{ 
-                duration: 2,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: 1
-              }}
-            />
+                자세히보기
+                <ArrowRight size={20} />
+              </motion.a>
+            </motion.div>
           </motion.div>
         </div>
       </div>
-
-      {/* Scroll Indicator */}
-      <motion.div
-        className="absolute bottom-10 left-1/2 transform -translate-x-1/2 flex flex-col items-center gap-2 cursor-pointer"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 1 }}
-        onClick={() => document.getElementById('projects')?.scrollIntoView({ behavior: 'smooth' })}
-      >
-        <span className="text-xs font-light text-text-secondary">Scroll</span>
-        <motion.div
-          animate={{ y: [0, 10, 0] }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-        >
-          <ChevronDown className="w-5 h-5 text-text-secondary" />
-        </motion.div>
-      </motion.div>
     </section>
   );
 };

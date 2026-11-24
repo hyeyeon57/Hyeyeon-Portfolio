@@ -14,13 +14,15 @@ export const Button: React.FC<ButtonProps> = ({
   children,
   ...props
 }) => {
-  const baseStyles = 'inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed';
+  const baseStyles = 'inline-flex items-center justify-center font-semibold rounded-pill transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed';
   
   const variants = {
-    primary: 'bg-brand-main text-white hover:opacity-90 active:opacity-80 shadow-sm hover:shadow-md',
-    secondary: 'bg-bg-medium text-text-primary hover:bg-bg-light active:opacity-80',
-    outline: 'border-2 border-line-medium text-text-primary hover:bg-bg-light active:bg-bg-medium',
-    ghost: 'text-text-secondary hover:bg-bg-light active:bg-bg-medium'
+    // 에디토리얼: 블랙 배경 + 화이트 텍스트
+    primary: 'bg-text-main text-white hover:opacity-90 active:opacity-80',
+    secondary: 'bg-bg-soft text-text-main hover:bg-line-light active:opacity-80',
+    // 아웃라인
+    outline: 'border border-line-light text-text-main bg-white hover:bg-text-main hover:text-white hover:border-text-main active:opacity-90',
+    ghost: 'text-text-secondary hover:bg-bg-soft hover:text-text-main active:opacity-80'
   };
   
   const sizes = {

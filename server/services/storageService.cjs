@@ -63,12 +63,16 @@ const uploadToS3 = async (file, folder = 'projects') => {
 };
 
 const saveLocally = async (file, folder = 'projects') => {
-  const dir = folder.includes('pdf') ? PROJECT_PDF_DIR : (folder.startsWith('img') ? IMAGE_UPLOAD_DIR : PROJECT_UPLOAD_DIR);
+  // hero-sliders 폴더는 이미지로 처리
+  const isImageFolder = folder.startsWith('img') || folder === 'hero-sliders';
+  const dir = folder.includes('pdf') ? PROJECT_PDF_DIR : (isImageFolder ? IMAGE_UPLOAD_DIR : PROJECT_UPLOAD_DIR);
   ensureDir(dir);
   const filename = `${Date.now()}_${toSafeName(file.originalname || 'file')}`;
   const filepath = path.join(dir, filename);
   await fs.promises.writeFile(filepath, file.buffer);
-  const relativePath = folder.startsWith('img')
+  const relativePath = folder === 'hero-sliders'
+    ? `/img/${filename}`
+    : folder.startsWith('img')
     ? `/img/${filename}`
     : `/projects${folder.includes('pdf') ? '/pdfs' : ''}/${filename}`;
   return localBaseUrl ? `${localBaseUrl}${relativePath}` : relativePath;

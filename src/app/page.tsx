@@ -5,6 +5,7 @@ import { motion, useScroll, useSpring } from 'framer-motion';
 import { HeroSection } from '@/components/sections/HeroSection';
 import { ProjectsSection } from '@/components/sections/ProjectsSection';
 import { ExperienceSection } from '@/components/sections/ExperienceSection';
+import { HearSeeFeelSection } from '@/components/sections/HearSeeFeelSection';
 import { SkillsSection } from '@/components/sections/SkillsSection';
 import { ContactSection } from '@/components/sections/ContactSection';
 
@@ -76,19 +77,17 @@ export default function Home() {
     <>
       {/* Progress Bar */}
       <motion.div
-        className="fixed top-0 left-0 right-0 h-1 bg-brand-main z-50 origin-left"
+        className="fixed top-0 left-0 right-0 h-0.5 bg-text-main z-[1001] origin-left"
         style={{ scaleX }}
       />
 
       <motion.main 
-        className="relative"
-        style={{
-          background: 'linear-gradient(135deg, #ECE9FF 0%, #F7F7FF 50%, #FFFFFF 100%)'
-        }}
+        className="relative bg-white"
       >
         <HeroSection theme={theme} />
         <ProjectsSection theme={theme} />
         <ExperienceSection theme={theme} />
+        <HearSeeFeelSection theme={theme} />
         <SkillsSection theme={theme} />
         <ContactSection theme={theme} />
       </motion.main>

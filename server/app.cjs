@@ -17,7 +17,7 @@ try {
 
 // 모듈 로드를 try-catch로 감싸서 에러 처리
 let ALLOWED_ORIGINS, SESSION_CONFIG, ADMIN_CONFIG;
-let adminRoutes, authRoutes, visitorRoutes, projectRoutes, contactRoutes, fileRoutes, documentRoutes, healthRoutes;
+let adminRoutes, authRoutes, visitorRoutes, projectRoutes, contactRoutes, fileRoutes, documentRoutes, healthRoutes, heroSliderRoutes, headerLogoRoutes;
 let PUBLIC_DIR;
 let asyncHandler, connectDB;
 
@@ -35,6 +35,8 @@ try {
   fileRoutes = require('./routes/fileRoutes.cjs');
   documentRoutes = require('./routes/documentRoutes.cjs');
   healthRoutes = require('./routes/healthRoutes.cjs');
+  heroSliderRoutes = require('./routes/heroSliderRoutes.cjs');
+  headerLogoRoutes = require('./routes/headerLogoRoutes.cjs');
   
   const pathHelpers = require('./utils/pathHelpers.cjs');
   PUBLIC_DIR = pathHelpers.PUBLIC_DIR;
@@ -207,6 +209,14 @@ const createApp = ({ withDbMiddleware = false } = {}) => {
     app.use('/api/documents', documentRoutes);
     app.use('/bo-api/documents', documentRoutes);
 
+    // 히어로 슬라이더
+    app.use('/api/hero-sliders', heroSliderRoutes);
+    app.use('/bo-api/hero-sliders', heroSliderRoutes);
+
+    // 헤더 로고
+    app.use('/api/header-logo', headerLogoRoutes);
+    app.use('/bo-api/header-logo', headerLogoRoutes);
+
     // 파일(PDF) 업로드 - 더 구체적인 경로이므로 문서 라우트 이후에 등록
     app.use('/api/upload-pdf', fileRoutes);
     app.use('/bo-api/upload-pdf', fileRoutes);
@@ -219,6 +229,8 @@ const createApp = ({ withDbMiddleware = false } = {}) => {
         if (req.path.startsWith('/projects')) return next();
         if (req.path.startsWith('/contacts')) return next();
         if (req.path.startsWith('/documents')) return next();
+        if (req.path.startsWith('/hero-sliders')) return next();
+        if (req.path.startsWith('/header-logo')) return next();
         if (req.path.startsWith('/auth')) return next();
         if (req.path.startsWith('/admin')) return next();
         if (req.path.startsWith('/templates')) return next();

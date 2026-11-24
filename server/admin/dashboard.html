@@ -8,34 +8,41 @@
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js" defer></script>
 </head>
 <body class="bg-gray-50">
-  <div class="max-w-7xl mx-auto px-4 py-6">
-    <header class="flex items-center justify-between mb-6">
-      <div>
-        <h1 class="text-3xl font-bold text-gray-900" id="dashboard-title">관리자 대시보드</h1>
-        <p class="text-gray-500 text-sm" id="dashboard-subtitle">BO화면</p>
-      </div>
-      <div class="flex items-center gap-3">
-        <div id="mongodbStatus" class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm">
-          <span class="w-2 h-2 rounded-full bg-gray-400 animate-pulse"></span>
-          <span class="text-gray-600">MongoDB 확인 중...</span>
+  <!-- 고정 헤더 -->
+  <header class="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-sm z-50" style="z-index: 1000;">
+    <div class="max-w-7xl mx-auto px-6 md:px-8 lg:px-14">
+      <div class="flex items-center justify-between h-[92px]">
+        <div class="text-left">
+          <h1 class="text-4xl font-semibold" id="dashboard-title" style="color: #111111; font-family: 'Pretendard', sans-serif; font-weight: 600;">Admin</h1>
+          <p class="text-gray-500 text-sm mt-1" id="dashboard-subtitle" style="font-family: 'Pretendard', sans-serif;">Back Office – Portfolio Management</p>
         </div>
-        <a href="/" class="px-4 py-2 rounded-lg transition flex items-center gap-2" style="background-color: #E8E4FF; color: #7A68F6;" onmouseover="this.style.backgroundColor='#D8D0FF'" onmouseout="this.style.backgroundColor='#E8E4FF'">
-          <i data-lucide="home" class="w-4 h-4"></i> 홈으로 가기
-        </a>
-        <button id="logoutBtn" class="px-4 py-2 rounded-lg transition flex items-center gap-2" style="background-color: #E8E4FF; color: #7A68F6;" onmouseover="this.style.backgroundColor='#D8D0FF'" onmouseout="this.style.backgroundColor='#E8E4FF'">
-          <i data-lucide="log-out" class="w-4 h-4"></i> 로그아웃
-        </button>
+        <div class="flex items-center gap-4 xl:gap-6">
+          <div id="mongodbStatus" class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm">
+            <span class="w-2 h-2 rounded-full bg-gray-400 animate-pulse"></span>
+            <span class="text-gray-600">MongoDB 확인 중...</span>
+          </div>
+          <!-- 탭 네비게이션 -->
+          <nav class="-mb-px flex space-x-6 items-center" aria-label="Tabs">
+            <button class="tab-btn" data-tab="documents">문서 관리</button>
+            <button class="tab-btn" data-tab="projects">프로젝트</button>
+            <button class="tab-btn" data-tab="banners">배너 관리</button>
+            <button class="tab-btn" data-tab="contacts">연락</button>
+            <button class="tab-btn" data-tab="visitors">방문자</button>
+          </nav>
+          <a href="/" class="px-4 py-2 rounded-lg transition flex items-center gap-2 text-base font-medium" style="color: #0EA5E9;" onmouseover="this.style.color='#0284C7'" onmouseout="this.style.color='#0EA5E9'">
+            <i data-lucide="home" class="w-4 h-4"></i> Home
+          </a>
+          <button id="logoutBtn" class="px-4 py-2 rounded-lg transition flex items-center gap-2 text-base font-medium" style="color: #0EA5E9;" onmouseover="this.style.color='#0284C7'" onmouseout="this.style.color='#0EA5E9'">
+            <i data-lucide="log-out" class="w-4 h-4"></i> Logout
+          </button>
+        </div>
       </div>
-    </header>
-
-    <div class="border-b mb-6">
-      <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-        <button class="tab-btn" data-tab="documents">문서 관리</button>
-        <button class="tab-btn" data-tab="projects">프로젝트</button>
-        <button class="tab-btn" data-tab="contacts">연락</button>
-        <button class="tab-btn" data-tab="visitors">방문자</button>
-      </nav>
     </div>
+  </header>
+
+  <!-- 헤더 높이만큼 여백 추가 -->
+  <div style="padding-top: 92px;">
+  <div class="max-w-7xl mx-auto px-4 py-6">
 
     <!-- 문서 관리 탭 -->
     <div id="content-documents" class="tab-content hidden">
@@ -51,7 +58,7 @@
               <div class="flex items-center justify-between mb-3">
                 <div>
                   <h3 class="text-base font-semibold text-gray-900 flex items-center gap-2">
-                    <i data-lucide="file-text" class="w-4 h-4" style="color: #7A68F6;"></i>
+                    <i data-lucide="file-text" class="w-4 h-4" style="color: #0EA5E9;"></i>
                     이력서
                   </h3>
                   <p class="text-xs text-gray-500 mt-0.5">포트폴리오에 표시될 이력서 PDF 파일</p>
@@ -62,7 +69,7 @@
               </div>
               <div class="flex items-center gap-2 flex-wrap mb-3">
                 <input type="file" id="resume-upload" accept=".pdf" class="hidden" />
-                <button type="button" id="resume-upload-btn" class="px-2.5 py-1.5 text-white rounded text-xs" style="background-color: #7A68F6;" onmouseover="this.style.backgroundColor='#6B5AE5'" onmouseout="this.style.backgroundColor='#7A68F6'">파일 선택</button>
+                <button type="button" id="resume-upload-btn" class="px-2.5 py-1.5 text-white rounded text-xs" style="background-color: #0EA5E9;" onmouseover="this.style.backgroundColor='#0284C7'" onmouseout="this.style.backgroundColor='#0EA5E9'">파일 선택</button>
                 <button id="resume-delete" class="px-2 py-1 text-xs text-red-600 border border-red-200 rounded hover:bg-red-50 transition-colors flex-shrink-0" style="display:none;">
                   삭제
                 </button>
@@ -72,7 +79,7 @@
                 <span id="resume-upload-status" class="text-xs text-gray-500"></span>
               </div>
               <div class="mt-6 pt-4 border-t border-gray-200">
-                <button type="button" id="resume-save-btn" class="w-full px-4 py-2 text-white rounded-lg text-sm font-medium transition-colors" style="background-color: #7A68F6;" onmouseover="this.style.backgroundColor='#6B5AE5'" onmouseout="this.style.backgroundColor='#7A68F6'">
+                <button type="button" id="resume-save-btn" class="w-full px-4 py-2 text-white rounded-lg text-sm font-medium transition-colors" style="background-color: #0EA5E9;" onmouseover="this.style.backgroundColor='#0284C7'" onmouseout="this.style.backgroundColor='#0EA5E9'">
                   저장
                 </button>
               </div>
@@ -83,7 +90,7 @@
               <div class="flex items-center justify-between mb-3">
                 <div>
                   <h3 class="text-base font-semibold text-gray-900 flex items-center gap-2">
-                    <i data-lucide="file-text" class="w-4 h-4" style="color: #7A68F6;"></i>
+                    <i data-lucide="file-text" class="w-4 h-4" style="color: #0EA5E9;"></i>
                     자기소개서
                   </h3>
                   <p class="text-xs text-gray-500 mt-0.5">포트폴리오에 표시될 자기소개서 PDF 파일</p>
@@ -94,7 +101,7 @@
               </div>
               <div class="flex items-center gap-2 flex-wrap mb-3">
                 <input type="file" id="coverletter-upload" accept=".pdf" class="hidden" />
-                <button type="button" id="coverletter-upload-btn" class="px-2.5 py-1.5 text-white rounded text-xs" style="background-color: #7A68F6;" onmouseover="this.style.backgroundColor='#6B5AE5'" onmouseout="this.style.backgroundColor='#7A68F6'">파일 선택</button>
+                <button type="button" id="coverletter-upload-btn" class="px-2.5 py-1.5 text-white rounded text-xs" style="background-color: #0EA5E9;" onmouseover="this.style.backgroundColor='#0284C7'" onmouseout="this.style.backgroundColor='#0EA5E9'">파일 선택</button>
                 <button id="coverletter-delete" class="px-2 py-1 text-xs text-red-600 border border-red-200 rounded hover:bg-red-50 transition-colors flex-shrink-0" style="display:none;">
                   삭제
                 </button>
@@ -104,7 +111,7 @@
                 <span id="coverletter-upload-status" class="text-xs text-gray-500"></span>
               </div>
               <div class="mt-6 pt-4 border-t border-gray-200">
-                <button type="button" id="coverletter-save-btn" class="w-full px-4 py-2 text-white rounded-lg text-sm font-medium transition-colors" style="background-color: #7A68F6;" onmouseover="this.style.backgroundColor='#6B5AE5'" onmouseout="this.style.backgroundColor='#7A68F6'">
+                <button type="button" id="coverletter-save-btn" class="w-full px-4 py-2 text-white rounded-lg text-sm font-medium transition-colors" style="background-color: #0EA5E9;" onmouseover="this.style.backgroundColor='#0284C7'" onmouseout="this.style.backgroundColor='#0EA5E9'">
                   저장
                 </button>
               </div>
@@ -118,7 +125,7 @@
       <div class="bg-white border rounded-xl shadow-sm">
         <div class="px-6 py-4 border-b flex items-center justify-between">
           <h2 class="text-xl font-semibold text-gray-900">프로젝트 목록</h2>
-          <a href="/admin/create" id="createBtn" class="px-4 py-2 text-white rounded-lg text-sm font-medium" style="display:none; background-color: #7A68F6;" onmouseover="this.style.backgroundColor='#6B5AE5'" onmouseout="this.style.backgroundColor='#7A68F6'">프로젝트 추가</a>
+          <a href="/admin/create" id="createBtn" class="px-4 py-2 text-white rounded-lg text-sm font-medium" style="display:none; background-color: #0EA5E9;" onmouseover="this.style.backgroundColor='#0284C7'" onmouseout="this.style.backgroundColor='#0EA5E9'">프로젝트 추가</a>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full">
@@ -135,6 +142,59 @@
             </thead>
             <tbody id="projectsTable" class="divide-y divide-gray-200"></tbody>
           </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="content-banners" class="tab-content hidden">
+      <div class="bg-white border rounded-xl shadow-sm">
+        <div class="px-6 py-4 border-b flex items-center justify-between">
+          <div>
+            <h2 class="text-xl font-semibold text-gray-900">배너 관리</h2>
+            <p class="text-sm text-gray-500 mt-1">홈페이지 메인에 표시될 배너 이미지를 관리하세요.</p>
+          </div>
+          <button onclick="showBannerModal()" class="px-4 py-2 text-white rounded-lg text-sm font-medium transition-colors" style="background-color: #0EA5E9;" onmouseover="this.style.backgroundColor='#0284C7'" onmouseout="this.style.backgroundColor='#0EA5E9'">
+            <i data-lucide="plus" class="w-4 h-4 inline-block mr-1"></i> 배너 추가
+          </button>
+        </div>
+        <div class="p-6">
+          <!-- 헤더 로고 관리 -->
+          <div class="mb-8 pb-8 border-b border-gray-200">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <i data-lucide="image" class="w-5 h-5" style="color: #0EA5E9;"></i>
+                  헤더 로고
+                </h3>
+                <p class="text-xs text-gray-500 mt-1">웹사이트 상단 헤더에 표시될 로고 이미지를 업로드하세요.</p>
+              </div>
+            </div>
+            <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
+              <div id="header-logo-status" class="mb-4">
+                <!-- 현재 로고 정보가 여기에 표시됩니다 -->
+              </div>
+              <div class="flex items-center gap-3 flex-wrap">
+                <input type="file" id="header-logo-upload" accept="image/*" class="hidden" />
+                <button type="button" id="header-logo-upload-btn" class="px-4 py-2 text-white rounded-lg text-sm font-medium transition-colors" style="background-color: #0EA5E9;" onmouseover="this.style.backgroundColor='#0284C7'" onmouseout="this.style.backgroundColor='#0EA5E9'">
+                  <i data-lucide="upload" class="w-4 h-4 inline-block mr-1"></i> 로고 업로드
+                </button>
+                <button id="header-logo-delete" class="px-4 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors flex-shrink-0" style="display:none;">
+                  <i data-lucide="trash-2" class="w-4 h-4 inline-block mr-1"></i> 삭제
+                </button>
+                <span id="header-logo-status-text" class="text-sm text-gray-600">
+                  <span class="text-gray-400">등록된 로고 없음</span>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 배너 목록 -->
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">배너 목록</h3>
+            <div id="banners-list" class="space-y-4">
+              <!-- 배너 목록이 여기에 동적으로 로드됩니다 -->
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -176,9 +236,9 @@
                 <button
                   onclick="applyContactFilters()"
                   class="px-4 py-2 text-white rounded-lg transition-colors text-sm font-medium flex items-center gap-2"
-                  style="background-color: #7A68F6;"
-                  onmouseover="this.style.backgroundColor='#6B5AE5'"
-                  onmouseout="this.style.backgroundColor='#7A68F6'"
+                  style="background-color: #0EA5E9;"
+                  onmouseover="this.style.backgroundColor='#0284C7'"
+                  onmouseout="this.style.backgroundColor='#0EA5E9'"
                 >
                   <i data-lucide="search" class="w-4 h-4"></i>
                   검색
@@ -226,9 +286,9 @@
               <button
                 onclick="clearVisitors()"
                 class="px-4 py-2 text-white rounded-lg transition-colors text-sm font-medium flex items-center gap-2"
-                style="background-color: #7A68F6;"
-                onmouseover="this.style.backgroundColor='#6B5AE5'"
-                onmouseout="this.style.backgroundColor='#7A68F6'"
+                style="background-color: #0EA5E9;"
+                onmouseover="this.style.backgroundColor='#0284C7'"
+                onmouseout="this.style.backgroundColor='#0EA5E9'"
                 id="clearVisitorsBtn"
               >
                 <i data-lucide="trash-2" class="w-4 h-4"></i>
@@ -267,9 +327,9 @@
             <button
               onclick="searchVisitors()"
               class="px-4 py-1.5 text-white rounded-lg transition-colors text-sm font-medium flex items-center gap-2 whitespace-nowrap"
-              style="background-color: #7A68F6;"
-              onmouseover="this.style.backgroundColor='#6B5AE5'"
-              onmouseout="this.style.backgroundColor='#7A68F6'"
+              style="background-color: #0EA5E9;"
+              onmouseover="this.style.backgroundColor='#0284C7'"
+              onmouseout="this.style.backgroundColor='#0EA5E9'"
             >
               <i data-lucide="search" class="w-4 h-4"></i>
               검색
@@ -364,6 +424,43 @@
     // 같은 오리진을 사용하여 세션 쿠키가 제대로 전달되도록 함
     // Next.js API 라우트(/bo-api)가 Express 서버로 프록시함
     const API_URL = '/bo-api';
+    
+    // 백엔드 서버 기본 URL (이미지 경로 변환용)
+    function getBackendBaseUrl() {
+      // 로컬 환경에서는 백엔드 서버(3005) 사용
+      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      if (isLocalhost) {
+        return 'http://localhost:3005';
+      }
+      // 프로덕션에서는 현재 origin 사용
+      return window.location.origin;
+    }
+    
+    // 이미지 URL을 절대 경로로 변환
+    function getImageUrl(imagePath) {
+      if (!imagePath || imagePath.trim() === '') {
+        console.warn('⚠️ 이미지 경로가 비어있습니다');
+        return '';
+      }
+      
+      // 이미 절대 URL인 경우 (http:// 또는 https://로 시작)
+      if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+        console.log('✅ 절대 URL:', imagePath);
+        return imagePath;
+      }
+      
+      // 상대 경로인 경우 백엔드 서버 URL 추가
+      const baseUrl = getBackendBaseUrl();
+      const path = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
+      // URL 인코딩 (한글 파일명 등 처리)
+      const encodedPath = path.split('/').map(segment => {
+        // 각 경로 세그먼트를 인코딩하되, 슬래시는 유지
+        return segment ? encodeURIComponent(segment) : '';
+      }).join('/');
+      const fullUrl = `${baseUrl}${encodedPath}`;
+      console.log('🔗 상대 경로 변환:', { imagePath, baseUrl, path, encodedPath, fullUrl });
+      return fullUrl;
+    }
 
     // 방문자 로그 저장 (어드민/어드민 뷰어 구분)
     (async () => {
@@ -444,6 +541,8 @@
         loadDocuments();
       } else if (tab === 'projects') {
         loadProjects();
+      } else if (tab === 'banners') {
+        loadHeroSliders();
       } else if (tab === 'contacts') {
         loadContacts();
       } else if (tab === 'visitors') {
@@ -458,7 +557,7 @@
     const savedTab = typeof window !== 'undefined' && window.localStorage 
       ? localStorage.getItem('admin-dashboard-active-tab') 
       : null;
-    const initialTab = savedTab && ['documents', 'projects', 'contacts', 'visitors'].includes(savedTab) 
+    const initialTab = savedTab && ['documents', 'projects', 'banners', 'contacts', 'visitors'].includes(savedTab) 
       ? savedTab 
       : 'documents';
     
@@ -854,6 +953,16 @@
       }
     });
 
+    // 헤더 로고 업로드 버튼 이벤트
+    document.getElementById('header-logo-upload-btn')?.addEventListener('click', () => {
+      uploadHeaderLogo();
+    });
+
+    // 헤더 로고 삭제 버튼 이벤트
+    document.getElementById('header-logo-delete')?.addEventListener('click', () => {
+      deleteHeaderLogo();
+    });
+
     // 저장 버튼: 업로드 및 서버 저장
     document.getElementById('resume-save-btn')?.addEventListener('click', async () => {
       await saveDocument('resume');
@@ -930,11 +1039,11 @@
       const isCurrentlyFeatured = project.featured === true || project.featured === 'true';
       const newFeatured = !isCurrentlyFeatured;
       
-      // 대표 프로젝트 설정 시에만 개수 확인 (최대 3개)
+      // 대표 프로젝트 설정 시에만 개수 확인 (최대 4개)
       if (newFeatured) {
         const featuredCount = projects.filter(p => p.featured === true || p.featured === 'true').length;
-        if (featuredCount >= 3) {
-          alert('대표 프로젝트는 최대 3개까지 설정할 수 있습니다. 기존 대표 프로젝트를 해제한 후 다시 시도해주세요.');
+        if (featuredCount >= 4) {
+          alert('대표 프로젝트는 최대 4개까지 설정할 수 있습니다. 기존 대표 프로젝트를 해제한 후 다시 시도해주세요.');
           return;
         }
       }
@@ -1071,7 +1180,7 @@
             <td class="px-6 py-3 text-sm text-gray-600">${(p.tags || []).slice(0,3).join(', ')}</td>
             <td class="px-6 py-3 text-center">
               <div class="flex items-center justify-center gap-3">
-                <div class="w-3 h-3 rounded-full ${hasDescription ? '' : 'border bg-transparent'}" title="프로젝트 설명 ${hasDescription ? '완료' : '미완료'}" style="transition: all 0.3s; ${hasDescription ? 'background-color: #7A68F6;' : 'border-color: #7A68F6;'}"></div>
+                <div class="w-3 h-3 rounded-full ${hasDescription ? '' : 'border bg-transparent'}" title="프로젝트 설명 ${hasDescription ? '완료' : '미완료'}" style="transition: all 0.3s; ${hasDescription ? 'background-color: #0EA5E9;' : 'border-color: #0EA5E9;'}"></div>
                 <div class="w-3 h-3 rounded-full ${hasPdf ? 'bg-blue-500' : 'border border-blue-500 bg-transparent'}" title="PDF 업로드 ${hasPdf ? '완료' : '미완료'}" style="transition: all 0.3s;"></div>
                 <div class="w-3 h-3 rounded-full ${hasImage ? 'bg-emerald-600' : 'border border-emerald-600 bg-transparent'}" title="이미지 업로드 ${hasImage ? '완료' : '미완료'}" style="transition: all 0.3s;"></div>
               </div>
@@ -2783,7 +2892,7 @@
         const message = contact.message || '';
         const statusLabel = contact.read ? '읽음' : '읽지 않음';
         const statusClasses = contact.read ? 'bg-green-100 text-green-700' : '';
-        const statusStyle = contact.read ? '' : 'background-color: #E8E4FF; color: #7A68F6; border: 1px solid #C4B5FD;';
+        const statusStyle = contact.read ? '' : 'background-color: #E0F7FA; color: #0EA5E9; border: 1px solid #7DD3FC;';
 
         return `
           <tr class="hover:bg-gray-50 ${contact.read ? '' : 'bg-purple-50/50'}">
@@ -2801,7 +2910,7 @@
                 <button
                   class="inline-flex items-center gap-1 px-3 py-1.5 border rounded-lg transition-colors text-xs"
                   style="border-color: #C4B5FD; color: #7A68F6;"
-                  onmouseover="this.style.backgroundColor='#E8E4FF'"
+                  onmouseover="this.style.backgroundColor='#E0F7FA'"
                   onmouseout="this.style.backgroundColor='transparent'"
                   onclick="markContactRead('${contactId}')"
                   title="읽음 처리"
@@ -2853,6 +2962,642 @@
       });
 
       renderContacts(sorted);
+    }
+
+    // 배너 관리 전역 변수
+    window.selectedBannerImages = [];
+
+    // 헤더 로고 관리 함수들
+    async function loadHeaderLogo() {
+      try {
+        const res = await fetch(`${API_URL}/header-logo`, { credentials: 'include' });
+        const result = await res.json();
+        
+        const statusEl = document.getElementById('header-logo-status');
+        const statusTextEl = document.getElementById('header-logo-status-text');
+        const deleteBtn = document.getElementById('header-logo-delete');
+        
+        if (result.success && result.data) {
+          const logo = result.data;
+          const logoUrl = getImageUrl(logo.url);
+          
+          if (statusEl) {
+            statusEl.innerHTML = `
+              <div class="flex items-center gap-4">
+                <div class="flex-shrink-0">
+                  <div class="w-32 h-16 bg-white rounded-lg overflow-hidden border border-gray-200 flex items-center justify-center">
+                    <img src="${logoUrl}" alt="Header Logo" class="max-w-full max-h-full object-contain" onerror="this.onerror=null; this.style.display='none'; this.parentElement.innerHTML='<div class=\\'text-gray-400 text-xs\\'>이미지 로드 실패</div>';">
+                  </div>
+                </div>
+                <div class="flex-1">
+                  <p class="text-sm font-medium text-gray-900">${logo.fileName || 'logo.png'}</p>
+                  <p class="text-xs text-gray-500 mt-1">업데이트: ${new Date(logo.updatedAt).toLocaleString('ko-KR')}</p>
+                </div>
+              </div>
+            `;
+          }
+          
+          if (statusTextEl) {
+            statusTextEl.innerHTML = `<span class="text-green-600">로고가 등록되어 있습니다</span>`;
+          }
+          
+          if (deleteBtn) {
+            deleteBtn.style.display = 'inline-flex';
+          }
+        } else {
+          if (statusEl) {
+            statusEl.innerHTML = '<p class="text-sm text-gray-400">등록된 로고가 없습니다.</p>';
+          }
+          if (statusTextEl) {
+            statusTextEl.innerHTML = '<span class="text-gray-400">등록된 로고 없음</span>';
+          }
+          if (deleteBtn) {
+            deleteBtn.style.display = 'none';
+          }
+        }
+      } catch (error) {
+        console.error('헤더 로고 로드 실패:', error);
+      }
+    }
+
+    // 헤더 로고 업로드
+    async function uploadHeaderLogo() {
+      const fileInput = document.getElementById('header-logo-upload');
+      if (!fileInput) return;
+      
+      fileInput.click();
+      
+      fileInput.onchange = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        
+        // 이미지 파일 검증
+        if (!file.type.startsWith('image/')) {
+          alert('이미지 파일만 업로드 가능합니다.');
+          return;
+        }
+        
+        // 파일 크기 검증 (5MB)
+        if (file.size > 5 * 1024 * 1024) {
+          alert('파일 크기는 5MB 이하여야 합니다.');
+          return;
+        }
+        
+        try {
+          const statusTextEl = document.getElementById('header-logo-status-text');
+          if (statusTextEl) {
+            statusTextEl.innerHTML = '<span class="text-blue-600">업로드 중...</span>';
+          }
+          
+          // uploadFilesToS3 함수 확인
+          const uploadFn = window.uploadFilesToS3;
+          if (!uploadFn || typeof uploadFn !== 'function') {
+            throw new Error('업로드 함수를 찾을 수 없습니다. 페이지를 새로고침해주세요.');
+          }
+          
+          // S3로 업로드
+          const uploadedUrls = await uploadFn([file], 'logo');
+          if (!uploadedUrls || uploadedUrls.length === 0) {
+            throw new Error('업로드 실패');
+          }
+          
+          const logoUrl = uploadedUrls[0];
+          
+          // 백엔드에 URL 저장
+          const res = await fetch(`${API_URL}/header-logo`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+              url: logoUrl,
+              fileName: file.name,
+            }),
+          });
+          
+          const result = await res.json();
+          
+          if (result.success) {
+            alert('헤더 로고가 업로드되었습니다.');
+            await loadHeaderLogo();
+          } else {
+            alert(result.error || '로고 업로드에 실패했습니다.');
+            if (statusTextEl) {
+              statusTextEl.innerHTML = '<span class="text-red-600">업로드 실패</span>';
+            }
+          }
+        } catch (error) {
+          console.error('헤더 로고 업로드 실패:', error);
+          alert(`로고 업로드 중 오류가 발생했습니다: ${error.message}`);
+          const statusTextEl = document.getElementById('header-logo-status-text');
+          if (statusTextEl) {
+            statusTextEl.innerHTML = '<span class="text-red-600">업로드 실패</span>';
+          }
+        }
+      };
+    }
+
+    // 헤더 로고 삭제
+    async function deleteHeaderLogo() {
+      if (!confirm('정말 헤더 로고를 삭제하시겠습니까?')) return;
+      
+      try {
+        const res = await fetch(`${API_URL}/header-logo`, {
+          method: 'DELETE',
+          credentials: 'include',
+        });
+        
+        const result = await res.json();
+        
+        if (result.success) {
+          alert('헤더 로고가 삭제되었습니다.');
+          await loadHeaderLogo();
+        } else {
+          alert(result.error || '로고 삭제에 실패했습니다.');
+        }
+      } catch (error) {
+        console.error('헤더 로고 삭제 실패:', error);
+        alert('로고 삭제 중 오류가 발생했습니다.');
+      }
+    }
+
+    // 배너 관리 함수들
+    async function loadHeroSliders() {
+      // 헤더 로고도 함께 로드
+      await loadHeaderLogo();
+      try {
+        const res = await fetch(`${API_URL}/hero-sliders/all`);
+        const result = await res.json();
+        const listEl = document.getElementById('banners-list');
+        if (!listEl) return;
+
+        if (result.success && Array.isArray(result.data)) {
+          if (result.data.length === 0) {
+            listEl.innerHTML = '<p class="text-gray-500 text-center py-8">등록된 배너가 없습니다.</p>';
+            return;
+          }
+
+          listEl.innerHTML = result.data.map((banner, index) => {
+            // 이미지 URL을 절대 경로로 변환
+            const rawImageUrl = banner.image || '';
+            console.log('🔍 배너 이미지 원본 URL:', rawImageUrl);
+            const imageUrl = getImageUrl(rawImageUrl);
+            console.log('✅ 변환된 이미지 URL:', imageUrl);
+            const escapedImageUrl = imageUrl.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+            const bannerTitle = (banner.title || 'Banner').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+            const bannerId = (banner._id || banner.id || '').replace(/"/g, '&quot;');
+            
+            return `
+              <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow" data-banner-id="${bannerId}">
+                <div class="flex items-start gap-4">
+                  <div class="flex-shrink-0">
+                    <div class="w-48 h-32 bg-gray-100 rounded-lg overflow-hidden border border-gray-200 flex items-center justify-center">
+                      ${imageUrl ? `
+                        <img 
+                          src="${escapedImageUrl}" 
+                          alt="${bannerTitle}" 
+                          class="w-full h-full object-cover" 
+                          onerror="console.error('❌ 이미지 로드 실패:', '${escapedImageUrl}'); this.onerror=null; this.style.display='none'; this.parentElement.innerHTML='<div class=\\'text-gray-400 text-xs text-center p-4\\'>이미지 로드 실패<br/>URL: ${escapedImageUrl.substring(0, 50)}...</div>';"
+                          onload="console.log('✅ 이미지 로드 성공:', '${escapedImageUrl}')"
+                        >
+                      ` : `
+                        <div class="text-gray-400 text-xs text-center p-4">이미지 없음</div>
+                      `}
+                    </div>
+                  </div>
+                  <div class="flex-1">
+                    <div class="flex items-start justify-between mb-2">
+                      <div>
+                        <h3 class="text-lg font-semibold text-gray-900">${(banner.title || '제목 없음').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</h3>
+                        ${banner.subtitle ? `<p class="text-sm text-gray-600 mt-1">${(banner.subtitle || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>` : ''}
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <span class="px-2 py-1 text-xs rounded ${banner.active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}">
+                          ${banner.active ? '활성' : '비활성'}
+                        </span>
+                        <span class="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded">순서: ${banner.order || 0}</span>
+                      </div>
+                    </div>
+                    ${banner.link ? `<p class="text-sm text-gray-500 mb-2"><a href="${(banner.link || '').replace(/"/g, '&quot;')}" target="_blank" class="text-blue-600 hover:underline" rel="noopener noreferrer">${(banner.link || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</a></p>` : ''}
+                    <div class="flex items-center gap-2 mt-4">
+                      <button onclick="editBanner('${banner._id || banner.id}')" class="px-3 py-1.5 text-sm text-white rounded transition-colors" style="background-color: #7A68F6;" onmouseover="this.style.backgroundColor='#6B5AE5'" onmouseout="this.style.backgroundColor='#7A68F6'">
+                        수정
+                      </button>
+                      <button onclick="deleteBanner('${banner._id || banner.id}')" class="px-3 py-1.5 text-sm text-red-600 border border-red-200 rounded hover:bg-red-50 transition-colors">
+                        삭제
+                      </button>
+                      <button onclick="toggleBannerActive('${banner._id || banner.id}', ${!banner.active})" class="px-3 py-1.5 text-sm text-gray-700 border border-gray-200 rounded hover:bg-gray-50 transition-colors">
+                        ${banner.active ? '비활성화' : '활성화'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('');
+          
+          if (window.lucide) window.lucide.createIcons();
+        } else {
+          listEl.innerHTML = '<p class="text-red-500 text-center py-8">배너를 불러오는데 실패했습니다.</p>';
+        }
+      } catch (error) {
+        console.error('배너 로드 실패:', error);
+        const listEl = document.getElementById('banners-list');
+        if (listEl) {
+          listEl.innerHTML = '<p class="text-red-500 text-center py-8">배너를 불러오는데 실패했습니다.</p>';
+        }
+      }
+    }
+
+    function showBannerModal(banner = null) {
+      // 전역 변수 초기화
+      window.selectedBannerImages = [];
+      
+      const isEdit = !!banner;
+      const modalHtml = `
+        <div id="banner-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onclick="if(event.target.id === 'banner-modal') closeBannerModal()">
+          <div class="bg-white rounded-xl shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+            <div class="px-6 py-4 border-b flex items-center justify-between">
+              <h3 class="text-xl font-semibold">${isEdit ? '배너 수정' : '배너 추가'}</h3>
+              <button onclick="closeBannerModal()" class="text-gray-400 hover:text-gray-600">
+                <i data-lucide="x" class="w-6 h-6"></i>
+              </button>
+            </div>
+            <form id="banner-form" class="p-6 space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">이미지 *</label>
+                <div class="mb-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p class="text-xs text-blue-800 font-medium mb-1">📐 권장 이미지 사이즈</p>
+                  <ul class="text-xs text-blue-700 space-y-1 list-disc list-inside">
+                    <li><strong>최소:</strong> 1920px × 1080px (16:9 비율)</li>
+                    <li><strong>권장:</strong> 2560px × 1440px (16:9 비율)</li>
+                    <li><strong>최대:</strong> 3840px × 2160px (4K, 16:9 비율)</li>
+                  </ul>
+                  <p class="text-xs text-blue-600 mt-2">💡 이미지는 좌우를 가득 채우며, 상하는 비율에 맞춰 자동 조절됩니다.</p>
+                </div>
+                <div class="flex items-center gap-2 flex-wrap mb-3">
+                  <input type="file" id="banner-image-input" accept="image/*" multiple class="hidden" />
+                  <button type="button" id="banner-image-upload-btn" class="px-3 py-2 text-white rounded text-sm" style="background-color: #7A68F6;" onmouseover="this.style.backgroundColor='#6B5AE5'" onmouseout="this.style.backgroundColor='#7A68F6'">
+                    <i data-lucide="upload" class="w-4 h-4 inline-block mr-1"></i> 이미지 선택
+                  </button>
+                  <span id="banner-image-status-text" class="text-xs text-gray-600">
+                    <span class="text-gray-400">선택된 이미지 없음</span>
+                  </span>
+                </div>
+                ${isEdit && banner.image ? `
+                  <div class="mt-2 mb-4">
+                    <p class="text-xs text-gray-500 mb-2">현재 이미지:</p>
+                    <img src="${getImageUrl(banner.image || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;')}" alt="Current Banner" class="w-48 h-32 object-cover border border-gray-200 rounded" onerror="this.onerror=null; this.style.display='none'; console.error('현재 이미지 로드 실패:', '${getImageUrl(banner.image || '')}')">
+                  </div>
+                ` : ''}
+                <div id="banner-image-preview" class="mt-3 space-y-2">
+                  <!-- 선택한 이미지 미리보기가 여기에 표시됩니다 -->
+                </div>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">부제목 (위에 작게)</label>
+                <input type="text" id="banner-subtitle" value="${banner?.subtitle || ''}" class="w-full border border-gray-300 rounded-lg px-3 py-2" placeholder="위에 작게 표시될 부제목">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">제목 (큰 글씨)</label>
+                <input type="text" id="banner-title" value="${banner?.title || ''}" class="w-full border border-gray-300 rounded-lg px-3 py-2" placeholder="큰 글씨로 표시될 제목">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">설명 (얇은 글씨)</label>
+                <textarea id="banner-description" rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2" placeholder="밑에 얇게 표시될 설명 글">${banner?.description || ''}</textarea>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">링크</label>
+                <input type="url" id="banner-link" value="${banner?.link || ''}" placeholder="https://..." class="w-full border border-gray-300 rounded-lg px-3 py-2">
+              </div>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">순서</label>
+                  <input type="number" id="banner-order" value="${banner?.order || 0}" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">상태</label>
+                  <select id="banner-active" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                    <option value="true" ${banner?.active !== false ? 'selected' : ''}>활성</option>
+                    <option value="false" ${banner?.active === false ? 'selected' : ''}>비활성</option>
+                  </select>
+                </div>
+              </div>
+              <div class="flex items-center gap-3 pt-4 border-t">
+                <button type="submit" class="flex-1 px-4 py-2 text-white rounded-lg font-medium transition-colors" style="background-color: #7A68F6;" onmouseover="this.style.backgroundColor='#6B5AE5'" onmouseout="this.style.backgroundColor='#7A68F6'">
+                  ${isEdit ? '수정' : '추가'}
+                </button>
+                <button type="button" onclick="closeBannerModal()" class="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                  취소
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      `;
+      document.body.insertAdjacentHTML('beforeend', modalHtml);
+      if (window.lucide) window.lucide.createIcons();
+      
+      // 이미지 파일 선택 버튼 이벤트
+      document.getElementById('banner-image-upload-btn')?.addEventListener('click', () => {
+        const fileInput = document.getElementById('banner-image-input');
+        if (fileInput) {
+          fileInput.click();
+        }
+      });
+
+      // 이미지 파일 선택 이벤트
+      document.getElementById('banner-image-input')?.addEventListener('change', (e) => {
+        const files = Array.from(e.target.files || []);
+        if (files.length > 0) {
+          updateBannerImagePreview(files);
+        }
+      });
+      
+      document.getElementById('banner-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await saveBanner(banner?._id || banner?.id);
+      });
+    }
+
+    function updateBannerImagePreview(files) {
+      const previewEl = document.getElementById('banner-image-preview');
+      const statusTextEl = document.getElementById('banner-image-status-text');
+      
+      if (!previewEl || !statusTextEl) return;
+
+      // 파일 타입 검증
+      const imageFiles = files.filter(file => file.type.startsWith('image/'));
+      if (imageFiles.length !== files.length) {
+        alert('이미지 파일만 선택할 수 있습니다.');
+        return;
+      }
+
+      // 상태 텍스트 업데이트
+      if (imageFiles.length > 0) {
+        statusTextEl.innerHTML = `<span class="text-blue-600">${imageFiles.length}개 이미지 선택됨</span>`;
+      } else {
+        statusTextEl.innerHTML = '<span class="text-gray-400">선택된 이미지 없음</span>';
+      }
+
+      // 미리보기 표시
+      if (imageFiles.length > 0) {
+        previewEl.innerHTML = `
+          <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+            ${imageFiles.map((file, index) => {
+              const reader = new FileReader();
+              let previewHtml = '';
+              
+              reader.onload = (e) => {
+                const imgEl = document.querySelector(`[data-preview-index="${index}"] img`);
+                if (imgEl) {
+                  imgEl.src = e.target.result;
+                }
+              };
+              reader.readAsDataURL(file);
+              
+              return `
+                <div class="border border-gray-200 rounded-lg overflow-hidden" data-preview-index="${index}">
+                  <div class="aspect-video bg-gray-100 flex items-center justify-center">
+                    <img src="" alt="${file.name}" class="w-full h-full object-cover" style="display: none;">
+                    <span class="text-xs text-gray-400">로딩 중...</span>
+                  </div>
+                  <div class="p-2 bg-white">
+                    <p class="text-xs text-gray-600 truncate" title="${file.name}">${file.name}</p>
+                    <p class="text-xs text-gray-400">${(file.size / 1024).toFixed(1)} KB</p>
+                    <button type="button" onclick="removeBannerImagePreview(${index})" class="mt-1 px-2 py-1 text-xs text-red-600 border border-red-200 rounded hover:bg-red-50 transition-colors">
+                      제거
+                    </button>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `;
+        
+        // FileReader로 미리보기 이미지 로드
+        imageFiles.forEach((file, index) => {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const imgEl = document.querySelector(`[data-preview-index="${index}"] img`);
+            const loadingEl = document.querySelector(`[data-preview-index="${index}"] span`);
+            if (imgEl) {
+              imgEl.src = e.target.result;
+              imgEl.style.display = 'block';
+            }
+            if (loadingEl) {
+              loadingEl.style.display = 'none';
+            }
+          };
+          reader.readAsDataURL(file);
+        });
+
+        if (window.lucide) window.lucide.createIcons();
+      } else {
+        previewEl.innerHTML = '';
+      }
+
+      // 전역 변수에 저장
+      window.selectedBannerImages = imageFiles;
+    }
+
+    function removeBannerImagePreview(index) {
+      if (!window.selectedBannerImages) return;
+      
+      window.selectedBannerImages = window.selectedBannerImages.filter((_, i) => i !== index);
+      
+      const fileInput = document.getElementById('banner-image-input');
+      if (fileInput) {
+        // FileList는 직접 수정할 수 없으므로, DataTransfer를 사용하여 새 FileList 생성
+        const dt = new DataTransfer();
+        window.selectedBannerImages.forEach(file => dt.items.add(file));
+        fileInput.files = dt.files;
+        
+        // 미리보기 업데이트
+        updateBannerImagePreview(window.selectedBannerImages);
+      }
+    }
+
+    function closeBannerModal() {
+      const modal = document.getElementById('banner-modal');
+      if (modal) modal.remove();
+    }
+
+    async function saveBanner(bannerId = null) {
+      const form = document.getElementById('banner-form');
+      const imageInput = document.getElementById('banner-image-input');
+      const title = document.getElementById('banner-title').value;
+      const subtitle = document.getElementById('banner-subtitle').value;
+      const description = document.getElementById('banner-description').value;
+      const link = document.getElementById('banner-link').value;
+      const order = parseInt(document.getElementById('banner-order').value) || 0;
+      const active = document.getElementById('banner-active').value === 'true';
+
+      // 선택한 이미지 파일 가져오기
+      const selectedImages = window.selectedBannerImages || [];
+      const files = imageInput?.files ? Array.from(imageInput.files) : selectedImages;
+
+      // 새로 생성할 때는 이미지 필수
+      if (!bannerId && files.length === 0) {
+        alert('이미지 파일을 선택해주세요.');
+        return;
+      }
+
+      // 여러 이미지를 업로드하는 경우, 각각 별도의 배너로 생성
+      if (!bannerId && files.length > 0) {
+        // 여러 이미지 업로드
+        const uploadPromises = files.map(async (file, index) => {
+          const formData = new FormData();
+          formData.append('image', file);
+          formData.append('title', title || `배너 ${index + 1}`);
+          formData.append('subtitle', subtitle);
+          formData.append('description', description);
+          formData.append('link', link);
+          formData.append('order', (order + index).toString());
+          formData.append('active', active.toString());
+
+          try {
+            const res = await fetch(`${API_URL}/hero-sliders`, {
+              method: 'POST',
+              credentials: 'include',
+              body: formData,
+            });
+
+            const result = await res.json();
+            return result;
+          } catch (error) {
+            console.error(`배너 ${index + 1} 저장 실패:`, error);
+            return { success: false, error: error.message };
+          }
+        });
+
+        try {
+          const results = await Promise.all(uploadPromises);
+          const successCount = results.filter(r => r.success).length;
+          const failCount = results.length - successCount;
+
+          if (successCount > 0) {
+            alert(`${successCount}개의 배너가 추가되었습니다.${failCount > 0 ? ` (${failCount}개 실패)` : ''}`);
+            closeBannerModal();
+            loadHeroSliders();
+          } else {
+            alert('배너 저장에 실패했습니다.');
+          }
+        } catch (error) {
+          console.error('배너 일괄 저장 실패:', error);
+          alert(`배너 저장 중 오류가 발생했습니다: ${error.message}`);
+        }
+        return;
+      }
+
+      // 단일 배너 수정 또는 단일 이미지로 생성
+      const formData = new FormData();
+      if (files.length > 0) {
+        formData.append('image', files[0]); // 수정 시에는 첫 번째 이미지만 사용
+        console.log('이미지 파일 추가:', files[0].name, files[0].size);
+      }
+      formData.append('title', title);
+      formData.append('subtitle', subtitle);
+      formData.append('description', description);
+      formData.append('link', link);
+      formData.append('order', order.toString());
+      formData.append('active', active.toString());
+
+      // FormData 내용 확인 (디버깅용)
+      console.log('FormData 전송 내용:');
+      for (let pair of formData.entries()) {
+        console.log(pair[0] + ': ' + (pair[1] instanceof File ? `[File: ${pair[1].name}]` : pair[1]));
+      }
+
+      try {
+        const url = bannerId 
+          ? `${API_URL}/hero-sliders/${bannerId}`
+          : `${API_URL}/hero-sliders`;
+        const method = bannerId ? 'PUT' : 'POST';
+
+        console.log('배너 저장 요청:', { url, method, hasImage: files.length > 0 });
+
+        const res = await fetch(url, {
+          method,
+          credentials: 'include',
+          body: formData,
+        });
+
+        const result = await res.json();
+        console.log('배너 저장 응답:', result);
+
+        if (result.success) {
+          alert(bannerId ? '배너가 수정되었습니다.' : '배너가 추가되었습니다.');
+          closeBannerModal();
+          loadHeroSliders();
+        } else {
+          const errorMsg = result.error || result.message || '저장에 실패했습니다.';
+          console.error('배너 저장 실패 상세:', result);
+          alert(`저장에 실패했습니다: ${errorMsg}`);
+        }
+      } catch (error) {
+        console.error('배너 저장 실패:', error);
+        alert(`배너 저장 중 오류가 발생했습니다: ${error.message}`);
+      }
+    }
+
+    async function editBanner(bannerId) {
+      try {
+        const res = await fetch(`${API_URL}/hero-sliders/${bannerId}`);
+        const result = await res.json();
+        if (result.success) {
+          showBannerModal(result.data);
+        } else {
+          alert('배너 정보를 불러오는데 실패했습니다.');
+        }
+      } catch (error) {
+        console.error('배너 정보 로드 실패:', error);
+        alert('배너 정보를 불러오는데 실패했습니다.');
+      }
+    }
+
+    async function deleteBanner(bannerId) {
+      if (!confirm('정말 이 배너를 삭제하시겠습니까?')) return;
+
+      try {
+        const res = await fetch(`${API_URL}/hero-sliders/${bannerId}`, {
+          method: 'DELETE',
+          credentials: 'include',
+        });
+
+        const result = await res.json();
+        if (result.success) {
+          alert('배너가 삭제되었습니다.');
+          loadHeroSliders();
+        } else {
+          alert(result.error || '삭제에 실패했습니다.');
+        }
+      } catch (error) {
+        console.error('배너 삭제 실패:', error);
+        alert('배너 삭제 중 오류가 발생했습니다.');
+      }
+    }
+
+    async function toggleBannerActive(bannerId, active) {
+      try {
+        const res = await fetch(`${API_URL}/hero-sliders/${bannerId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ active }),
+        });
+
+        const result = await res.json();
+        if (result.success) {
+          loadHeroSliders();
+        } else {
+          alert(result.error || '상태 변경에 실패했습니다.');
+        }
+      } catch (error) {
+        console.error('배너 상태 변경 실패:', error);
+        alert('상태 변경 중 오류가 발생했습니다.');
+      }
     }
 
     async function loadContacts() {
@@ -3621,7 +4366,7 @@
       }
 
       for (let i = startPage; i <= endPage; i++) {
-        html += `<button onclick="changeVisitorPage(${i})" class="px-3 py-1 rounded-lg ${i === currentPage ? 'text-white' : 'hover:bg-gray-100 transition-colors'}" ${i === currentPage ? `style="background-color: #7A68F6;"` : ''}>
+        html += `<button onclick="changeVisitorPage(${i})" class="px-3 py-1 rounded-lg ${i === currentPage ? 'text-white' : 'hover:bg-gray-100 transition-colors'}" ${i === currentPage ? `style="background-color: #0EA5E9;"` : ''}>
           ${i}
         </button>`;
       }
@@ -4906,6 +5651,14 @@
     window.updateUploadProgress = updateUploadProgress;
     window.hideUploadProgress = hideUploadProgress;
     window.uploadWithProgress = uploadWithProgress;
+    window.showBannerModal = showBannerModal;
+    window.closeBannerModal = closeBannerModal;
+    window.saveBanner = saveBanner;
+    window.editBanner = editBanner;
+    window.deleteBanner = deleteBanner;
+    window.toggleBannerActive = toggleBannerActive;
+    window.updateBannerImagePreview = updateBannerImagePreview;
+    window.removeBannerImagePreview = removeBannerImagePreview;
     window.handleDragStart = handleDragStart;
     window.handleDragOver = handleDragOver;
     window.handleDrop = handleDrop;
@@ -4969,6 +5722,8 @@
         await loadDocuments();
       } else if (currentTab === 'projects') {
         await loadProjects();
+      } else if (currentTab === 'banners') {
+        await loadHeroSliders();
       } else if (currentTab === 'contacts') {
         await loadContacts();
       } else if (currentTab === 'visitors') {
@@ -5010,5 +5765,7 @@
       ensureLucide();
     })();
   </script>
+  </div>
+  </div>
 </body>
 </html>

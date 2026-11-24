@@ -1,184 +1,141 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Wrench } from 'lucide-react';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowUpRight } from 'lucide-react';
 import { skills } from '@/data/portfolio';
 
 interface SkillsSectionProps {
   theme?: 'light' | 'dark';
 }
 
+const AWARD_CATEGORIES = [
+  { id: 'renders', label: '3D Renders', preview: false },
+  { id: 'animals', label: 'animals', preview: false },
+  { id: 'architecture', label: 'architecture & interiors', preview: true },
+  { id: 'experimental', label: 'experimental', preview: false },
+  { id: 'fashion', label: 'fashion & Beauty', preview: false },
+  { id: 'film', label: 'film', preview: false },
+  { id: 'nature', label: 'nature', preview: false },
+  { id: 'people', label: 'people', preview: false },
+];
+
 export const SkillsSection: React.FC<SkillsSectionProps> = () => {
-  const [isMounted, setIsMounted] = useState(false);
+  const [active, setActive] = useState('architecture');
+  const toolNames = skills.map((s) => s.name);
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
+  // Map award rows to real skills when possible, fallback to Figma labels
+  const rows = AWARD_CATEGORIES.map((cat, i) => ({
+    ...cat,
+    skillLabel: toolNames[i] || cat.label,
+    description: skills[i]?.description,
+  }));
 
-  // Main tools와 보조 툴 분리
-  const mainTools = skills.filter(skill => 
-    ['Figma', 'Excel', 'Google Spreadsheet', 'PowerPoint', 'AI Tools (Cursor·GPT·Gemini·UXpilot)', 'Notion', 'Eye-Tracking (Tobii Pro)'].includes(skill.name)
-  );
-  
-  const auxiliaryTools = skills.filter(skill => 
-    ['MS Word / 한글(HWP)', 'Illustrator', 'Photoshop', 'Premiere Pro'].includes(skill.name)
-  );
-
-  // Level을 퍼센트로 변환 (5단계 -> 100%)
-  const getLevelPercent = (level: number) => (level / 5) * 100;
-
-  const averagePercent = isMounted 
-    ? Math.round(mainTools.reduce((acc, tool) => acc + getLevelPercent(tool.level), 0) / mainTools.length)
-    : 0;
+  const activeRow = rows.find((r) => r.id === active) || rows[2];
 
   return (
-    <section id="skills" className="py-20 relative overflow-hidden">
-      {/* 상단 그라데이션 마스크 */}
-      <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-white/0 to-transparent pointer-events-none z-0" />
-      {/* 하단 그라데이션 마스크 */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white/0 to-transparent pointer-events-none z-0" />
-
-      <div className="max-w-container mx-auto px-container-x relative z-10">
-        {/* Section Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16"
-        >
-          <motion.span
-            initial={{ opacity: 0, scale: 0.8 }}
-            whileInView={{ opacity: 1, scale: 1 }}
+    <>
+      {/* Awards Category */}
+      <section
+        id="skills"
+        className="relative w-full bg-bg-ink-900 text-white px-5 sm:px-8 lg:px-[60px] py-24 sm:py-32 md:py-40"
+      >
+        <div className="max-w-container mx-auto grid lg:grid-cols-[minmax(0,360px)_1fr] gap-12 lg:gap-16">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="inline-block px-4 py-2 bg-brand-main/10 text-brand-main rounded-full text-sm font-semibold mb-4 border border-brand-main/30"
+            transition={{ duration: 0.8 }}
           >
-            Tool Skill
-          </motion.span>
-          <h2 className="text-4xl md:text-5xl font-light text-text-main mb-6">
-            Tool Skill
-          </h2>
-          <p className="text-xl text-text-sub max-w-2xl mx-auto">
-            문제를 해결해온 제 기획 역량을 수치화했습니다.
-          </p>
-        </motion.div>
+            <h2 className="display-xl text-[clamp(2.75rem,6vw,80px)] leading-[1.1] mb-6">
+              Awards
+              <br />
+              Category
+            </h2>
+            <p className="text-lg font-medium leading-[150%] tracking-[-0.025em] text-white/80 max-w-sm">
+              올해 가장 베스트 스킬 카테고리를 확인하고 본인의 작업과 알맞은
+              역량을 찾아서 함께 경험해 보세요
+            </p>
+          </motion.div>
 
-        {/* Main Tools */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="max-w-4xl mx-auto mb-12"
-        >
-          <div className="bg-white rounded-3xl p-8 md:p-12 shadow minimal border border-line-medium">
-            <div className="flex items-center gap-3 mb-10">
-              <div className="w-12 h-12 rounded-2xl bg-brand-main flex items-center justify-center shadow minimal">
-                <Wrench className="text-white" size={24} />
-              </div>
-              <h3 className="text-2xl font-bold text-text-main">Main Tools</h3>
-            </div>
-
-            <div className="space-y-8">
-              {mainTools.map((tool, index) => (
-                <motion.div
-                  key={tool.id}
-                  initial={{ opacity: 0, x: -30 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
+          <div className="relative">
+            {rows.map((row) => {
+              const isActive = row.id === active;
+              return (
+                <button
+                  key={row.id}
+                  type="button"
+                  onMouseEnter={() => setActive(row.id)}
+                  onFocus={() => setActive(row.id)}
+                  onClick={() => setActive(row.id)}
+                  className={`group relative w-full flex items-center justify-between text-left border-b transition-colors duration-300 py-6 sm:py-7 ${
+                    isActive ? 'border-white border-b-2' : 'border-white/30'
+                  }`}
                 >
-                  {/* Tool Name & Percentage */}
-                  <div className="flex justify-between items-baseline mb-3">
-                    <div>
-                      <span className="text-lg font-bold text-text-main">
-                        {tool.name}
-                      </span>
-                      <p className="text-sm text-text-secondary mt-1">
-                        {tool.description}
-                      </p>
-                    </div>
-                    <span className="text-2xl font-bold text-brand-main ml-4">
-                      {getLevelPercent(tool.level)}%
-                    </span>
-                  </div>
+                  <span
+                    className={`text-[clamp(1.25rem,2.4vw,36px)] tracking-[-0.025em] capitalize transition-colors ${
+                      isActive ? 'text-white font-semibold' : 'text-[#999999] font-normal'
+                    }`}
+                  >
+                    {row.skillLabel}
+                  </span>
+                  <ArrowUpRight
+                    size={22}
+                    className={`transition-opacity ${isActive ? 'opacity-100' : 'opacity-40'}`}
+                  />
+                </button>
+              );
+            })}
 
-                  {/* Progress Bar - Gradient Line */}
-                  <div className="relative h-2 bg-line-medium rounded-full overflow-hidden">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      whileInView={{ width: `${getLevelPercent(tool.level)}%` }}
-                      viewport={{ once: true }}
-                      transition={{
-                        duration: 1.2,
-                        delay: index * 0.1,
-                        ease: [0.16, 1, 0.3, 1]
-                      }}
-                      className="absolute top-0 left-0 h-full rounded-full bg-brand-main"
-                    />
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Auxiliary Tools */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="text-center"
-        >
-          <p className="text-sm text-text-tertiary mb-3">
-            보조 툴
-          </p>
-          <div className="flex flex-wrap justify-center gap-3">
-            {auxiliaryTools.map((tool) => (
-              <motion.span
-                key={tool.id}
-                initial={{ opacity: 0, scale: 0.8 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                whileHover={{ scale: 1.05 }}
-                className="px-4 py-2 bg-dark-surface border border-dark-border rounded-xl text-sm text-text-tertiary hover:text-text-secondary hover:border-point-yellow/30 transition-all duration-300 cursor-default"
+            {/* floating preview card */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeRow.id}
+                initial={{ opacity: 0, y: 12, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.35 }}
+                className="hidden xl:block absolute right-[12%] top-[8%] w-[280px] h-[380px] pointer-events-none shadow-[30px_30px_50px_rgba(0,0,0,0.5)] overflow-hidden"
+                style={{
+                  background:
+                    'linear-gradient(160deg, rgba(255,255,255,0.12), rgba(0,0,0,0.55)), linear-gradient(45deg, #5a4a9e, #1a1a1a)',
+                }}
               >
-                {tool.name}
-              </motion.span>
-            ))}
+                <div className="absolute inset-0 p-6 flex flex-col justify-end">
+                  <p className="text-sm text-white/60 mb-2">{activeRow.skillLabel}</p>
+                  <p className="text-base text-white/90 leading-relaxed">
+                    {activeRow.description || 'Skill category preview'}
+                  </p>
+                </div>
+              </motion.div>
+            </AnimatePresence>
           </div>
-        </motion.div>
+        </div>
+      </section>
 
-        {/* Stats Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-6"
-        >
-          <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-line-light text-center hover:border-brand-main/30 transition-all duration-300">
-            <div className="text-4xl font-bold text-brand-main mb-2">
-              {mainTools.length}+
-            </div>
-            <p className="text-text-secondary">전문 툴 활용</p>
+      {/* Blending technology banner */}
+      <section className="relative w-full px-5 sm:px-8 lg:px-[60px] py-10 sm:py-14 bg-white">
+        <div className="max-w-container mx-auto">
+          <div
+            className="relative w-full min-h-[320px] sm:min-h-[480px] md:min-h-[600px] flex items-center justify-center overflow-hidden"
+            style={{
+              background:
+                'linear-gradient(180deg, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.25) 100%), linear-gradient(135deg, #2a2438 0%, #111 40%, #3a2f1f 100%)',
+            }}
+          >
+            <motion.h2
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="relative z-10 text-center text-white font-normal text-[clamp(2rem,5vw,80px)] leading-[1.2] max-w-[752px] px-6"
+            >
+              Blending technology
+              <br />
+              and artistry
+            </motion.h2>
           </div>
-          <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-line-light text-center hover:border-brand-main/30 transition-all duration-300">
-            <div className="text-4xl font-bold text-brand-main mb-2">
-              {averagePercent}%
-            </div>
-            <p className="text-text-secondary">평균 숙련도</p>
-          </div>
-          <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-line-light text-center hover:border-brand-main/30 transition-all duration-300">
-            <div className="text-4xl font-bold text-brand-main mb-2">
-              1년 6개월
-            </div>
-            <p className="text-text-secondary">QA 경험</p>
-          </div>
-        </motion.div>
-      </div>
-    </section>
+        </div>
+      </section>
+    </>
   );
 };

@@ -9,54 +9,72 @@ const config: Config = {
   theme: {
     extend: {
       maxWidth: {
-        'container': '1540px',
+        'container': '1800px',
       },
       spacing: {
-        'container-x': '190px',
+        'container-x': '120px',
+      },
+      fontFamily: {
+        serif: ['Gelasio', 'Georgia', 'Times New Roman', 'serif'],
       },
       colors: {
-        // 배경 컬러 (새 컬러 팔레트)
-        'bg-darkest': '#18181C',     // 아주 진한 블랙에 가까운 차콜 블랙
-        'bg-light-cool': '#F4F5F7',  // 아주 연한 쿨톤 라이트 그레이
-        'bg-light-soft': '#F5F6FA',  // 거의 흰색에 가까운 블루 기운의 라이트 그레이
-        'bg-white': '#FFFFFF',       // 순수 화이트
-        
-        // 배경 컬러 (기존)
-        'bg-light': '#F7F7FB',
-        'bg-dark': '#F1F1F5',
-        
-        // 텍스트 컬러 (접근성 4.5:1 이상)
-        'text-main': '#111111',      // Main Text Color
-        'text-sub': '#505050',       // Sub Text Color
-        'text-secondary': '#767676', // Sub Text Color
-        'text-disabled': '#999999',  // Disabled Color
-        
-        // 브랜드 컬러
-        'brand-main': '#7A68F6',     // 은은한 보랏빛의 라일락 퍼플 / 바이올렛
-        'brand-sub-1': '#39C3B6',    // Brand Sub Color 1
-        'brand-sub-2': '#F59917',    // Brand Sub Color 2
-        
-        // 라인 컬러
-        'line-light': '#F1F1F5',     // 연한 Line 컬러
-        'line-medium': '#E5E5EC',    // 중간 Line 컬러 (버튼, 인풋박스 등)
-        'line-dark': '#111111',      // 진한 Line 컬러
-        
-        // 상태 컬러
-        'status-danger': '#DC0000',  // 위험/실패
-        'status-success': '#04B014', // 성공/안전
-        'status-warning': '#FFAA00', // 주의/경고
+        // 배경 (에디토리얼 다크)
+        'bg-black': '#000000',
+        'bg-ink': '#050505',       // 푸터 등 가장 어두운 블랙
+        'bg-ink-900': '#111111',   // 다크 섹션
+        'bg-white': '#FFFFFF',
+        'bg-soft': '#F1F1F5',      // 연한 그레이 카드
+        'bg-light': '#FAFAFA',
+        'bg-dark': '#111111',
+
+        // 텍스트
+        'text-main': '#111111',
+        'text-sub': '#505050',
+        'text-secondary': '#767676',
+        'text-disabled': '#999999',
+        'text-placeholder': '#BABABA',
+
+        // 모노톤 (액센트는 블랙)
+        'brand-main': '#111111',
+        'brand-sub-1': '#333333',
+        'brand-sub-2': '#000000',
+        'brand-accent': '#111111',
+        'ink': '#111111',
+
+        // 라인
+        'line-light': '#DBDBDB',
+        'line-medium': '#E4E4E4',
+        'line-strong': '#CCCCCC',
+        'line-dark': '#666666',
+
+        // 상태
+        'status-danger': '#D23F3F',
+        'status-success': '#2BB24C',
+        'status-warning': '#E0A000',
       },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
         "gradient-conic":
           "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
-        'gradient-purple-soft': 'linear-gradient(135deg, #7A68F6 0%, #9B88FF 100%)',
-        'gradient-purple-pastel': 'linear-gradient(135deg, #E8E4FF 0%, #F0EDFF 100%)',
-        'gradient-purple-blue': 'linear-gradient(135deg, #7A68F6 0%, #A8A0FF 100%)',
+        'fade-dark': 'linear-gradient(270deg, #000000 51.87%, rgba(0,0,0,0) 100%)',
+        'overlay-dark': 'linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0) 50%, rgba(0,0,0,0.3) 100%)',
       },
-      boxShadow: {
-        'minimal': '0 1px 3px rgba(0, 0, 0, 0.05)',
-        'minimal-lg': '0 2px 8px rgba(0, 0, 0, 0.08)',
+      borderRadius: {
+        'pill': '9999px',
+      },
+      keyframes: {
+        'fade-up': {
+          '0%': { opacity: '0', transform: 'translateY(30px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        'marquee': {
+          '0%': { transform: 'translateX(0)' },
+          '100%': { transform: 'translateX(-50%)' },
+        },
+      },
+      animation: {
+        'fade-up': 'fade-up 0.8s cubic-bezier(0.22,1,0.36,1) both',
+        'marquee': 'marquee 30s linear infinite',
       },
     },
   },

@@ -3,9 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, Home, Briefcase, Mail, ArrowLeft } from 'lucide-react';
+import { Menu, X, ArrowLeft, ArrowUpRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export const Header: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -13,6 +14,7 @@ export const Header: React.FC = () => {
   const [activeSection, setActiveSection] = useState('home');
   const [isMounted, setIsMounted] = useState(false);
   const pathname = usePathname();
+  const { language, setLanguage, t } = useLanguage();
 
   useEffect(() => {
     setIsMounted(true);
@@ -20,12 +22,12 @@ export const Header: React.FC = () => {
 
   useEffect(() => {
     if (!isMounted) return;
-    
+
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
 
       if (pathname === '/') {
-        const sections = ['home', 'projects', 'experience', 'skills', 'contact'];
+        const sections = ['home', 'projects', 'skills', 'experience', 'contact'];
         for (const section of sections) {
           const element = document.getElementById(section);
           if (element) {
@@ -38,54 +40,18 @@ export const Header: React.FC = () => {
         }
       }
     };
-    
+
+    handleScroll();
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, [pathname, isMounted]);
 
   const navItems = [
-    { 
-      label: '홈', 
-      labelEn: 'Home',
-      description: '기획자로서 나의 정체성 소개',
-      href: '/#home', 
-      icon: <Home size={16} /> 
-    },
-    { 
-      label: '대표 프로젝트', 
-      labelEn: 'Main Projects',
-      description: '대표 프로젝트',
-      href: '/#projects', 
-      icon: <Briefcase size={16} /> 
-    },
-    { 
-      label: '전체 프로젝트', 
-      labelEn: 'All Projects',
-      description: '모든 프로젝트 모아보기',
-      href: '/projects', 
-      icon: <Briefcase size={16} /> 
-    },
-    { 
-      label: '나의 이력', 
-      labelEn: 'My Experience',
-      description: '학력·경력 여정',
-      href: '/#experience', 
-      icon: <Briefcase size={16} /> 
-    },
-    { 
-      label: '나의 역량', 
-      labelEn: 'My Skills',
-      description: '기획 역량과 도구',
-      href: '/#skills', 
-      icon: <Briefcase size={16} /> 
-    },
-    { 
-      label: '연락하기', 
-      labelEn: 'Contact',
-      description: '회사와의 연결 의지',
-      href: '/#contact', 
-      icon: <Mail size={16} /> 
-    },
+    { key: 'home', href: '/#home' },
+    { key: 'projects', href: '/#projects' },
+    { key: 'skills', href: '/#skills' },
+    { key: 'careers', href: '/#experience' },
+    { key: 'contact', href: '/#contact' },
   ];
 
   // 관리자 페이지에서는 Header 숨기기
@@ -93,142 +59,183 @@ export const Header: React.FC = () => {
     return null;
   }
 
-  // 전체 프로젝트 페이지에서는 다른 헤더 레이아웃
   const isProjectsPage = pathname === '/projects';
+  // 히어로 위(스크롤 전, 홈)에서는 흰 글씨 / 스크롤 후·서브페이지에서는 검정 글씨
+  const onDark = pathname === '/' && !isScrolled && !isProjectsPage;
 
   return (
     <motion.header
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
       className={cn(
-        'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
-        isScrolled
-          ? 'bg-white/90 backdrop-blur-sm border-b border-line-medium py-3'
-          : 'bg-white py-5'
+        'fixed top-0 left-0 right-0 transition-all duration-500',
+        isScrolled || isProjectsPage
+          ? 'bg-white/95 backdrop-blur-md border-b border-line-light'
+          : 'bg-transparent border-b border-transparent'
       )}
+      style={{ zIndex: 1000, height: '80px' }}
     >
-      <nav className="max-w-container mx-auto px-6 md:px-container-x">
-        {isProjectsPage ? (
-          // 전체 프로젝트 페이지 헤더
-          <div className="flex items-center">
-            {/* 홈으로 버튼 */}
-            <Link href="/">
-              <motion.button
-                whileHover={{ x: -5 }}
-                whileTap={{ scale: 0.95 }}
-                className="flex items-center gap-2 text-text-secondary hover:text-brand-main transition-colors duration-300"
-              >
-                <ArrowLeft size={20} />
-                <span className="text-sm font-medium">홈으로</span>
-              </motion.button>
-            </Link>
-          </div>
-        ) : (
-          // 기본 헤더 레이아웃
-          <div className="flex items-center justify-between">
-            {/* Logo */}
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <Link 
-                href="/" 
-                className="text-xl md:text-2xl font-light text-text-main hover:text-text-sub transition-colors tracking-tight"
-              >
-                Janghyeyeon
+      <nav className="w-full h-full px-5 sm:px-8 lg:px-[60px]">
+        <div className="max-w-container mx-auto h-full">
+          {isProjectsPage ? (
+            <div className="flex items-center h-full">
+              <Link href="/">
+                <motion.button
+                  whileHover={{ x: -5 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="flex items-center gap-2 text-text-secondary hover:text-text-main transition-colors duration-300"
+                >
+                  <ArrowLeft size={20} />
+                  <span className="text-sm font-medium">홈으로</span>
+                </motion.button>
               </Link>
-            </motion.div>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between w-full h-full">
+              {/* 세리프 워드마크 */}
+              <Link href="/" className="flex items-center flex-shrink-0 z-10">
+                <span
+                  className={cn(
+                    'font-serif-display text-2xl sm:text-[28px] tracking-tight transition-colors duration-500',
+                    onDark ? 'text-white' : 'text-text-main'
+                  )}
+                >
+                  Jang hyeyeon
+                </span>
+              </Link>
 
-            {/* Desktop Navigation */}
-            <ul className="hidden md:flex items-center gap-4 lg:gap-6">
-              {navItems.map((item) => {
-                const isActive = item.href.startsWith('#') 
-                  ? activeSection === item.href.replace('#', '')
-                  : item.href.startsWith('/#')
-                  ? pathname === '/' && activeSection === item.href.replace('/#', '')
-                  : pathname === item.href;
-                return (
-                  <li key={item.href} className="relative group">
-                    <Link
-                      href={item.href}
-                      prefetch={item.href === '/projects'}
-                      className={cn(
-                        'flex flex-col items-center gap-1 text-sm font-light transition-all duration-200 px-3 py-2 rounded-lg relative z-10',
-                        isActive
-                          ? 'text-brand-main bg-brand-main/5'
-                          : 'text-text-secondary hover:text-brand-main hover:bg-brand-main/5'
-                      )}
-                    >
-                      <span className="flex items-center gap-1 whitespace-nowrap">
-                        <span className="hidden">{item.icon}</span>
-                        <span>{item.label}</span>
-                      </span>
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
+              {/* 중앙 내비게이션 (알약 테두리) */}
+              <div className="hidden lg:flex items-center absolute left-1/2 -translate-x-1/2">
+                <ul className="flex items-center gap-3">
+                  {navItems.map((item) => {
+                    const isActive =
+                      pathname === '/' &&
+                      activeSection === item.href.replace('/#', '');
+                    return (
+                      <li key={item.href}>
+                        <Link
+                          href={item.href}
+                          className={cn(
+                            'inline-flex items-center justify-center px-5 py-3 rounded-pill text-lg transition-all duration-300 border',
+                            onDark
+                              ? isActive
+                                ? 'border-white text-white'
+                                : 'border-[#666666] text-white hover:border-white/70'
+                              : isActive
+                              ? 'border-text-main text-text-main'
+                              : 'border-line-light text-text-secondary hover:text-text-main hover:border-text-main'
+                          )}
+                        >
+                          {t(`nav.${item.key}`)}
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
 
-            {/* Mobile Menu Button */}
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="md:hidden p-2 text-text-main"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            >
-              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </motion.button>
-          </div>
-        )}
+              {/* 우측: 언어 + Admin */}
+              <div className="hidden lg:flex items-center gap-5 flex-shrink-0 z-10">
+                <button
+                  onClick={() => setLanguage(language === 'ko' ? 'en' : 'ko')}
+                  className={cn(
+                    'text-sm font-medium transition-colors',
+                    onDark ? 'text-white/70 hover:text-white' : 'text-text-secondary hover:text-text-main'
+                  )}
+                  aria-label="언어 변경"
+                >
+                  {language === 'ko' ? 'KO' : 'EN'}
+                </button>
 
-        {/* Mobile Navigation */}
-        <AnimatePresence>
-          {isMobileMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.2 }}
-              className="md:hidden mt-4 overflow-hidden border-t border-line-medium pt-4"
-            >
-              <ul className="flex flex-col gap-4">
-                {navItems.map((item, index) => {
-                  const isActive = item.href.startsWith('#') 
-                    ? activeSection === item.href.replace('#', '')
-                    : item.href.startsWith('/#')
-                    ? pathname === '/' && activeSection === item.href.replace('/#', '')
-                    : pathname === item.href;
-                  return (
-                    <motion.li
-                      key={item.href}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.05, duration: 0.15 }}
-                    >
-                      <Link
-                        href={item.href}
-                        prefetch={item.href === '/projects'}
-                        className={cn(
-                          'flex flex-col gap-1 py-3 px-4 rounded-lg transition-all',
-                          isActive
-                            ? 'text-brand-main bg-brand-main/5'
-                            : 'text-text-secondary hover:text-brand-main hover:bg-brand-main/5'
-                        )}
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        <span className="text-sm font-medium">{item.label}</span>
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-brand-main">{item.labelEn}</span>
-                          <span className="text-xs text-text-tertiary">{item.description}</span>
-                        </div>
-                      </Link>
-                    </motion.li>
-                  );
-                })}
-              </ul>
-            </motion.div>
+                <Link href="/admin/login" target="_blank" rel="noopener noreferrer">
+                  <motion.button
+                    whileHover={{ y: -2 }}
+                    whileTap={{ scale: 0.97 }}
+                    className={cn(
+                      'inline-flex items-center gap-1.5 text-sm font-medium transition-colors',
+                      onDark ? 'text-white/70 hover:text-white' : 'text-text-secondary hover:text-text-main'
+                    )}
+                  >
+                    <span>Admin</span>
+                    <ArrowUpRight size={15} />
+                  </motion.button>
+                </Link>
+              </div>
+
+              {/* 모바일 메뉴 버튼 */}
+              <button
+                className={cn('lg:hidden p-2 z-10 transition-colors', onDark ? 'text-white' : 'text-text-main')}
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                aria-label="메뉴 열기"
+              >
+                {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              </button>
+            </div>
           )}
-        </AnimatePresence>
+
+          {/* 모바일 내비게이션 */}
+          <AnimatePresence>
+            {isMobileMenuOpen && (
+              <>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="fixed inset-0 bg-black/40 backdrop-blur-sm lg:hidden z-40 top-[80px]"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                />
+
+                <motion.div
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.2 }}
+                  className="lg:hidden absolute top-full left-0 right-0 bg-white border-b border-line-light shadow-lg z-50"
+                >
+                  <div className="px-6 py-6 space-y-1">
+                    {navItems.map((item, index) => (
+                      <motion.div
+                        key={item.href}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.05, duration: 0.15 }}
+                      >
+                        <Link
+                          href={item.href}
+                          className="block py-3 text-base font-medium text-text-main"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          {t(`nav.${item.key}`)}
+                        </Link>
+                      </motion.div>
+                    ))}
+
+                    <div className="pt-4 mt-4 border-t border-line-light flex items-center justify-between gap-4">
+                      <button
+                        onClick={() => {
+                          setLanguage(language === 'ko' ? 'en' : 'ko');
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className="text-sm font-medium text-text-secondary"
+                      >
+                        {language === 'ko' ? 'KO' : 'EN'}
+                      </button>
+                      <Link
+                        href="/admin/login"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="inline-flex items-center gap-1.5 text-sm font-medium text-text-main"
+                      >
+                        <span>Admin</span>
+                        <ArrowUpRight size={15} />
+                      </Link>
+                    </div>
+                  </div>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
+        </div>
       </nav>
     </motion.header>
   );

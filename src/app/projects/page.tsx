@@ -487,7 +487,7 @@ export default function AllProjectsPage() {
 
   return (
     <div className="min-h-screen relative" style={{
-      background: 'linear-gradient(135deg, #ECE9FF 0%, #F7F7FF 50%, #FFFFFF 100%)'
+      background: 'linear-gradient(135deg, #FEF2F0 0%, #FEE2E5 50%, #FFFFFF 100%)'
     }}>
       {/* LNB - 좌측 네비게이션 바 */}
       <div className="max-w-container mx-auto px-6 md:px-container-x py-12 pt-24">
@@ -953,7 +953,7 @@ export default function AllProjectsPage() {
                           href={`${designPdf}#view=Fit`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-xl hover:opacity-90 transition-all duration-300 shadow-md"
+                          className="inline-flex items-center gap-2 px-6 py-3 bg-brand-sub-2 text-white rounded-xl hover:opacity-90 transition-all duration-300 shadow-md"
                         >
                           <FileText size={18} />
                           <span className="font-medium">화면 설계서 보기</span>
@@ -968,7 +968,7 @@ export default function AllProjectsPage() {
                             href={designLink.startsWith('/') ? designLink : `/${designLink}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-xl hover:opacity-90 transition-all duration-300 shadow-md"
+                            className="inline-flex items-center gap-2 px-6 py-3 bg-brand-sub-2 text-white rounded-xl hover:opacity-90 transition-all duration-300 shadow-md"
                           >
                             <FileText size={18} />
                             <span className="font-medium">화면 설계서 보기</span>
@@ -980,7 +980,7 @@ export default function AllProjectsPage() {
                             href={designLink}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-xl hover:opacity-90 transition-all duration-300 shadow-md"
+                            className="inline-flex items-center gap-2 px-6 py-3 bg-brand-sub-2 text-white rounded-xl hover:opacity-90 transition-all duration-300 shadow-md"
                           >
                             <FileText size={18} />
                             <span className="font-medium">화면 설계서 보기</span>

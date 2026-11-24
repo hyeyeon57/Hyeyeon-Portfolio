@@ -2,11 +2,12 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ExternalLink, Calendar, Users, Award, FileText, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
+import { X, ExternalLink, Calendar, Users, Award, FileText, ChevronLeft, ChevronRight, Eye, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { PROJECT_CATEGORIES } from '@/constants/categories';
 import { useProjects } from '@/hooks/useProjects';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ProjectsSectionProps {
   theme?: 'light' | 'dark';
@@ -15,6 +16,7 @@ interface ProjectsSectionProps {
 export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
   // 커스텀 훅으로 데이터 페칭 로직 분리
   const { projects, loading, error } = useProjects();
+  const { t } = useLanguage();
 
   // UI 상태만 관리
   const [selectedProject, setSelectedProject] = useState<typeof projects[0] | null>(null);
@@ -27,6 +29,11 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
   const [showLightboxTooltip, setShowLightboxTooltip] = useState(false); // 라이트박스 자동 툴팁 (최초 1회)
   const [hasShownLightboxTooltip, setHasShownLightboxTooltip] = useState(false); // 이 세션에서 이미 한 번 보여줬는지 여부
   const [showImageTooltip, setShowImageTooltip] = useState(false); // 모달 이미지 툴팁 (3초간 표시)
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(0); // 현재 슬라이드 인덱스
+  const [isDragging, setIsDragging] = useState(false); // 드래그 중인지 여부
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 }); // 드래그 시작 위치
+  const [dragOffset, setDragOffset] = useState(0); // 드래그 오프셋
+  const [hasDragged, setHasDragged] = useState(false); // 실제로 드래그했는지 여부
 
   // 키보드로 라이트박스 제어 (ESC: 닫기, ← →: 이미지 이동)
   useEffect(() => {
@@ -136,18 +143,94 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
     };
   }, [selectedProject]);
 
-  // BO에서 featured=true로 설정된 프로젝트를 대표 프로젝트로 표시
-  // 대표 프로젝트는 최대 3개까지만 표시
-  // useMemo로 필터링 결과 메모이제이션하여 불필요한 재계산 방지
-  const displayedProjects = useMemo(() => {
-    const featuredProjects = projects.filter(project => {
-      // featured 값을 안전하게 boolean으로 변환하여 필터링
-      const isFeatured = project.featured === true || project.featured === 'true';
-      return isFeatured;
+  // 모든 프로젝트를 가져오되, featured 프로젝트를 먼저 정렬
+  const allProjects = useMemo(() => {
+    const sortedProjects = [...projects].sort((a, b) => {
+      const aFeatured = a.featured === true || a.featured === 'true';
+      const bFeatured = b.featured === true || b.featured === 'true';
+      if (aFeatured && !bFeatured) return -1;
+      if (!aFeatured && bFeatured) return 1;
+      return 0;
     });
-    // 최대 3개까지만 표시
-    return featuredProjects.slice(0, 3);
+    return sortedProjects;
   }, [projects]);
+
+  // 한 번에 4개씩 표시하되, 버튼 클릭 시 1개씩 이동
+  const visibleCards = 4;
+  const totalSlides = Math.max(1, allProjects.length - visibleCards + 1);
+  const displayedProjects = useMemo(() => {
+    const startIndex = currentSlideIndex;
+    return allProjects.slice(startIndex, startIndex + visibleCards);
+  }, [allProjects, currentSlideIndex]);
+
+  const handlePrevSlide = () => {
+    setCurrentSlideIndex((prev) => (prev > 0 ? prev - 1 : Math.max(0, totalSlides - 1)));
+  };
+
+  const handleNextSlide = () => {
+    setCurrentSlideIndex((prev) => (prev < totalSlides - 1 ? prev + 1 : 0));
+  };
+
+  // 드래그 핸들러
+  const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    setIsDragging(true);
+    setDragStart({ x: clientX, y: clientY });
+    setDragOffset(0);
+    setHasDragged(false);
+  };
+
+  const handleDragMove = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!isDragging) return;
+    
+    e.preventDefault(); // 기본 스크롤 방지
+    
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    
+    const deltaX = clientX - dragStart.x;
+    const deltaY = clientY - dragStart.y;
+    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    
+    // 최소 드래그 거리 (5px) 이상 움직였을 때만 드래그로 간주
+    if (distance > 5) {
+      setHasDragged(true);
+      setDragOffset(deltaX);
+    }
+  };
+
+  const handleDragEnd = () => {
+    if (!isDragging) return;
+    
+    // 카드 너비 추정 (그리드 간격 포함)
+    // 화면 크기에 따라 카드 너비가 달라지므로, 드래그 거리를 기준으로 계산
+    const cardWidthWithGap = 300; // 대략적인 카드 너비 + 간격 (픽셀)
+    const slidesMoved = Math.round(dragOffset / cardWidthWithGap);
+    
+    if (hasDragged && Math.abs(slidesMoved) > 0) {
+      // 드래그한 만큼 슬라이드 이동
+      setCurrentSlideIndex((prev) => {
+        const newIndex = prev - slidesMoved; // dragOffset이 양수면 오른쪽으로 드래그 = 이전 슬라이드
+        // 범위 체크
+        if (newIndex < 0) return 0;
+        if (newIndex >= totalSlides) return totalSlides - 1;
+        return newIndex;
+      });
+    }
+    
+    setIsDragging(false);
+    setDragOffset(0);
+    setHasDragged(false);
+  };
+
+  // 카드 클릭 핸들러 (드래그가 아닐 때만 모달 열기)
+  const handleCardClick = (project: typeof projects[0]) => {
+    // 드래그가 있었으면 클릭으로 간주하지 않음
+    if (!hasDragged) {
+      setSelectedProject(project);
+    }
+  };
 
   // 로딩 UI 제거 - 캐시된 데이터가 있으면 즉시 표시, 없으면 빈 상태로 시작
 
@@ -255,159 +338,200 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
     );
   }
 
-  return (
-    <section id="projects" className="py-20 relative overflow-hidden" style={{ backgroundColor: '#F7F7FB' }}>
-      {/* 상단 그라데이션 마스크 */}
-      <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-transparent via-transparent to-white/0 pointer-events-none z-10" />
-      {/* 하단 그라데이션 마스크 */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-transparent via-transparent to-white/0 pointer-events-none z-10" />
+  const featuredPair = displayedProjects.slice(0, 2);
+  const barColors = ['#16035E', '#000000'];
+  const totalCount = Math.max(allProjects.length, 8);
+  const currentNum = String(currentSlideIndex + 1).padStart(2, '0');
+  const totalNum = String(Math.min(totalCount, 8)).padStart(2, '0');
+  const progressRatio = Math.min((currentSlideIndex + 1) / Math.max(Math.ceil(allProjects.length / visibleCards), 1), 1);
 
-      <div className="max-w-container mx-auto px-container-x relative z-10">
-        {/* Section Header */}
+  return (
+    <section id="projects" className="relative overflow-visible bg-white w-full">
+      <div className="max-w-container mx-auto relative z-10 px-5 sm:px-8 lg:px-[60px] pt-24 sm:pt-32 md:pt-40 pb-16">
+        {/* Explore heading + progress */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16"
+          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+          className="mb-10 sm:mb-14"
         >
-                  <motion.span
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    viewport={{ once: true }}
-                      className="inline-block px-4 py-2 rounded-full text-sm font-medium mb-4 border bg-brand-main/10 text-brand-main border-brand-main/30"
-                  >
-                    대표 프로젝트
-                  </motion.span>
-          <h2 className="text-4xl md:text-5xl font-light mb-6 text-text-main">
-            Main Projects
+          <h2 className="display-xl text-[clamp(2.75rem,6vw,80px)] leading-[1.1] text-black max-w-md whitespace-pre-line">
+            {'Explore\nUX Portfolio.'}
           </h2>
-          <p className="text-2xl text-brand-main font-semibold">
-            &ldquo;제가 가장 자신 있게 안내할 수 있는 프로젝트를 소개합니다.&rdquo;
-          </p>
+
+          <div className="mt-8 sm:mt-10 flex items-center gap-3 max-w-md">
+            <span className="text-xs font-medium tracking-[-0.025em] text-black tabular-nums">{currentNum}</span>
+            <div className="relative flex-1 h-px bg-black/20">
+              <div className="absolute left-0 top-0 h-px bg-black" style={{ width: `${Math.max(progressRatio * 100, 12)}%` }} />
+            </div>
+            <span className="text-xs font-medium tracking-[-0.025em] text-black tabular-nums">{totalNum}</span>
+            <div className="flex items-center gap-2 ml-2">
+              <button
+                onClick={handlePrevSlide}
+                className="w-6 h-6 flex items-center justify-center text-black/40 hover:text-black transition-colors"
+                aria-label="이전"
+              >
+                <ChevronLeft size={16} />
+              </button>
+              <button
+                onClick={handleNextSlide}
+                className="w-6 h-6 flex items-center justify-center text-black hover:opacity-70 transition-opacity"
+                aria-label="다음"
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
+          </div>
         </motion.div>
 
-        {/* Projects Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-12 max-w-7xl mx-auto">
-          {displayedProjects.map((project, index) => {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const cardStyles = ['pastel-card--blue', 'pastel-card--purple', 'pastel-card--gray'];
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const cardStyle = cardStyles[index % 3];
-            
-            return (
+        {/* Featured large cards (Figma: 800x480 + colored info bar) */}
+        <div
+          className="relative select-none mb-20 sm:mb-28"
+          onMouseDown={handleDragStart}
+          onMouseMove={handleDragMove}
+          onMouseUp={handleDragEnd}
+          onMouseLeave={handleDragEnd}
+          onTouchStart={handleDragStart}
+          onTouchMove={handleDragMove}
+          onTouchEnd={handleDragEnd}
+        >
+          <AnimatePresence mode="wait">
             <motion.div
-              key={project.id}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="group cursor-pointer"
-              onClick={() => {
-                setSelectedProject(project);
-              }}
+              key={currentSlideIndex}
+              initial={{ opacity: 0, x: 24 }}
+              animate={{ opacity: 1, x: isDragging ? dragOffset : 0 }}
+              exit={{ opacity: 0, x: -24 }}
+              transition={{ duration: isDragging ? 0 : 0.35 }}
+              className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-5"
+              style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
             >
-              <div className="bg-white rounded-2xl overflow-hidden border border-line-light hover:border-brand-main/50 transition-all duration-300 hover:shadow-xl h-full flex flex-col">
-                {/* Project Image */}
-                <div className="relative w-full aspect-[16/9] overflow-hidden bg-gradient-to-br from-brand-main/5 to-brand-sub-1/5">
+              {featuredPair.map((project, index) => (
+                <motion.div
+                  key={project.id}
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.08 }}
+                  className="group"
+                  style={{ pointerEvents: isDragging ? 'none' : 'auto' }}
+                  onClick={() => handleCardClick(project)}
+                >
+                  <div className="relative w-full aspect-[800/480] overflow-hidden bg-[#4C4C4C]">
+                    {project.image && (
+                      <Image
+                        src={project.image}
+                        alt={project.title}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-700"
+                        unoptimized={project.image?.startsWith('http') || project.image?.startsWith('//')}
+                      />
+                    )}
+                    <div
+                      className="absolute inset-0 pointer-events-none"
+                      style={{
+                        background:
+                          'linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0) 51.56%, rgba(0,0,0,0.3) 100%)',
+                      }}
+                    />
+                    <div className="absolute inset-y-0 left-0 w-1/2 pointer-events-none bg-gradient-to-r from-black/30 to-transparent" />
+                    <p className="absolute left-8 bottom-6 text-lg font-medium tracking-[-0.025em] text-white">
+                      PROJECT {String(currentSlideIndex * visibleCards + index + 1).padStart(2, '0')}
+                    </p>
+                  </div>
+                  <div
+                    className="px-8 sm:px-9 py-5 min-h-[135px] flex flex-col justify-center"
+                    style={{ background: barColors[index % barColors.length] }}
+                  >
+                    <h3 className="text-white text-xl sm:text-2xl font-semibold tracking-[-0.025em] mb-2 line-clamp-1">
+                      {project.title}
+                    </h3>
+                    <p className="text-white/70 text-sm font-light leading-[130%] tracking-[-0.5px] line-clamp-2 max-w-sm">
+                      {project.description || project.subtitle}
+                    </p>
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        {/* Artwork discovery browse grid */}
+        <div className="mb-10">
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-10">
+            <h3 className="text-[clamp(2.5rem,5vw,80px)] font-normal tracking-[-0.03em] text-text-main leading-none">
+              Browse
+            </h3>
+            <p className="max-w-sm text-lg text-text-secondary leading-[160%]">
+              {t('projects.description') || '사용자 경험과 비즈니스 가치를 함께 고민한 프로젝트들을 담았습니다.'}
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-3 mb-7">
+            {[{ id: 'all', label: 'All Works' }, ...PROJECT_CATEGORIES].map((cat, i) => (
+              <span
+                key={cat.id}
+                className={`inline-flex items-center px-5 py-[13px] rounded-full border border-line-light text-base ${
+                  i === 0 ? 'bg-text-main text-white' : 'bg-transparent text-text-main'
+                }`}
+              >
+                {cat.label}
+              </span>
+            ))}
+          </div>
+          <div className="h-px w-full bg-line-light mb-6" />
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7 mb-12">
+            {allProjects.slice(0, 6).map((project) => (
+              <button
+                key={`browse-${project.id}`}
+                type="button"
+                onClick={() => handleCardClick(project)}
+                className="group text-left"
+              >
+                <div className="relative w-full aspect-[581/470] bg-[#D9D9D9] overflow-hidden mb-5">
                   {project.image && (
-                    <Image 
-                      src={project.image} 
+                    <Image
+                      src={project.image}
                       alt={project.title}
                       fill
-                      className="object-contain group-hover:scale-105 transition-transform duration-500"
-                      style={{ display: 'block', margin: 0 }}
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                      }}
+                      className="object-cover group-hover:scale-105 transition-transform duration-700"
                       unoptimized={project.image?.startsWith('http') || project.image?.startsWith('//')}
                     />
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  
-                  {/* Gallery Preview Button (아이콘 제거 요청으로 비활성화) */}
-                  
-                  {/* 카테고리 표시: 배열이면 첫 번째, 없거나 유효하지 않으면 표시하지 않음 */}
-                  {(() => {
-                    // category가 배열인 경우 첫 번째 값 사용
-                    const categoryValue = Array.isArray(project.category) 
-                      ? project.category[0] 
-                      : project.category;
-                    
-                    // 유효한 카테고리인지 확인
-                    const categoryInfo = categoryValue 
-                      ? PROJECT_CATEGORIES.find(c => c.id === categoryValue)
-                      : null;
-                    
-                    // 유효한 카테고리가 있으면 표시
-                    return categoryInfo ? (
-                      <div className="absolute bottom-4 left-4 px-3 py-1.5 bg-white/90 backdrop-blur-sm text-brand-main rounded-lg text-xs font-semibold border border-brand-main/20">
-                        {categoryInfo.label}
-                      </div>
-                    ) : null;
-                  })()}
                 </div>
-
-                {/* Project Content */}
-                <div className="px-4 pt-3 pb-4 flex-1 flex flex-col">
-                  {/* Tags */}
-                  <div className="flex flex-wrap gap-2 mb-2">
-                    {project.tags.slice(0, 3).map((tag, i) => (
-                      <span
-                        key={i}
-                        className="px-2.5 py-1 bg-brand-main/5 text-brand-main text-xs rounded-lg border border-brand-main/20 font-medium"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-
-                  {/* Title & Subtitle */}
-                  <h3 className="text-lg font-bold text-text-main mb-1 group-hover:text-brand-main transition-colors duration-300 line-clamp-1">
+                <div className="flex items-center justify-between gap-3 mb-2 text-[15px] text-text-secondary">
+                  <span className="truncate">
+                    {Array.isArray(project.category)
+                      ? PROJECT_CATEGORIES.find((c) => c.id === project.category[0])?.label
+                      : PROJECT_CATEGORIES.find((c) => c.id === project.category)?.label || 'Project'}
+                  </span>
+                  <span>{project.date}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3 mb-2">
+                  <h4 className="text-[28px] font-medium tracking-[-0.02em] text-text-main line-clamp-1">
                     {project.title}
-                  </h3>
-                  <p className="text-sm text-brand-main font-medium mb-2 line-clamp-1">
-                    {project.subtitle}
-                  </p>
-
-                  {/* Description */}
-                  <p className="text-text-secondary text-sm mb-3 line-clamp-2 flex-1 whitespace-pre-line">
-                    {project.description}
-                  </p>
-
-                  {/* Meta Info */}
-                  <div className="flex items-center gap-4 text-xs text-text-secondary pt-3 border-t border-line-light mt-auto">
-                    <span className="flex items-center gap-1.5">
-                      <Calendar size={14} className="text-brand-main" />
-                      {project.date}
-                    </span>
-                    <span className="flex items-center gap-1.5">
-                      <Users size={14} className="text-brand-main" />
-                      {project.team}
-                    </span>
-                  </div>
+                  </h4>
+                  <ArrowRight size={22} className="flex-shrink-0 text-text-main" />
                 </div>
-              </div>
-            </motion.div>
-          );
-          })}
-        </div>
+                <p className="text-[17px] text-text-secondary line-clamp-1">{project.subtitle}</p>
+              </button>
+            ))}
+          </div>
 
-        {/* Show All Button */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            className="text-center"
-          >
-          <Link href="/projects" prefetch={true}>
-            <button
-              className="px-8 py-4 bg-brand-main text-white rounded-xl font-semibold hover:opacity-90 transition-all duration-300"
-            >
-              전체 프로젝트 보기
-            </button>
-          </Link>
-          </motion.div>
+          <div className="border-t border-line-light pt-8 flex flex-col sm:flex-row items-center justify-between gap-6">
+            <p className="text-base text-text-secondary">
+              Showing {Math.min(6, allProjects.length)} of {allProjects.length}
+            </p>
+            <Link href="/projects" prefetch={true}>
+              <button className="inline-flex items-center justify-center gap-8 w-[300px] h-16 border border-text-main text-lg text-text-main hover:bg-text-main hover:text-white transition-colors">
+                {t('projects.viewAll')}
+                <span className="text-xl leading-none">+</span>
+              </button>
+            </Link>
+            <p className="text-base text-text-secondary hidden sm:block">Next up</p>
+          </div>
+        </div>
       </div>
 
       {/* Project Modal */}
@@ -417,7 +541,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-bg-dark/80 backdrop-blur-sm"
+            className="fixed inset-0 z-[1001] flex items-center justify-center p-4 bg-bg-dark/80 backdrop-blur-sm"
             onMouseDown={(e) => {
               if (e.target === e.currentTarget) {
                 setSelectedProject(null);
@@ -724,7 +848,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                           href={`${designPdf}#view=Fit`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-xl hover:opacity-90 transition-all duration-300 shadow-md"
+                          className="inline-flex items-center gap-2 px-6 py-3 bg-brand-sub-2 text-white rounded-xl hover:opacity-90 transition-all duration-300 shadow-md"
                         >
                           <FileText size={18} />
                           <span className="font-medium">화면 설계서 보기</span>
@@ -739,7 +863,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                             href={designLink.startsWith('/') ? designLink : `/${designLink}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-xl hover:opacity-90 transition-all duration-300 shadow-md"
+                            className="inline-flex items-center gap-2 px-6 py-3 bg-brand-sub-2 text-white rounded-xl hover:opacity-90 transition-all duration-300 shadow-md"
                           >
                             <FileText size={18} />
                             <span className="font-medium">화면 설계서 보기</span>
@@ -751,7 +875,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                             href={designLink}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-xl hover:opacity-90 transition-all duration-300 shadow-md"
+                            className="inline-flex items-center gap-2 px-6 py-3 bg-brand-sub-2 text-white rounded-xl hover:opacity-90 transition-all duration-300 shadow-md"
                           >
                             <FileText size={18} />
                             <span className="font-medium">화면 설계서 보기</span>
@@ -785,7 +909,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
+            className="fixed inset-0 z-[1002] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
             onMouseDown={(e) => {
               if (e.target === e.currentTarget) {
                 setShowGalleryModal(false);

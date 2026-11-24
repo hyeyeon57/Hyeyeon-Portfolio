@@ -2,19 +2,21 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Mail, Phone, MapPin, Send, CheckCircle, Linkedin, Globe, Check } from 'lucide-react';
-import { personalInfo } from '@/data/portfolio';
+import { ArrowRight, CheckCircle, Linkedin, Globe, Check } from 'lucide-react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { personalInfo, projects } from '@/data/portfolio';
 import { useContactForm } from '@/hooks/useContactForm';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ContactSectionProps {
   theme?: 'light' | 'dark';
 }
 
 export const ContactSection: React.FC<ContactSectionProps> = () => {
-  // 커스텀 훅으로 폼 로직 분리
   const { formData, isSubmitted, isSubmitting, error, handleChange, handleSubmit } = useContactForm();
+  const { t } = useLanguage();
 
-  // UI 상태만 관리
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
 
@@ -29,288 +31,248 @@ export const ContactSection: React.FC<ContactSectionProps> = () => {
     });
   };
 
-  return (
-    <section id="contact" className="py-20 relative overflow-hidden">
-      {/* 상단 그라데이션 마스크 */}
-      <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-white/0 to-transparent pointer-events-none z-0" />
-      {/* 하단 그라데이션 마스크 */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white/0 to-transparent pointer-events-none z-0" />
+  const inputClass =
+    'w-full bg-transparent border-b border-line-light py-4 text-text-main placeholder-text-disabled focus:outline-none focus:border-text-main transition-colors duration-300';
 
-      <div className="max-w-container mx-auto px-container-x relative z-10">
-        {/* Section Header */}
-        <motion.div
+  const magazineItems = projects.slice(0, 4);
+
+  return (
+    <section id="contact" className="relative w-full bg-white text-text-main">
+      {/* Magazine */}
+      <div className="max-w-container mx-auto px-5 sm:px-8 lg:px-[60px] pt-24 sm:pt-32 md:pt-40 pb-20">
+        <motion.h2
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16"
+          className="display-xl text-[clamp(2.75rem,6vw,80px)] leading-[1.1] text-black mb-12 sm:mb-16"
         >
-          <motion.span
-            initial={{ opacity: 0, scale: 0.8 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            className="inline-block px-4 py-2 bg-brand-main/10 text-brand-main rounded-full text-sm font-semibold mb-4 border border-brand-main/30"
-          >
-            연락하기
-          </motion.span>
-          <h2 className="text-4xl md:text-5xl font-light text-text-main mb-6">
-            Contact
-          </h2>
-          <p className="text-xl text-text-sub max-w-2xl mx-auto">
-            프로젝트 제안, 협업 문의, 채용 관련 연락 모두 환영합니다.
-            <br />
-            궁금한 점이나 간단한 내용 남겨주시면 최대한 빠르게 답변 드리겠습니다.
-          </p>
-        </motion.div>
+          Magazine
+        </motion.h2>
 
-        {/* Contact Form - Full width on top */}
-        <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="max-w-4xl mx-auto mb-20"
-          >
-            <div className="bg-white p-8 lg:p-10 rounded-3xl shadow minimal-lg border border-line-medium">
-              <h3 className="text-3xl font-bold text-text-main mb-2">
-                메시지 보내기
-              </h3>
-              <p className="text-text-secondary mb-8">
-                아래 양식을 작성해주시면 빠르게 연락드리겠습니다.
+        <div className="border-t border-line-light">
+          {magazineItems.map((item, index) => (
+            <motion.article
+              key={item.id}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: index * 0.05 }}
+              className="grid grid-cols-1 md:grid-cols-[100px_minmax(0,400px)_1fr] gap-6 md:gap-10 py-8 sm:py-10 border-b border-line-light items-start"
+            >
+              <p className="text-xl font-semibold text-black leading-[110%]">
+                {item.date || '2023.10.10'}
               </p>
 
-              {isSubmitted ? (
-                <motion.div
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  className="flex flex-col items-center justify-center py-20"
-                >
-                  <motion.div
-                    animate={{ scale: [1, 1.2, 1], rotate: [0, 360, 360] }}
-                    transition={{ duration: 0.6 }}
-                    className="w-20 h-20 rounded-full bg-brand-main text-white flex items-center justify-center mb-6 shadow minimal"
-                  >
-                    <CheckCircle size={40} />
-                  </motion.div>
-                  <h4 className="text-2xl font-bold text-text-main mb-2">메시지 전송 완료!</h4>
-                  <p className="text-text-secondary text-center">
-                    메시지를 성공적으로 보냈습니다.<br />
-                    빠른 시일 내에 연락드리겠습니다.
-                  </p>
-                </motion.div>
-              ) : (
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div>
-                    <label className="block text-sm font-semibold text-text-secondary mb-2">
-                      이름 *
-                    </label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      placeholder="이름"
-                      required
-                      className="w-full px-5 py-4 border-2 border-line-medium rounded-xl text-text-main placeholder-text-secondary focus:outline-none focus:ring-2 focus:ring-brand-main focus:border-transparent transition-all duration-200 hover:border-brand-main/50 bg-bg-dark"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-text-secondary mb-2">
-                      이메일 *
-                    </label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      placeholder="janghyeyeon57@gmail.com"
-                      required
-                      className="w-full px-5 py-4 border-2 border-line-medium rounded-xl text-text-main placeholder-text-secondary focus:outline-none focus:ring-2 focus:ring-brand-main focus:border-transparent transition-all duration-200 hover:border-brand-main/50 bg-bg-dark"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-text-secondary mb-2">
-                      메시지 *
-                    </label>
-                    <textarea
-                      name="message"
-                      value={formData.message}
-                      onChange={handleChange}
-                      rows={6}
-                      placeholder="어떤 연락이든 편하게 남겨주세요. 프로젝트 제안, 협업 문의, 채용 관련 문의 모두 환영합니다."
-                      required
-                      className="w-full px-5 py-4 border-2 border-line-medium rounded-xl text-text-main placeholder-text-secondary focus:outline-none focus:ring-2 focus:ring-brand-main focus:border-transparent transition-all duration-200 resize-none hover:border-brand-main/50 bg-bg-dark"
-                    />
-                  </div>
-
-                  {error && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700 text-sm"
-                    >
-                      <p className="font-semibold mb-1">⚠️ 전송 실패</p>
-                      <p>{error}</p>
-                    </motion.div>
-                  )}
-
-                  <motion.button
-                    type="submit"
-                    disabled={isSubmitting}
-                    whileHover={!isSubmitting ? { scale: 1.02 } : {}}
-                    whileTap={!isSubmitting ? { scale: 0.98 } : {}}
-                    className={`w-full px-8 py-5 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-3 ${
-                      isSubmitting
-                        ? 'bg-gray-400 cursor-not-allowed text-white'
-                        : 'bg-brand-main hover:bg-brand-main/90 text-white'
-                    }`}
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <motion.div
-                          animate={{ rotate: 360 }}
-                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                          className="w-6 h-6 border-2 border-white border-t-transparent rounded-full"
-                        />
-                        전송 중...
-                      </>
-                    ) : (
-                      <>
-                        <Send size={24} />
-                        메시지 보내기
-                      </>
-                    )}
-                  </motion.button>
-
-                  <p className="text-sm text-text-secondary text-center">
-                    * 필수 입력 항목입니다
-                  </p>
-                </form>
-              )}
-            </div>
-        </motion.div>
-
-        {/* Contact Info Cards */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="max-w-5xl mx-auto"
-        >
-          <div className="bg-gradient-to-br from-bg-light to-white rounded-3xl p-8 md:p-12 border border-line-light shadow-sm">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {/* Email */}
-              <motion.a
-                href={`mailto:${personalInfo.email}`}
-                whileHover={{ y: -4 }}
-                className="group cursor-pointer"
-              >
-                <div className="flex flex-col items-center text-center space-y-3">
-                  <div className="w-14 h-14 rounded-2xl bg-brand-main/10 flex items-center justify-center group-hover:bg-brand-main transition-all duration-300">
-                    <Mail className="w-6 h-6 text-brand-main group-hover:text-white transition-colors duration-300" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-xs text-text-secondary mb-1 font-medium uppercase tracking-wider">Email</p>
-                    <p className="text-sm font-medium text-text-main group-hover:text-brand-main transition-colors">
-                      {personalInfo.email}
-                    </p>
-                  </div>
-                </div>
-              </motion.a>
-
-              {/* Phone */}
-              <motion.div
-                whileHover={{ y: -4 }}
-                className="group cursor-pointer"
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleCopy(personalInfo.phone, 'phone');
-                }}
-              >
-                <div className="flex flex-col items-center text-center space-y-3">
-                  <div className="w-14 h-14 rounded-2xl bg-brand-main/10 flex items-center justify-center group-hover:bg-brand-main transition-all duration-300">
-                    {isMounted && copiedField === 'phone' ? (
-                      <Check className="w-6 h-6 text-white" />
-                    ) : (
-                      <Phone className="w-6 h-6 text-brand-main group-hover:text-white transition-colors duration-300" />
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-xs text-text-secondary mb-1 font-medium uppercase tracking-wider">Phone</p>
-                    <p className="text-sm font-medium text-text-main group-hover:text-brand-main transition-colors">
-                      {personalInfo.phone}
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
-
-              {/* Location */}
-              <motion.a
-                href={`https://map.naver.com/v5/search/${encodeURIComponent(personalInfo.location)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                whileHover={{ y: -4 }}
-                className="group cursor-pointer"
-              >
-                <div className="flex flex-col items-center text-center space-y-3">
-                  <div className="w-14 h-14 rounded-2xl bg-brand-main/10 flex items-center justify-center group-hover:bg-brand-main transition-all duration-300">
-                    <MapPin className="w-6 h-6 text-brand-main group-hover:text-white transition-colors duration-300" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-text-secondary mb-1 font-medium uppercase tracking-wider">Location</p>
-                    <p className="text-sm font-medium text-text-main group-hover:text-brand-main transition-colors">
-                      {personalInfo.location}
-                    </p>
-                  </div>
-                </div>
-              </motion.a>
-            </div>
-
-            {/* Social Links */}
-            <div className="mt-10 pt-8 border-t border-line-light">
-              <div className="flex justify-center items-center gap-4">
-                {personalInfo.social?.linkedin && (
-                  <motion.a
-                    href={personalInfo.social.linkedin}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center w-12 h-12 rounded-xl bg-white border border-line-medium hover:border-brand-main transition-all duration-300 shadow-sm group"
-                    whileHover={{ scale: 1.1, y: -2 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <Linkedin className="w-4 h-4 text-text-secondary group-hover:text-brand-main transition-colors duration-300" />
-                  </motion.a>
-                )}
-                {personalInfo.social?.notion && (
-                  <motion.a
-                    href={personalInfo.social.notion}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center w-12 h-12 rounded-xl bg-white border border-line-medium hover:border-brand-main transition-all duration-300 shadow-sm group"
-                    whileHover={{ scale: 1.1, y: -2 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <Globe className="w-4 h-4 text-text-secondary group-hover:text-brand-main transition-colors duration-300" />
-                  </motion.a>
-                )}
-                {personalInfo.social?.brunch && (
-                  <motion.a
-                    href={personalInfo.social.brunch}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center w-12 h-12 rounded-xl bg-white border border-line-medium hover:border-brand-main transition-all duration-300 shadow-sm group"
-                    whileHover={{ scale: 1.1, y: -2 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <span className="text-lg font-bold italic text-text-secondary group-hover:text-brand-main transition-colors duration-300">b</span>
-                  </motion.a>
+              <div className="relative w-full aspect-[400/280] bg-[#D9D9D9] overflow-hidden">
+                {item.image && (
+                  <Image
+                    src={item.image}
+                    alt={item.title}
+                    fill
+                    className="object-cover"
+                    unoptimized={item.image?.startsWith('http') || item.image?.startsWith('//')}
+                  />
                 )}
               </div>
-            </div>
-          </div>
+
+              <div className="flex flex-col min-h-[200px]">
+                <h3 className="text-2xl font-medium tracking-[-0.025em] text-text-main mb-3">
+                  {item.title}
+                </h3>
+                <p className="text-lg text-text-secondary leading-[26px] tracking-[-0.025em] line-clamp-3 mb-auto">
+                  {item.description}
+                </p>
+                <Link
+                  href="/projects"
+                  className="link-arrow mt-8 text-base text-text-secondary hover:text-text-main"
+                >
+                  자세히보기
+                  <ArrowRight size={16} />
+                </Link>
+              </div>
+            </motion.article>
+          ))}
+        </div>
+      </div>
+
+      {/* Contact form */}
+      <div className="max-w-container mx-auto px-5 sm:px-8 lg:px-[60px] pb-24 sm:pb-32 md:pb-40">
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+          className="mb-16 sm:mb-20"
+        >
+          <p className="text-sm tracking-[0.2em] uppercase text-text-secondary mb-5">
+            {t('contact.label')}
+          </p>
+          <h2 className="display-xl text-5xl sm:text-7xl md:text-8xl lg:text-[110px] max-w-4xl">
+            Let&rsquo;s work together
+          </h2>
         </motion.div>
+
+        <div className="grid lg:grid-cols-[1fr_1.1fr] gap-16 lg:gap-24">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="space-y-0"
+          >
+            <p className="text-text-sub leading-relaxed mb-10 max-w-md">
+              {t('contact.description')}
+            </p>
+
+            {[
+              {
+                label: 'Email',
+                value: personalInfo.email,
+                href: `mailto:${personalInfo.email}`,
+              },
+              {
+                label: 'Phone',
+                value: personalInfo.phone,
+                copy: true,
+              },
+              {
+                label: 'Location',
+                value: personalInfo.location,
+              },
+            ].map((row) => (
+              <div key={row.label} className="border-b border-line-light py-5">
+                <p className="text-xs tracking-[0.15em] uppercase text-text-disabled mb-2">
+                  {row.label}
+                </p>
+                {row.href ? (
+                  <a
+                    href={row.href}
+                    className="inline-flex items-center gap-2 text-lg text-text-main hover:opacity-70 transition-opacity"
+                  >
+                    {row.value}
+                    <ArrowRight size={16} />
+                  </a>
+                ) : row.copy ? (
+                  <button
+                    type="button"
+                    onClick={() => handleCopy(row.value, row.label)}
+                    className="inline-flex items-center gap-2 text-lg text-text-main hover:opacity-70 transition-opacity"
+                  >
+                    {row.value}
+                    {isMounted && copiedField === row.label ? (
+                      <Check size={16} className="text-green-600" />
+                    ) : (
+                      <span className="text-xs text-text-disabled">복사</span>
+                    )}
+                  </button>
+                ) : (
+                  <p className="text-lg text-text-main">{row.value}</p>
+                )}
+              </div>
+            ))}
+
+            <div className="flex items-center gap-3 pt-8">
+              {personalInfo.social.linkedin && (
+                <a
+                  href={personalInfo.social.linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-11 h-11 rounded-full border border-line-light flex items-center justify-center hover:bg-text-main hover:text-white hover:border-text-main transition-colors"
+                >
+                  <Linkedin size={16} />
+                </a>
+              )}
+              {personalInfo.social.notion && personalInfo.social.notion !== '#' && (
+                <a
+                  href={personalInfo.social.notion}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-11 h-11 rounded-full border border-line-light flex items-center justify-center hover:bg-text-main hover:text-white hover:border-text-main transition-colors"
+                >
+                  <Globe size={16} />
+                </a>
+              )}
+              {personalInfo.social.brunch && (
+                <a
+                  href={personalInfo.social.brunch}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-11 h-11 rounded-full border border-line-light flex items-center justify-center text-sm font-medium hover:bg-text-main hover:text-white hover:border-text-main transition-colors"
+                >
+                  b
+                </a>
+              )}
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            {isSubmitted ? (
+              <div className="flex flex-col items-start gap-4 py-10">
+                <CheckCircle className="w-10 h-10 text-text-main" />
+                <p className="text-2xl font-medium">메시지가 전송되었습니다.</p>
+                <p className="text-text-secondary">빠르게 답변 드리겠습니다.</p>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-8">
+                <div>
+                  <label className="block text-xs tracking-[0.12em] uppercase text-text-disabled mb-1">
+                    이름 *
+                  </label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
+                    placeholder="이름"
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs tracking-[0.12em] uppercase text-text-disabled mb-1">
+                    이메일 *
+                  </label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                    placeholder="janghyeyeon57@gmail.com"
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs tracking-[0.12em] uppercase text-text-disabled mb-1">
+                    메시지 *
+                  </label>
+                  <textarea
+                    name="message"
+                    value={formData.message}
+                    onChange={handleChange}
+                    required
+                    rows={5}
+                    placeholder="프로젝트 제안, 협업 문의, 채용 관련 연락 모두 환영합니다.&#10;궁금한 점이나 간단한 내용 남겨주시면 최대한 빠르게 답변 드리겠습니다."
+                    className={`${inputClass} resize-none`}
+                  />
+                </div>
+                {error && <p className="text-sm text-red-600">{error}</p>}
+                <p className="text-xs text-text-disabled">* 필수 입력 항목입니다</p>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="btn-pill btn-pill-outline-dark disabled:opacity-50"
+                >
+                  {isSubmitting ? '전송 중...' : '메시지 보내기'}
+                  <ArrowRight size={18} />
+                </button>
+              </form>
+            )}
+          </motion.div>
+        </div>
       </div>
     </section>
   );
