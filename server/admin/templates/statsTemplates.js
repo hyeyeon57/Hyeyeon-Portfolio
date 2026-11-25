@@ -1,30 +1,30 @@
 export const statsCardsTemplate = (stats) => `
   <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-    <div class="p-4 rounded-xl border shadow-sm bg-white flex items-center justify-between">
+    <div class="p-4 rounded-xl border border-[#E2E8F0] shadow-sm bg-white flex items-center justify-between">
       <div>
         <p class="text-sm text-gray-500">오늘 방문자</p>
-        <p class="text-2xl font-semibold text-gray-900 mt-1">${stats.today || 0}</p>
+        <p class="text-2xl font-semibold mt-1 stat-num-dark">${stats.today || 0}</p>
       </div>
-      <div class="p-3 bg-blue-50 text-blue-600 rounded-lg">
+      <div class="p-3 rounded-lg stat-icon-today">
         <i data-lucide="sun" class="w-6 h-6"></i>
       </div>
     </div>
-    <div class="p-4 rounded-xl border shadow-sm bg-white flex items-center justify-between">
+    <div class="p-4 rounded-xl border border-[#E2E8F0] shadow-sm bg-white flex items-center justify-between">
       <div>
         <p class="text-sm text-gray-500">이번 주 방문자</p>
-        <p class="text-2xl font-semibold text-gray-900 mt-1">${stats.thisWeek || 0}</p>
+        <p class="text-2xl font-semibold mt-1 stat-num-dark">${stats.thisWeek || 0}</p>
       </div>
-      <div class="p-3 rounded-lg" style="background-color: #E8E4FF;">
-        <i data-lucide="calendar" class="w-6 h-6" style="color: #7A68F6;"></i>
+      <div class="p-3 rounded-lg stat-icon-week">
+        <i data-lucide="calendar" class="w-6 h-6"></i>
       </div>
     </div>
-    <div class="p-4 rounded-xl border shadow-sm bg-white flex items-center justify-between">
+    <div class="p-4 rounded-xl border border-[#E2E8F0] shadow-sm bg-white flex items-center justify-between">
       <div>
         <p class="text-sm text-gray-500">전체 방문자</p>
-        <p class="text-2xl font-semibold text-gray-900 mt-1">${stats.total || 0}</p>
+        <p class="text-2xl font-semibold mt-1 stat-num-dark">${stats.total || 0}</p>
       </div>
-      <div class="p-3 rounded-lg" style="background-color: #D1FAE5;">
-        <i data-lucide="trending-up" class="w-6 h-6" style="color: #10b981;"></i>
+      <div class="p-3 rounded-lg stat-icon-total">
+        <i data-lucide="trending-up" class="w-6 h-6"></i>
       </div>
     </div>
   </div>
@@ -58,7 +58,7 @@ export const todayChartTemplate = ({ hourlyData, total, maxValue, chartHeight, b
           return `
             <g>
               <rect x="${x}" y="${y}" width="${barWidth}" height="${barHeight}" 
-                fill="${isCurrentHour ? '#2563eb' : '#3b82f6'}" rx="3" 
+                fill="${isCurrentHour ? '#1B365D' : '#4A6FA5'}" rx="3" 
                 class="hover:opacity-80 transition-opacity cursor-pointer bar-today"
                 data-hour="${hour}"
                 data-count="${count}" />
@@ -92,7 +92,7 @@ export const weeklyChartTemplate = ({ weeklyData, total, maxValue, chartHeight, 
         return `
           <g>
             <rect x="${x}" y="${y}" width="${barWidth}" height="${barHeight}" 
-              fill="${isCurrentDay ? '#7A68F6' : '#8b5cf6'}" rx="4"
+              fill="${isCurrentDay ? '#1B365D' : '#5C7FA8'}" rx="4"
               class="hover:opacity-80 transition-opacity bar-weekly"
               data-label="${dayLabels[idx]}"
               data-count="${count}" />
@@ -157,7 +157,7 @@ export const monthlyChartTemplate = ({ safeData, safeLabels, currentMonthlyYear,
             return `
               <g>
                 <rect x="${x}" y="${y}" width="${barWidth}" height="${barHeight}" 
-                  fill="${isToday ? '#10b981' : '#34d399'}" rx="3"
+                  fill="${isToday ? '#1B365D' : '#6E8FB5'}" rx="3"
                   class="hover:opacity-80 transition-opacity cursor-pointer bar-monthly"
                   data-day="${safeLabels[idx]}"
                   data-count="${count}" />

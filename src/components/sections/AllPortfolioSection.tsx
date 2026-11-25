@@ -6,6 +6,21 @@ import Image from 'next/image';
 import { ArrowUpRight, Bookmark, ChevronDown, LayoutGrid, List } from 'lucide-react';
 import { PROJECT_CATEGORIES } from '@/constants/categories';
 import { useProjects } from '@/hooks/useProjects';
+import { useLanguage } from '@/contexts/LanguageContext';
+
+const CATEGORY_EN_LABELS: Record<string, string> = {
+  all: 'All Works',
+  '신규': 'New',
+  '리뉴얼': 'Renewal',
+  '제안서': 'Proposal',
+  '화면설계서': 'Storyboard',
+  '기타': 'Etc',
+  new: 'New',
+  renewal: 'Renewal',
+  proposal: 'Proposal',
+  storyboard: 'Storyboard',
+  etc: 'Etc',
+};
 
 type SortOption = 'latest' | 'oldest' | 'title';
 type ViewMode = 'grid' | 'list';
@@ -33,11 +48,16 @@ function parseDateValue(dateStr?: string): number {
 }
 
 export const AllPortfolioSection: React.FC = () => {
+  const { language } = useLanguage();
+  const isEn = language === 'en';
+  const getCatLabel = (cat: { id: string; label: string }) =>
+    isEn ? CATEGORY_EN_LABELS[cat.id] || CATEGORY_EN_LABELS[cat.label] || cat.label : cat.label;
   const { projects } = useProjects();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [sortBy, setSortBy] = useState<SortOption>('latest');
   const [selectedYear, setSelectedYear] = useState<string>('all');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [visibleCount, setVisibleCount] = useState<number>(6);
   const [openDropdown, setOpenDropdown] = useState<'sort' | 'year' | null>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
 
@@ -76,6 +96,11 @@ export const AllPortfolioSection: React.FC = () => {
     }
 
     list.sort((a, b) => {
+      // 관리자에서 고정(북마크)한 프로젝트를 항상 상단에 우선 노출
+      const aPinned = a.featured === true || String(a.featured) === 'true' ? 1 : 0;
+      const bPinned = b.featured === true || String(b.featured) === 'true' ? 1 : 0;
+      if (aPinned !== bPinned) return bPinned - aPinned;
+
       if (sortBy === 'latest') {
         const diff = parseDateValue(b.date) - parseDateValue(a.date);
         if (diff !== 0) return diff;
@@ -94,10 +119,11 @@ export const AllPortfolioSection: React.FC = () => {
     return list;
   }, [projects, selectedCategory, selectedYear, sortBy]);
 
-  const visibleProjects = sortedProjects.slice(0, 6);
+  const visibleProjects = sortedProjects.slice(0, visibleCount);
+  const hasMore = visibleCount < sortedProjects.length;
 
   return (
-    <section id="all-portfolio" className="relative w-full bg-white text-[#111111]">
+    <section id="all-portfolio" className="relative w-full bg-white text-[#111111] scroll-mt-20">
       <div className="max-w-container mx-auto px-5 sm:px-8 lg:px-[60px] py-24 sm:py-32">
         {/* Heading */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-12">
@@ -105,7 +131,9 @@ export const AllPortfolioSection: React.FC = () => {
             All Portfolio.
           </h2>
           <p className="max-w-[432px] text-lg text-[#767676] leading-[160%]">
-            신규 서비스 구축부터 앱·웹 사용성 개선까지 사용자 경험과 비즈니스 가치를 함께 고민한 프로젝트들을 담았습니다.
+            {isEn
+              ? 'From zero-to-one service launches to web & app UX renewals—projects balancing user experience and business value.'
+              : '신규 서비스 구축부터 앱·웹 사용성 개선까지 사용자 경험과 비즈니스 가치를 함께 고민한 프로젝트들을 담았습니다.'}
           </p>
         </div>
 
@@ -124,7 +152,7 @@ export const AllPortfolioSection: React.FC = () => {
                     : 'bg-transparent text-[#111111] hover:border-[#111111]'
                 }`}
               >
-                {cat.label}
+                {getCatLabel(cat)}
               </button>
             );
           })}
@@ -272,14 +300,14 @@ export const AllPortfolioSection: React.FC = () => {
             조건에 맞는 프로젝트가 없습니다.
           </div>
         ) : viewMode === 'grid' ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-7 gap-y-16 mb-16">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 3xl:grid-cols-4 gap-x-7 gap-y-16 mb-16">
             {visibleProjects.map((project) => (
               <Link
                 key={`all-${project.id}`}
-                href="/projects"
+                href={`/projects/${project.id}`}
                 className="group block text-left"
               >
-                <div className="relative w-full aspect-[581/470] bg-[#D9D9D9] overflow-hidden mb-5">
+                <div className="relative w-full aspect-video bg-[#D9D9D9] overflow-hidden mb-5">
                   {project.image && (
                     <Image
                       src={project.image}
@@ -330,10 +358,10 @@ export const AllPortfolioSection: React.FC = () => {
             {visibleProjects.map((project) => (
               <Link
                 key={`list-${project.id}`}
-                href="/projects"
+                href={`/projects/${project.id}`}
                 className="group grid grid-cols-1 md:grid-cols-[240px_1fr_auto] gap-6 items-center py-6 border-b border-[#DBDBDB] hover:bg-[#FAFAFA] transition-colors"
               >
-                <div className="relative w-full aspect-[581/470] bg-[#D9D9D9] overflow-hidden">
+                <div className="relative w-full aspect-video bg-[#D9D9D9] overflow-hidden">
                   {project.image && (
                     <Image
                       src={project.image}
@@ -383,15 +411,33 @@ export const AllPortfolioSection: React.FC = () => {
           <p className="text-base text-[#767676]">
             Showing {visibleProjects.length} of {sortedProjects.length}
           </p>
-          <Link href="/projects" prefetch={true} className="w-full sm:w-auto">
+          {hasMore ? (
             <button
               type="button"
-              className="inline-flex items-center justify-center gap-12 w-full sm:w-[300px] h-14 sm:h-16 border border-[#111111] text-base sm:text-lg text-[#111111] hover:bg-[#111111] hover:text-white transition-colors"
+              onClick={() => setVisibleCount((prev) => prev + 6)}
+              className="inline-flex items-center justify-center gap-2.5 w-full sm:w-[300px] h-14 sm:h-16 border border-[#111111] text-base sm:text-lg text-[#111111] hover:!bg-[#111111] hover:!text-white transition-colors"
             >
-              Load more
+              <span>Load more</span>
               <span className="text-xl leading-none">+</span>
             </button>
-          </Link>
+          ) : sortedProjects.length > 6 ? (
+            <button
+              type="button"
+              onClick={() => {
+                setVisibleCount(6);
+                setTimeout(() => {
+                  document
+                    .getElementById('all-portfolio')
+                    ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 50);
+              }}
+              className="inline-flex items-center justify-center gap-2.5 w-full sm:w-[300px] h-14 sm:h-16 border border-[#111111] text-base sm:text-lg text-[#111111] hover:!bg-[#111111] hover:!text-white transition-colors"
+            >
+              <span>Show less</span>
+            </button>
+          ) : (
+            <span />
+          )}
           <p className="text-base text-[#767676] hidden sm:block">Next up</p>
         </div>
       </div>

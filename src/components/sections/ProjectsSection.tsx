@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, ExternalLink, Calendar, Users, Award, FileText, ChevronLeft, ChevronRight, Eye, ArrowDownRight, Pause, Play } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { PROJECT_CATEGORIES } from '@/constants/categories';
 import { useProjects } from '@/hooks/useProjects';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -17,6 +18,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
   // 커스텀 훅으로 데이터 페칭 로직 분리
   const { projects, loading, error } = useProjects();
   const { t } = useLanguage();
+  const router = useRouter();
 
   // UI 상태만 관리
   const [selectedProject, setSelectedProject] = useState<typeof projects[0] | null>(null);
@@ -227,11 +229,13 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
     setHasDragged(false);
   };
 
-  // 카드 클릭 핸들러 (드래그가 아닐 때만 모달 열기)
+  // 카드 클릭 핸들러 (드래그가 아닐 때만 개별 프로젝트 상세 페이지로 이동)
   const handleCardClick = (project: typeof projects[0]) => {
     // 드래그가 있었으면 클릭으로 간주하지 않음
-    if (!hasDragged) {
-      setSelectedProject(project);
+    if (hasDragged) return;
+    const projectId = project.id || (project as { _id?: string })._id;
+    if (projectId) {
+      router.push(`/projects/${encodeURIComponent(String(projectId))}`);
     }
   };
 
@@ -427,7 +431,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
       </div>
 
       {/* Featured large cards: 2 cards flush (gap-0) + 3rd dark peek card on right edge */}
-      <div className="max-w-container mx-auto pl-5 sm:pl-8 lg:pl-[60px] pb-16 sm:pb-24">
+      <div className="max-w-container mx-auto px-5 sm:px-8 md:pr-0 lg:pl-[60px] pb-16 sm:pb-24">
         <div
           className="relative select-none"
           onMouseDown={handleDragStart}
@@ -455,11 +459,11 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.08 }}
-                  className="group w-full md:w-[44%] flex-shrink-0"
-                  style={{ pointerEvents: isDragging ? 'none' : 'auto' }}
+                  className="group w-full md:w-[44%] flex-shrink-0 cursor-pointer"
+                  style={{ pointerEvents: hasDragged ? 'none' : 'auto' }}
                   onClick={() => handleCardClick(project)}
                 >
-                  <div className="relative w-full aspect-[800/480] overflow-hidden bg-[#4C4C4C]">
+                  <div className="relative w-full aspect-video overflow-hidden bg-[#4C4C4C]">
                     {project.image && (
                       <Image
                         src={project.image}
@@ -496,20 +500,39 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = () => {
                 </motion.div>
               ))}
 
-              {/* 우측 3번째 다크 피크 카드 (이미지 영역 높이에만 맞춤, 하단 바 영역은 흰 배경 유지) */}
-              <div
-                onClick={() =>
-                  setCurrentSlideIndex((prev) =>
-                    allProjects.length ? (prev + 1) % allProjects.length : 0
-                  )
-                }
-                className="hidden md:block w-[44%] flex-shrink-0 self-start ml-1.5 aspect-[800/480] cursor-pointer overflow-hidden relative"
-                style={{
-                  background:
-                    'linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0) 51.56%, rgba(0,0,0,0.3) 100%), rgba(0,0,0,0.84)',
-                }}
-                title="다음 프로젝트 보기"
-              />
+              {/* 우측 3번째 피크 카드 (여백 없이 밀착 + 실제 3번째 프로젝트 이미지 위에 반투명 다크 레이어) */}
+              {(() => {
+                const peekProject = featuredTriplet[2] || allProjects[0];
+                return (
+                  <div
+                    onClick={() =>
+                      setCurrentSlideIndex((prev) =>
+                        allProjects.length ? (prev + 1) % allProjects.length : 0
+                      )
+                    }
+                    className="hidden md:block w-[44%] flex-shrink-0 self-start aspect-video cursor-pointer overflow-hidden relative bg-[#111111] group"
+                    title="다음 프로젝트 보기"
+                  >
+                    {peekProject?.image && (
+                      <Image
+                        src={peekProject.image}
+                        alt={peekProject.title || '다음 프로젝트'}
+                        fill
+                        className="object-cover object-center group-hover:scale-105 transition-transform duration-700"
+                        unoptimized={
+                          peekProject.image.startsWith('http') ||
+                          peekProject.image.startsWith('//') ||
+                          peekProject.image.endsWith('.svg')
+                        }
+                      />
+                    )}
+                    <div
+                      aria-hidden
+                      className="absolute inset-0 bg-black/65 group-hover:bg-black/50 transition-colors duration-300"
+                    />
+                  </div>
+                );
+              })()}
             </motion.div>
           </AnimatePresence>
         </div>

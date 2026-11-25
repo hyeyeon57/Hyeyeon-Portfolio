@@ -1,5 +1,5 @@
 /* Pretendard 폰트는 next/font/local로 로드. Gelasio(세리프 워드마크)는 Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Gelasio:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500;600&family=Gelasio:wght@400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;

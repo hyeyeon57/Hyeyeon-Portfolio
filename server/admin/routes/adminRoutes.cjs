@@ -7,6 +7,9 @@ const { ADMIN_DIR } = require('../../utils/pathHelpers.cjs');
 const router = express.Router();
 
 const sendHtml = (res, filePath, errorMessage) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
   res.sendFile(filePath, (err) => {
     if (err) {
       console.error('[adminRoutes] sendFile error', { filePath, errorMessage, err });
@@ -44,6 +47,9 @@ router.get('/login', (req, res) => {
     console.error('[adminRoutes] login.html not found', { loginPath });
     return res.status(500).send('로그인 페이지를 불러올 수 없습니다.');
   }
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
   return res.sendFile(loginPath);
 });
 

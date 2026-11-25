@@ -3,57 +3,107 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>관리자 로그인</title>
+  <title>Jang hyeyeon · 관리자 로그인</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Gelasio:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/admin.css">
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js" defer></script>
+  <style>
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif !important;
+      background: #F2F5F9 !important;
+      min-height: 100vh !important;
+    }
+    .login-card {
+      background: #FFFFFF !important;
+      border-radius: 12px !important;
+      border: 1px solid #E2E8F0 !important;
+      padding: 40px 36px !important;
+      box-shadow: 0 12px 32px rgba(27, 54, 93, 0.08) !important;
+    }
+    .login-input {
+      width: 100%;
+      padding: 12px 16px !important;
+      border: 1px solid #CBD5E1 !important;
+      border-radius: 8px !important;
+      background: #FFFFFF !important;
+      color: #1E293B !important;
+      font-size: 15px !important;
+      transition: border-color 0.2s ease !important;
+    }
+    .login-input:focus {
+      border-color: #1B365D !important;
+      outline: none !important;
+      box-shadow: 0 0 0 2px rgba(27, 54, 93, 0.12) !important;
+    }
+    /* 브라우저 자동완성(Chrome/Edge) 하늘색·보라빛 배경 제거 → 흰색 유지 */
+    .login-input:-webkit-autofill,
+    .login-input:-webkit-autofill:hover,
+    .login-input:-webkit-autofill:focus,
+    .login-input:-webkit-autofill:active {
+      -webkit-box-shadow: 0 0 0 1000px #FFFFFF inset !important;
+      box-shadow: 0 0 0 1000px #FFFFFF inset !important;
+      -webkit-text-fill-color: #1E293B !important;
+      caret-color: #1E293B !important;
+      transition: background-color 9999s ease-in-out 0s;
+    }
+    /* 비밀번호 보기/숨기기 아이콘: 남색 고정 */
+    .pw-toggle-btn {
+      color: #1B365D !important;
+    }
+    .pw-toggle-btn:hover,
+    .pw-toggle-btn:focus-visible {
+      color: #142A4A !important;
+    }
+    .pw-toggle-btn svg {
+      color: inherit !important;
+      stroke: currentColor !important;
+    }
+  </style>
 </head>
-<body class="bg-gray-50 min-h-screen flex items-center justify-center">
+<body class="min-h-screen flex items-center justify-center">
   <div class="max-w-md w-full mx-4">
-    <!-- 로그인 카드 -->
-    <div class="bg-white rounded-2xl shadow-xl p-8">
+    <!-- 로그인 카드 (프론트엔드 에디토리얼 톤) -->
+    <div class="login-card">
       <div class="text-center mb-8">
-        <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style="background-color: #E8E4FF;">
-          <i data-lucide="lock" class="w-8 h-8" style="color: #7A68F6;"></i>
-        </div>
-        <h1 class="text-3xl font-bold text-gray-900 mb-2">관리자 로그인</h1>
-        <p class="text-gray-500">포트폴리오 관리 시스템</p>
+        <p style="font-size: 11px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: #1B365D; margin-bottom: 8px;">BACK OFFICE</p>
+        <h1 style="font-family: 'Gelasio', Georgia, serif; font-size: 32px; color: #111111; margin-bottom: 6px;">Jang hyeyeon</h1>
+        <p style="font-size: 14px; color: #767676;">포트폴리오 관리자 로그인</p>
       </div>
 
-      <form id="loginForm" class="space-y-6" method="post" action="/admin/login">
+      <form id="loginForm" class="space-y-5" method="post" action="/admin/login">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">아이디</label>
+          <label class="block text-xs font-semibold mb-1.5" style="color: #333333;">아이디</label>
           <input 
             type="text" 
             id="username" 
             name="username" 
             required 
-            class="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none transition focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+            class="login-input"
             placeholder="아이디를 입력하세요"
             autocomplete="username"
-            style="background-color: #E8E4FF;"
           />
         </div>
         
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">비밀번호</label>
+          <label class="block text-xs font-semibold mb-1.5" style="color: #333333;">비밀번호</label>
           <div class="relative">
             <input 
               type="password" 
               id="password" 
               name="password" 
               required 
-              class="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none transition focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+              class="login-input"
               placeholder="비밀번호를 입력하세요"
               autocomplete="current-password"
-              style="background-color: #E8E4FF;"
             />
             <button 
               type="button" 
               onclick="togglePassword()" 
-              class="absolute right-3 top-1/2 -translate-y-1/2 transition"
-              style="color: #7A68F6;"
-              onmouseover="this.style.color='#6B5AE5'"
-              onmouseout="this.style.color='#7A68F6'"
+              class="pw-toggle-btn absolute right-3 top-1/2 -translate-y-1/2 transition"
+              style="color: #1B365D;"
+              aria-label="비밀번호 보기/숨기기"
             >
               <i data-lucide="eye" id="eyeIcon" class="w-5 h-5"></i>
             </button>
@@ -67,18 +117,18 @@
         <button 
           type="submit" 
           id="submitBtn"
-          class="w-full text-white py-3 rounded-lg transition font-medium flex items-center justify-center gap-2"
-          style="background-color: #7A68F6;"
-          onmouseover="this.style.backgroundColor='#6B5AE5'"
-          onmouseout="this.style.backgroundColor='#7A68F6'"
+          class="w-full text-white py-3.5 rounded-lg transition font-semibold flex items-center justify-center gap-2"
+          style="background-color: #1B365D;"
+          onmouseover="this.style.backgroundColor='#132846'"
+          onmouseout="this.style.backgroundColor='#1B365D'"
         >
-          <i data-lucide="log-in" class="w-5 h-5"></i>
+          <i data-lucide="log-in" class="w-4 h-4"></i>
           로그인
         </button>
       </form>
 
       <div class="mt-6 text-center">
-        <a href="/" class="text-sm text-gray-500 transition-colors flex items-center justify-center gap-2" onmouseover="this.style.color='#7A68F6'" onmouseout="this.style.color=''">
+        <a href="http://localhost:3000" class="text-sm text-[#767676] transition-colors flex items-center justify-center gap-2 hover:text-[#111111]">
           <i data-lucide="arrow-left" class="w-4 h-4"></i>
           포트폴리오로 돌아가기
         </a>
@@ -114,14 +164,12 @@
     // 비밀번호 보기/숨기기
     function togglePassword() {
       const passwordInput = document.getElementById('password');
-      const eyeIcon = document.getElementById('eyeIcon');
-      
-      if (passwordInput.type === 'password') {
-        passwordInput.type = 'text';
-        eyeIcon.setAttribute('data-lucide', 'eye-off');
-      } else {
-        passwordInput.type = 'password';
-        eyeIcon.setAttribute('data-lucide', 'eye');
+      const toggleBtn = document.querySelector('.pw-toggle-btn');
+      const showing = passwordInput.type === 'password';
+      passwordInput.type = showing ? 'text' : 'password';
+      // lucide가 <i>를 <svg>로 바꾸므로, 매번 버튼 내부를 새로 그려서 아이콘을 갱신
+      if (toggleBtn) {
+        toggleBtn.innerHTML = `<i data-lucide="${showing ? 'eye-off' : 'eye'}" id="eyeIcon" class="w-5 h-5"></i>`;
       }
       ensureLucide();
     }

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -9,15 +9,28 @@ import { personalInfo } from '@/data/portfolio';
 
 export const Footer: React.FC = () => {
   const [isAtTop, setIsAtTop] = useState(true);
+  const [bottomOffset, setBottomOffset] = useState(32);
+  const footerRef = useRef<HTMLElement | null>(null);
   const pathname = usePathname();
   const [policyModal, setPolicyModal] = useState<null | 'privacy' | 'cookie'>(null);
 
   useEffect(() => {
-    const handleScroll = () => setIsAtTop(window.scrollY < 100);
-    window.addEventListener('scroll', handleScroll);
+    const handleScroll = () => {
+      setIsAtTop(window.scrollY < 100);
+      if (footerRef.current) {
+        const footerTop = footerRef.current.getBoundingClientRect().top;
+        const overlap = Math.max(0, window.innerHeight - footerTop);
+        setBottomOffset(32 + overlap);
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', handleScroll);
     handleScroll();
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleScroll);
+    };
+  }, [pathname]);
 
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
   const scrollToBottom = () =>
@@ -100,7 +113,7 @@ export const Footer: React.FC = () => {
   }
 
   return (
-    <footer className="relative bg-[#050505] text-white">
+    <footer ref={footerRef} className="relative bg-[#050505] text-white">
       <div className="max-w-container mx-auto px-5 sm:px-8 lg:px-[60px] pt-12 sm:pt-14 pb-10">
         {/* top columns */}
         <div className="flex flex-col lg:flex-row lg:items-start gap-10 lg:gap-[120px] xl:gap-[205px] pb-10">
@@ -140,35 +153,39 @@ export const Footer: React.FC = () => {
 
           <div>
             <p className="text-[15px] font-bold tracking-[-0.02em] text-white mb-4">Admin</p>
-            <div className="flex flex-wrap gap-5 text-base text-[#CCCCCC]">
-              <a
-                href="/admin/viewer"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline hover:text-white transition-colors"
-              >
-                Admin Viewer
-              </a>
-              <a
-                href="/admin/login"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline hover:text-white transition-colors"
-              >
-                Admin Login
-              </a>
-              <button
-                onClick={() => setPolicyModal('privacy')}
-                className="hover:text-white transition-colors"
-              >
-                Privacy Policy
-              </button>
-              <button
-                onClick={() => setPolicyModal('cookie')}
-                className="hover:text-white transition-colors"
-              >
-                Cookie Policy
-              </button>
+            <div className="space-y-2.5 text-base text-[#CCCCCC]">
+              <div className="flex flex-wrap gap-5">
+                <a
+                  href="/admin/viewer"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline hover:text-white transition-colors"
+                >
+                  Admin Viewer
+                </a>
+                <a
+                  href="/admin/login"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline hover:text-white transition-colors"
+                >
+                  Admin Login
+                </a>
+              </div>
+              <div className="flex flex-wrap gap-5">
+                <button
+                  onClick={() => setPolicyModal('privacy')}
+                  className="hover:text-white transition-colors"
+                >
+                  Privacy Policy
+                </button>
+                <button
+                  onClick={() => setPolicyModal('cookie')}
+                  className="hover:text-white transition-colors"
+                >
+                  Cookie Policy
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -199,7 +216,8 @@ export const Footer: React.FC = () => {
 
       <motion.button
         onClick={isAtTop ? scrollToBottom : scrollToTop}
-        className="fixed bottom-8 right-8 w-12 h-12 bg-white text-text-main rounded-full border border-[#E5E5EC] flex items-center justify-center hover:bg-text-main hover:text-white transition-colors duration-300 z-50 shadow-lg"
+        style={{ bottom: `${bottomOffset}px` }}
+        className="fixed right-5 sm:right-8 w-12 h-12 bg-white text-text-main rounded-full border border-[#E5E5EC] flex items-center justify-center hover:bg-text-main hover:text-white transition-colors duration-300 z-50 shadow-lg"
         initial={{ opacity: 0, scale: 0 }}
         animate={{ opacity: 1, scale: 1 }}
         whileHover={{ y: isAtTop ? 4 : -4 }}

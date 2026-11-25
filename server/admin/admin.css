@@ -29,15 +29,15 @@ body {
 }
 
 .tab-btn.active {
-  border-bottom-color: #0EA5E9 !important;
+  border-bottom-color: #1B365D !important;
   border-bottom-width: 3px !important;
-  color: #0EA5E9 !important;
+  color: #1B365D !important;
   font-weight: 600 !important;
 }
 
 .tab-btn:hover:not(.active) {
-  border-bottom-color: #7DD3FC;
-  color: #0EA5E9;
+  border-bottom-color: #B8CCE4;
+  color: #1B365D;
 }
 
 /* 헤더 타이틀 스타일 */
@@ -52,13 +52,13 @@ body {
 
 /* 날짜 피커 하늘색 테마 */
 input[type="date"] {
-  accent-color: #0EA5E9;
+  accent-color: #1B365D;
 }
 
 input[type="date"]::-webkit-calendar-picker-indicator {
   cursor: pointer;
-  filter: invert(58%) sepia(95%) saturate(2000%) hue-rotate(180deg) brightness(98%) contrast(95%);
-  opacity: 1;
+  filter: none !important;
+  opacity: 0.65;
 }
 
 /* 연락 필드와 방문자 기록 필드의 날짜 입력 달력 아이콘 색상 통일 */
@@ -67,33 +67,33 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 #visitor-start-date::-webkit-calendar-picker-indicator,
 #visitor-end-date::-webkit-calendar-picker-indicator {
   cursor: pointer;
-  filter: invert(58%) sepia(95%) saturate(2000%) hue-rotate(180deg) brightness(98%) contrast(95%) !important;
-  opacity: 1;
+  filter: none !important;
+  opacity: 0.65;
 }
 
 /* 정렬 선택 하늘색 테마 */
 select:focus {
   outline: none;
-  border-color: #0EA5E9 !important;
-  box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.2) !important;
+  border-color: #1B365D !important;
+  box-shadow: 0 0 0 2px rgba(27, 54, 93, 0.16) !important;
 }
 
-/* 날짜 입력 및 정렬 선택 focus 색상 통일 (#0EA5E9) */
+/* 날짜 입력 및 정렬 선택 focus 색상 통일 (#1B365D) */
 input[type="date"]:focus,
 select:focus {
-  border-color: #0EA5E9 !important;
-  box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.2) !important;
+  border-color: #1B365D !important;
+  box-shadow: 0 0 0 2px rgba(27, 54, 93, 0.16) !important;
   outline: none !important;
 }
 
-/* Tailwind purple-500를 #0EA5E9로 오버라이드 */
+/* Tailwind purple-500를 #1B365D로 오버라이드 */
 .focus\:ring-purple-500:focus {
-  --tw-ring-color: #0EA5E9 !important;
-  box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.2) !important;
+  --tw-ring-color: #1B365D !important;
+  box-shadow: 0 0 0 2px rgba(27, 54, 93, 0.16) !important;
 }
 
 .focus\:border-purple-500:focus {
-  border-color: #0EA5E9 !important;
+  border-color: #1B365D !important;
 }
 
 /* 방문자 기록 섹션의 날짜 및 정렬 필드 - 검색 버튼과 동일한 하늘색 */
@@ -103,16 +103,16 @@ select:focus {
 #contact-start-date:focus,
 #contact-end-date:focus,
 #contact-sort:focus {
-  border-color: #0EA5E9 !important;
-  box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.2) !important;
+  border-color: #1B365D !important;
+  box-shadow: 0 0 0 2px rgba(27, 54, 93, 0.16) !important;
   outline: none !important;
 }
 
 /* Tailwind 클래스와 함께 사용되는 경우에도 강제 적용 */
 input[type="date"].focus\:ring-purple-500:focus,
 select.focus\:ring-purple-500:focus {
-  border-color: #0EA5E9 !important;
-  box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.2) !important;
+  border-color: #1B365D !important;
+  box-shadow: 0 0 0 2px rgba(27, 54, 93, 0.16) !important;
   outline: none !important;
 }
 

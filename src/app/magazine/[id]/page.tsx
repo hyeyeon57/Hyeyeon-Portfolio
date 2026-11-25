@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useParams } from 'next/navigation';
-import { ArrowLeft, ArrowRight, Clock, Calendar } from 'lucide-react';
+import { ArrowLeft, Clock, Calendar } from 'lucide-react';
 import { MAGAZINE_POSTS, MagazinePost, getMagazinePost } from '@/data/magazine';
 
 export default function MagazineDetailPage() {
@@ -40,7 +40,7 @@ export default function MagazineDetailPage() {
 
   if (loading && !post) {
     return (
-      <main className="min-h-screen bg-white pt-36 pb-24 px-5 sm:px-8">
+      <main className="min-h-screen bg-white pt-32 pb-24 px-5 sm:px-8">
         <div className="max-w-3xl mx-auto text-center text-[#767676]">불러오는 중...</div>
       </main>
     );
@@ -48,11 +48,13 @@ export default function MagazineDetailPage() {
 
   if (!post) {
     return (
-      <main className="min-h-screen bg-white pt-36 pb-24 px-5 sm:px-8">
+      <main className="min-h-screen bg-white pt-32 pb-24 px-5 sm:px-8">
         <div className="max-w-3xl mx-auto text-center space-y-6">
-          <h1 className="text-3xl font-semibold text-[#111111]">게시글을 찾을 수 없습니다.</h1>
+          <h1 className="text-2xl sm:text-3xl font-semibold text-[#111111]">
+            게시글을 찾을 수 없습니다.
+          </h1>
           <Link
-            href="/#contact"
+            href="/magazine"
             className="inline-flex items-center gap-2 text-base font-medium text-[#5C4AAE] hover:underline"
           >
             <ArrowLeft size={18} />
@@ -65,135 +67,177 @@ export default function MagazineDetailPage() {
 
   const currentIndex = posts.findIndex((p) => p.id === post.id);
   const prevPost = currentIndex > 0 ? posts[currentIndex - 1] : null;
-  const nextPost = currentIndex >= 0 && currentIndex < posts.length - 1 ? posts[currentIndex + 1] : null;
+  const nextPost =
+    currentIndex >= 0 && currentIndex < posts.length - 1 ? posts[currentIndex + 1] : null;
 
   return (
-    <main className="min-h-screen bg-white text-[#111111] pt-28 sm:pt-36 pb-24 sm:pb-32">
-      <article className="max-w-3xl mx-auto px-5 sm:px-8">
-        {/* 상단 돌아가기 */}
-        <Link
-          href="/#contact"
-          className="inline-flex items-center gap-2 text-sm font-medium text-[#767676] hover:text-[#111111] transition-colors mb-10"
+    <main className="min-h-screen bg-white text-[#111111] pt-24 sm:pt-28 pb-24 sm:pb-32">
+      <div className="max-w-[1200px] 2xl:max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-12">
+        {/* 상단 매거진 히어로 배너 카드 */}
+        <div
+          className="relative w-full rounded-xl overflow-hidden px-6 py-14 sm:py-20 text-center text-white mb-6 sm:mb-8 border border-[#111111]/15"
+          style={{
+            background:
+              'linear-gradient(135deg, #21164D 0%, #5C4AAE 55%, #84D4B5 100%)',
+          }}
         >
-          <ArrowLeft size={16} />
-          Magazine 목록으로
-        </Link>
-
-        {/* 메타 정보 */}
-        <div className="flex flex-wrap items-center gap-3 text-sm mb-4">
-          <span className="px-3 py-1 rounded-full bg-[#5C4AAE]/10 text-[#5C4AAE] font-semibold">
-            {post.projectTag}
-          </span>
-          <span className="inline-flex items-center gap-1.5 text-[#767676] tabular-nums">
-            <Calendar size={14} />
-            {post.date}
-          </span>
-          <span className="inline-flex items-center gap-1.5 text-[#767676]">
-            <Clock size={14} />
-            {post.readTime}
-          </span>
+          <p className="text-xs font-medium tracking-[0.18em] uppercase text-white/75 mb-2">
+            RETROSPECTIVE
+          </p>
+          <h2 className="text-3xl sm:text-4xl font-bold tracking-[-0.03em] mb-3">
+            Magazine
+          </h2>
+          <p className="text-sm sm:text-base text-white/90 leading-relaxed max-w-md mx-auto">
+            프로젝트를 기획하고 만들어온 과정의
+            <br className="sm:hidden" /> 회고와 인사이트를 기록합니다.
+          </p>
         </div>
 
-        {/* 블로그 제목 & 부제 */}
-        <h1 className="text-3xl sm:text-4xl md:text-[42px] font-semibold tracking-[-0.03em] leading-[1.28] text-[#111111] mb-4">
-          {post.title}
-        </h1>
-        <p className="text-lg sm:text-xl text-[#767676] leading-[160%] tracking-[-0.02em] mb-8">
-          {post.subtitle}
-        </p>
+        {/* 본문 아티클 카드 */}
+        <article className="rounded-xl border border-[#111111]/80 bg-white px-5 py-8 sm:px-10 sm:py-12">
+          {/* 제목 */}
+          <h1 className="text-2xl sm:text-3xl md:text-[34px] font-bold tracking-[-0.03em] leading-[1.35] text-[#111111] mb-4">
+            {post.title}
+          </h1>
 
-        {/* 태그 */}
-        <div className="flex flex-wrap gap-2 mb-10">
-          {post.tags.map((tag) => (
-            <span
-              key={tag}
-              className="px-3 py-1 text-xs font-medium text-[#505050] bg-[#F5F5F7] rounded-full"
-            >
-              #{tag}
+          {/* 메타 정보 + 우측 배지 */}
+          <div className="flex flex-wrap items-end justify-between gap-3 pb-6 sm:pb-8 border-b border-[#E5E5E5]">
+            <div className="space-y-1 text-xs sm:text-sm text-[#767676]">
+              <div className="flex items-center gap-1.5">
+                <Clock size={14} />
+                <span>{post.readTime}</span>
+              </div>
+              <div className="flex items-center gap-1.5 tabular-nums">
+                <Calendar size={14} />
+                <span>{post.date}</span>
+              </div>
+            </div>
+
+            <span className="inline-flex items-center px-4 py-1.5 rounded-full bg-[#5C4AAE] text-white text-xs sm:text-sm font-semibold tracking-[-0.01em]">
+              {post.projectTag}
             </span>
-          ))}
-        </div>
+          </div>
 
-        {/* 대표 이미지 */}
-        <div className="relative w-full aspect-[16/10] bg-[#D9D9D9] rounded-2xl overflow-hidden mb-12">
-          {post.image && (
-            <Image
-              src={post.image}
-              alt={post.title}
-              fill
-              className="object-cover"
-              priority
-              unoptimized={post.image.startsWith('http') || post.image.startsWith('//')}
-            />
-          )}
-        </div>
-
-        {/* 본문 섹션 */}
-        <div className="space-y-12">
-          {post.sections.map((section) => (
-            <section key={section.heading} className="space-y-4">
-              <h2 className="text-xl sm:text-2xl font-semibold tracking-[-0.025em] text-[#111111]">
-                {section.heading}
-              </h2>
-              <div className="space-y-4 text-base sm:text-[17px] text-[#333333] leading-[185%] tracking-[-0.015em]">
-                {section.body.map((paragraph, i) => (
-                  <p key={i}>{paragraph}</p>
+          {/* 부제목 & 태그 */}
+          <div className="pt-6 sm:pt-8 mb-8">
+            {post.subtitle && (
+              <p className="text-base sm:text-lg text-[#505050] leading-[170%] tracking-[-0.015em] mb-5">
+                {post.subtitle}
+              </p>
+            )}
+            {post.tags && post.tags.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {post.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="px-3 py-1 text-xs font-medium text-[#505050] bg-[#F5F5F7] rounded-full"
+                  >
+                    #{tag}
+                  </span>
                 ))}
               </div>
-            </section>
-          ))}
-        </div>
+            )}
+          </div>
 
-        {/* 핵심 배운 점 박스 */}
-        <div className="mt-14 p-6 sm:p-8 rounded-2xl bg-[#F7F7FA] border border-[#E8E8EE]">
-          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#5C4AAE] mb-3">
-            Key Takeaways
-          </p>
-          <ul className="space-y-2.5 text-base text-[#222222]">
-            {post.takeaways.map((item) => (
-              <li key={item} className="flex items-start gap-2.5">
-                <span className="text-[#5C4AAE] font-bold">·</span>
-                <span>{item}</span>
-              </li>
+          {/* 대표 이미지 (비어있거나 유효하지 않은 URL이면 회색 박스) */}
+          <div className="relative w-full aspect-[16/10] bg-[#D9D9D9] rounded-lg overflow-hidden mb-10 sm:mb-12">
+            {post.image &&
+              (post.image.startsWith('/') ||
+                post.image.startsWith('http://') ||
+                post.image.startsWith('https://') ||
+                post.image.startsWith('data:image/')) && (
+                <Image
+                  src={post.image}
+                  alt={post.title}
+                  fill
+                  className="object-cover"
+                  priority
+                  unoptimized={
+                    post.image.startsWith('http') ||
+                    post.image.startsWith('//') ||
+                    post.image.startsWith('data:')
+                  }
+                />
+              )}
+          </div>
+
+          {/* 본문 섹션 */}
+          <div className="space-y-10 sm:space-y-12">
+            {post.sections.map((section) => (
+              <section key={section.heading} className="space-y-3.5">
+                <h2 className="text-lg sm:text-xl font-bold tracking-[-0.025em] text-[#111111]">
+                  {section.heading}
+                </h2>
+                <div className="space-y-4 text-[15px] sm:text-[17px] text-[#333333] leading-[185%] tracking-[-0.015em]">
+                  {(section.body || (section as unknown as { paragraphs?: string[] }).paragraphs || []).map(
+                    (paragraph, i) => (
+                      <p key={i}>{paragraph}</p>
+                    )
+                  )}
+                </div>
+              </section>
             ))}
-          </ul>
+          </div>
+
+          {/* 핵심 회고 요약 */}
+          {post.takeaways && post.takeaways.length > 0 && (
+            <div className="mt-12 p-6 sm:p-8 rounded-lg bg-[#F7F6FC] border border-[#E6E2F8]">
+              <p className="text-xs font-semibold tracking-[0.12em] uppercase text-[#5C4AAE] mb-3.5">
+                KEY TAKEAWAYS
+              </p>
+              <ul className="space-y-2.5 text-sm sm:text-base text-[#222222] leading-[170%]">
+                {post.takeaways.map((item, idx) => (
+                  <li key={idx} className="flex items-start gap-2.5">
+                    <span className="mt-2 w-1.5 h-1.5 rounded-full bg-[#5C4AAE] flex-shrink-0" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </article>
+
+        {/* 이전 글 / 다음 글 스택 카드 */}
+        {(prevPost || nextPost) && (
+          <div className="mt-8 rounded-xl border border-[#111111]/80 bg-white overflow-hidden">
+            {prevPost && (
+              <Link
+                href={`/magazine/${prevPost.id}`}
+                className="block px-6 py-5 sm:px-8 sm:py-6 hover:bg-[#FAFAFA] transition-colors"
+              >
+                <span className="block text-xs sm:text-sm text-[#767676] mb-1.5">이전 글</span>
+                <p className="text-base sm:text-lg font-semibold text-[#111111] line-clamp-1">
+                  {prevPost.title}
+                </p>
+              </Link>
+            )}
+
+            {prevPost && nextPost && <div className="h-px bg-[#111111]/20" />}
+
+            {nextPost && (
+              <Link
+                href={`/magazine/${nextPost.id}`}
+                className="block px-6 py-5 sm:px-8 sm:py-6 hover:bg-[#FAFAFA] transition-colors"
+              >
+                <span className="block text-xs sm:text-sm text-[#767676] mb-1.5">다음 글</span>
+                <p className="text-base sm:text-lg font-semibold text-[#111111] line-clamp-1">
+                  {nextPost.title}
+                </p>
+              </Link>
+            )}
+          </div>
+        )}
+
+        {/* 하단 목록으로 필 버튼 */}
+        <div className="mt-8 flex justify-center">
+          <Link
+            href="/magazine"
+            className="inline-flex items-center justify-center w-full sm:w-[320px] h-14 sm:h-16 rounded-full border border-[#111111] bg-white text-base sm:text-lg font-semibold text-[#111111] hover:!bg-[#111111] hover:!text-white transition-colors"
+          >
+            목록으로
+          </Link>
         </div>
-
-        {/* 이전 / 다음 글 내비게이션 */}
-        <nav className="mt-16 pt-8 border-t border-[#DBDBDB] grid sm:grid-cols-2 gap-6">
-          {prevPost ? (
-            <Link
-              href={`/magazine/${prevPost.id}`}
-              className="group p-5 rounded-xl border border-[#E5E5EC] hover:border-[#111111] transition-colors"
-            >
-              <p className="inline-flex items-center gap-1.5 text-xs text-[#767676] mb-2">
-                <ArrowLeft size={14} />
-                이전 회고
-              </p>
-              <p className="text-base font-medium text-[#111111] line-clamp-2 group-hover:underline">
-                {prevPost.title}
-              </p>
-            </Link>
-          ) : (
-            <div />
-          )}
-
-          {nextPost && (
-            <Link
-              href={`/magazine/${nextPost.id}`}
-              className="group p-5 rounded-xl border border-[#E5E5EC] hover:border-[#111111] transition-colors sm:text-right"
-            >
-              <p className="inline-flex items-center sm:justify-end gap-1.5 text-xs text-[#767676] mb-2">
-                다음 회고
-                <ArrowRight size={14} />
-              </p>
-              <p className="text-base font-medium text-[#111111] line-clamp-2 group-hover:underline">
-                {nextPost.title}
-              </p>
-            </Link>
-          )}
-        </nav>
-      </article>
+      </div>
     </main>
   );
 }

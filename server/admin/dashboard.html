@@ -3,130 +3,635 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>관리자 대시보드 (BO화면)</title>
+  <title>Jang hyeyeon · Admin Back Office</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Gelasio:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/admin.css">
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js" defer></script>
+  <style>
+    :root {
+      --navy: #1B365D;
+      --navy-hover: #132846;
+      --navy-soft: #E3ECF7;
+      --slate-bg: #F2F5F9;
+      --slate-line: #E2E8F0;
+      --ink: #1E293B;
+      --sub: #475569;
+      --muted: #64748B;
+    }
+    body {
+      background-color: #FFFFFF !important;
+      color: var(--ink) !important;
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    }
+    .font-serif-wordmark {
+      font-family: 'Gelasio', Georgia, serif !important;
+      font-size: 20px !important;
+      font-weight: 500 !important;
+      letter-spacing: -0.01em !important;
+      color: #FFFFFF !important;
+    }
+    #dashboard-subtitle {
+      background-color: rgba(255, 255, 255, 0.14) !important;
+      color: #E2E8F0 !important;
+      padding: 3px 10px !important;
+      border-radius: 6px !important;
+      font-size: 11px !important;
+      font-weight: 600 !important;
+      letter-spacing: 0.05em !important;
+      text-transform: uppercase !important;
+    }
+    #mongodbStatus {
+      background-color: rgba(255, 255, 255, 0.12) !important;
+      border-radius: 6px !important;
+      padding: 5px 12px !important;
+      font-size: 12px !important;
+      color: #E2E8F0 !important;
+    }
+    /* 카드 & 패널 통일 (깔끔한 네이비 엔터프라이즈 톤) */
+    .tab-content > div,
+    .tab-content .bg-white.rounded-xl,
+    /* 본문 카드/컨테이너 — Finance Admin 스타일: 순백 배경 + 깔끔한 표 레이아웃 */
+    body, .admin-shell, .admin-main {
+      background-color: #FFFFFF !important;
+    }
+    .tab-content .bg-white.border,
+    .tab-content .bg-white.rounded-xl {
+      background-color: #FFFFFF !important;
+      border: 1px solid #E2E8F0 !important;
+      border-radius: 4px !important;
+      box-shadow: none !important;
+    }
+    /* 데이터 테이블 — 깔끔한 1px 그리드 + 연한 헤더(#F2F5F9) + 흰색 셀 */
+    .tab-content table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid #E2E8F0;
+      background-color: #FFFFFF;
+    }
+    .tab-content table thead th,
+    .tab-content table thead tr {
+      background-color: #F2F5F9 !important;
+      color: #1E293B !important;
+      font-weight: 600 !important;
+      border-bottom: 1px solid #E2E8F0 !important;
+    }
+    .tab-content table th,
+    .tab-content table td {
+      border-bottom: 1px solid #E2E8F0;
+      border-right: 1px solid #EEF2F6;
+      background-color: #FFFFFF;
+    }
+    .tab-content table th:last-child,
+    .tab-content table td:last-child {
+      border-right: none;
+    }
+    .tab-content table tbody tr:hover td {
+      background-color: #F8FAFC;
+    }
+    /* 키-밸류(상세/검색 조건) 표 레이아웃 */
+    .bo-kv-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid #E2E8F0;
+      background: #FFFFFF;
+    }
+    .bo-kv-table th {
+      width: 200px;
+      background-color: #F2F5F9 !important;
+      color: #1E293B !important;
+      font-size: 13.5px;
+      font-weight: 600;
+      text-align: left;
+      padding: 16px 20px;
+      border-bottom: 1px solid #E2E8F0;
+      border-right: 1px solid #E2E8F0;
+      vertical-align: middle;
+    }
+    .bo-kv-table td {
+      background-color: #FFFFFF !important;
+      padding: 16px 20px;
+      border-bottom: 1px solid #E2E8F0;
+      vertical-align: middle;
+    }
+    .bo-kv-table tr:last-child th,
+    .bo-kv-table tr:last-child td {
+      border-bottom: none;
+    }
+    /* 아이콘 전용 액션 버튼: 배경 없이 아이콘 라인만 (남색 아이콘 색상) */
+    .tab-content button.icon-action,
+    .tab-content button.icon-action:hover,
+    .tab-content button.icon-action:focus {
+      background-color: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      color: var(--navy) !important;
+    }
+    .tab-content button.icon-action:hover,
+    .tab-content button.icon-action:focus-visible {
+      color: var(--navy-hover) !important;
+    }
+    /* 주요 버튼을 모두 딥 네이비(#1B365D)로 통일 (아이콘 전용 버튼 제외) */
+    .tab-content button[style*="#1B365D"]:not(.icon-action),
+    .tab-content a[style*="#1B365D"],
+    .tab-content button[style*="#111111"],
+    .tab-content .bg-sky-500,
+    .tab-content .bg-sky-600,
+    .tab-content .bg-blue-500,
+    .tab-content .bg-blue-600,
+    .tab-content .bg-purple-600 {
+      background-color: var(--navy) !important;
+      color: #FFFFFF !important;
+      border-radius: 8px !important;
+    }
+    .tab-content button[style*="#1B365D"]:not(.icon-action):hover,
+    .tab-content a[style*="#1B365D"]:hover,
+    .tab-content button[style*="#111111"]:hover,
+    .tab-content .bg-sky-500:hover,
+    .tab-content .bg-sky-600:hover,
+    .tab-content .bg-blue-500:hover,
+    .tab-content .bg-blue-600:hover,
+    .tab-content .bg-purple-600:hover {
+      background-color: var(--navy-hover) !important;
+    }
+    /* 입력창 포커스 톤 통일 + 날짜 달력 아이콘 하늘색 필터 제거 */
+    input[type="date"]::-webkit-calendar-picker-indicator {
+      filter: none !important;
+      opacity: 0.65 !important;
+    }
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--navy) !important;
+      outline: none !important;
+      box-shadow: 0 0 0 2px rgba(27, 54, 93, 0.14) !important;
+    }
+    /* 보조 배지/배경/텍스트를 네이비·슬레이트 톤으로 통일 (초록/보라/하늘/인디고 전부 정리) */
+    [class*="bg-sky-50"], [class*="bg-blue-50"], [class*="bg-purple-50"],
+    [class*="bg-indigo-50"], [class*="bg-violet-50"], [class*="bg-green-50"],
+    [class*="bg-emerald-50"], [class*="bg-cyan-50"], [class*="bg-teal-50"] {
+      background-color: var(--slate-bg) !important;
+    }
+    [class*="bg-sky-100"], [class*="bg-blue-100"], [class*="bg-purple-100"],
+    [class*="bg-indigo-100"], [class*="bg-violet-100"], [class*="bg-green-100"],
+    [class*="bg-emerald-100"], [class*="bg-cyan-100"], [class*="bg-teal-100"] {
+      background-color: var(--navy-soft) !important;
+    }
+    [class*="text-sky-"], [class*="text-blue-"], [class*="text-purple-"],
+    [class*="text-indigo-"], [class*="text-violet-"], [class*="text-green-"],
+    [class*="text-emerald-"], [class*="text-cyan-"], [class*="text-teal-"] {
+      color: var(--navy) !important;
+    }
+    [class*="border-sky-"], [class*="border-blue-"], [class*="border-purple-"],
+    [class*="border-indigo-"], [class*="border-violet-"], [class*="border-green-"],
+    [class*="border-emerald-"], [class*="border-cyan-"], [class*="border-teal-"] {
+      border-color: #CBD5E1 !important;
+    }
+    /* 인라인 보라/민트/하늘색 스타일이 박힌 배지·아이콘·버튼까지 남색 톤으로 강제 통일 */
+    .tab-content [style*="#1B365D"],
+    .tab-content [style*="#142A4A"],
+    .tab-content [style*="#3B82F6"],
+    .tab-content [style*="#10B981"],
+    .tab-content [style*="#06B6D4"] {
+      color: var(--navy) !important;
+      border-color: #CBD5E1 !important;
+    }
+    /* 연락처/방문자 통계 요약 카드는 기존 포인트 컬러 유지 */
+    #contact-stats .stat-num-blue { color: #2563EB !important; }
+    #contact-stats .stat-icon-blue { background-color: #EFF6FF !important; color: #2563EB !important; }
+    #contact-stats .stat-num-indigo { color: #7A68F6 !important; }
+    #contact-stats .stat-icon-indigo { background-color: #EEF2FF !important; color: #4F46E5 !important; }
+    #contact-stats .stat-num-green { color: #15803D !important; }
+    #contact-stats .stat-icon-green { background-color: #ECFDF5 !important; color: #059669 !important; }
+    #visitor-stats .stat-num-dark { color: #111827 !important; }
+    #visitor-stats .stat-icon-today { background-color: #EFF6FF !important; color: #2563EB !important; }
+    #visitor-stats .stat-icon-week { background-color: #E8E4FF !important; color: #7A68F6 !important; }
+    #visitor-stats .stat-icon-total { background-color: #D1FAE5 !important; color: #10B981 !important; }
+    /* 상단 딥 네이비 바 (#1B365D) */
+    .admin-topbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 56px;
+      background: var(--navy) !important;
+      color: #FFFFFF !important;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      border-bottom: 1px solid #132846;
+    }
+    .admin-topbar .font-serif-wordmark {
+      color: #FFFFFF !important;
+      font-size: 20px !important;
+    }
+    /* 좌측 고정 아코디언 사이드바 (#F2F5F9) */
+    .admin-shell {
+      display: flex;
+      min-height: 100vh;
+      padding-top: 56px;
+    }
+    .admin-sidebar {
+      width: 240px;
+      flex-shrink: 0;
+      background: #F4F7FA;
+      border-right: 1px solid var(--slate-line);
+      padding: 8px 0 24px;
+      position: fixed;
+      top: 56px;
+      bottom: 0;
+      left: 0;
+      overflow-y: auto;
+      z-index: 900;
+    }
+    .admin-main {
+      flex: 1;
+      margin-left: 240px;
+      min-width: 0;
+      padding: 28px 36px 64px;
+      background: #FFFFFF;
+    }
+    @media (max-width: 1024px) {
+      .admin-sidebar {
+        position: static;
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid var(--slate-line);
+        padding: 12px 16px;
+      }
+      .admin-shell {
+        flex-direction: column;
+      }
+      .admin-main {
+        margin-left: 0;
+        padding: 20px 16px 48px;
+      }
+    }
+    /* 아코디언 1뎁스 버튼 (직각 3색 계층: 1뎁스 활성 #E3E9F0 / 2·3뎁스 활성 #EBF3FE / 기본 #F4F7FA) */
+    .acc-group {
+      margin-bottom: 0;
+    }
+    .acc-header {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 13px 20px;
+      border-radius: 0;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--ink);
+      background: transparent;
+      border: none;
+      outline: none !important;
+      cursor: pointer;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+    .acc-header:hover {
+      background: #E9EEF5;
+    }
+    /* 1뎁스 활성: 라운드 없는 직각 회색 바 */
+    .acc-header.group-active {
+      background: #E3E9F0;
+      color: #0F172A;
+    }
+    .acc-header:focus,
+    .acc-header:focus-visible,
+    .tab-btn:focus,
+    .tab-btn:focus-visible,
+    .depth3-btn:focus,
+    .depth3-btn:focus-visible {
+      outline: none !important;
+      box-shadow: none !important;
+    }
+    .acc-chevron {
+      width: 15px;
+      height: 15px;
+      transition: transform 0.2s ease;
+      color: var(--muted);
+    }
+    .acc-group.open .acc-chevron {
+      transform: rotate(180deg);
+    }
+    .acc-panel {
+      display: none;
+      padding: 0;
+    }
+    .acc-group.open .acc-panel {
+      display: block;
+    }
+    /* 2뎁스 하위 메뉴: 선택(open) 시 직각 연블루(#EBF3FE) 블록으로 2·3뎁스 전체 감싸기 */
+    .depth2-group {
+      margin-bottom: 0;
+      border-radius: 0;
+      background: transparent;
+      transition: background 0.15s ease;
+    }
+    .depth2-group.open {
+      background: #EBF3FE;
+      padding-bottom: 8px;
+    }
+    .tab-btn {
+      width: 100% !important;
+      text-align: left !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      gap: 8px !important;
+      padding: 10px 20px 10px 24px !important;
+      margin-bottom: 0 !important;
+      border-radius: 0 !important;
+      border: none !important;
+      outline: none !important;
+      font-size: 13.5px !important;
+      font-weight: 500 !important;
+      color: #475569 !important;
+      background: transparent !important;
+      transition: color 0.15s ease !important;
+      cursor: pointer !important;
+    }
+    .tab-btn:hover {
+      background: transparent !important;
+      color: #0F172A !important;
+    }
+    .tab-btn.active {
+      background: transparent !important;
+      color: #0F172A !important;
+      font-weight: 600 !important;
+    }
+    .depth2-chevron {
+      width: 13px;
+      height: 13px;
+      color: #94A3B8;
+      transition: transform 0.2s ease;
+      flex-shrink: 0;
+    }
+    .depth2-group.open .depth2-chevron {
+      transform: rotate(180deg);
+    }
+    /* 3뎁스 하위 메뉴: 직각 연블루 영역 안에서 들여쓰기 + 선택 항목 진한 네이비 볼드 */
+    .depth3-list {
+      display: none;
+      padding: 2px 0 4px 0;
+    }
+    .depth2-group.open .depth3-list {
+      display: block;
+    }
+    .depth3-btn {
+      width: 100%;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 20px 7px 40px;
+      margin-bottom: 0;
+      border-radius: 0;
+      border: none;
+      outline: none !important;
+      background: transparent;
+      font-size: 12.5px;
+      font-weight: 400;
+      color: #7C8798;
+      cursor: pointer;
+      transition: color 0.15s ease;
+    }
+    .depth3-btn:hover {
+      background: transparent;
+      color: #1E293B;
+    }
+    .depth3-btn.active {
+      background: transparent;
+      color: #1E293B;
+      font-weight: 700;
+    }
+    /* 섹션 스크롤 여백 */
+    .tab-content {
+      scroll-margin-top: 80px;
+      margin-bottom: 32px;
+    }
+    /* 브레드크럼 (구분선 제거, 자연스러운 간격) */
+    .admin-breadcrumb {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .admin-breadcrumb strong {
+      color: var(--ink);
+      font-weight: 600;
+    }
+  </style>
 </head>
-<body class="bg-gray-50">
-  <!-- 고정 헤더 -->
-  <header class="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-sm z-50" style="z-index: 1000;">
-    <div class="max-w-7xl mx-auto px-6 md:px-8 lg:px-14">
-      <div class="flex items-center justify-between h-[92px]">
-        <div class="text-left">
-          <h1 class="text-4xl font-semibold" id="dashboard-title" style="color: #111111; font-family: 'Pretendard', sans-serif; font-weight: 600;">Admin</h1>
-          <p class="text-gray-500 text-sm mt-1" id="dashboard-subtitle" style="font-family: 'Pretendard', sans-serif;">Back Office – Portfolio Management</p>
-        </div>
-        <div class="flex items-center gap-4 xl:gap-6">
-          <div id="mongodbStatus" class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm">
-            <span class="w-2 h-2 rounded-full bg-gray-400 animate-pulse"></span>
-            <span class="text-gray-600">MongoDB 확인 중...</span>
-          </div>
-          <!-- 탭 네비게이션 -->
-          <nav class="-mb-px flex space-x-6 items-center" aria-label="Tabs">
-            <button class="tab-btn" data-tab="documents">문서 관리</button>
-            <button class="tab-btn" data-tab="projects">프로젝트</button>
-            <button class="tab-btn" data-tab="magazines">매거진</button>
-            <button class="tab-btn" data-tab="banners">배너 관리</button>
-            <button class="tab-btn" data-tab="contacts">연락</button>
-            <button class="tab-btn" data-tab="visitors">방문자</button>
-          </nav>
-          <a href="/" class="px-4 py-2 rounded-lg transition flex items-center gap-2 text-base font-medium" style="color: #0EA5E9;" onmouseover="this.style.color='#0284C7'" onmouseout="this.style.color='#0EA5E9'">
-            <i data-lucide="home" class="w-4 h-4"></i> Home
-          </a>
-          <button id="logoutBtn" class="px-4 py-2 rounded-lg transition flex items-center gap-2 text-base font-medium" style="color: #0EA5E9;" onmouseover="this.style.color='#0284C7'" onmouseout="this.style.color='#0EA5E9'">
-            <i data-lucide="log-out" class="w-4 h-4"></i> Logout
-          </button>
-        </div>
+<body class="bg-white">
+  <!-- 상단 고정 다크 바 -->
+  <header class="admin-topbar">
+    <div class="flex items-center gap-3">
+      <h1 class="font-serif-wordmark tracking-tight" id="dashboard-title">Jang hyeyeon</h1>
+      <span id="dashboard-subtitle">Admin</span>
+    </div>
+    <div class="flex items-center gap-4 text-sm">
+      <div id="mongodbStatus" class="hidden md:flex items-center gap-2" style="background: rgba(255,255,255,0.1) !important; color: #E5E5EC !important;">
+        <span class="w-2 h-2 rounded-full bg-gray-400 animate-pulse"></span>
+        <span>MongoDB 확인 중...</span>
       </div>
+      <a href="/" onclick="if(window.location.hostname==='localhost'){this.href='http://localhost:3000';}" style="color: #E2E8F0; text-decoration: none; font-size: 13px;" onmouseover="this.style.color='#FFFFFF'" onmouseout="this.style.color='#E2E8F0'">
+        포트폴리오 홈
+      </a>
+      <span style="color: rgba(255,255,255,0.25);">|</span>
+      <button id="logoutBtn" style="border: none !important; background: transparent !important; color: #FFFFFF !important; padding: 4px 6px !important; font-size: 13px !important; cursor: pointer;">
+        로그아웃
+      </button>
     </div>
   </header>
 
-  <!-- 헤더 높이만큼 여백 추가 -->
-  <div style="padding-top: 92px;">
-  <div class="max-w-7xl mx-auto px-4 py-6">
-
-    <!-- 문서 관리 탭 -->
-    <div id="content-documents" class="tab-content hidden">
-      <div class="bg-white border rounded-xl shadow-sm">
-        <div class="px-6 py-4 border-b">
-          <h2 class="text-xl font-semibold text-gray-900">문서 관리</h2>
-          <p class="text-sm text-gray-500 mt-1">이력서와 자기소개서 PDF를 업로드하고 관리하세요.</p>
-        </div>
-        <div class="p-6">
-          <div class="grid grid-cols-2 gap-4">
-            <!-- 이력서 -->
-            <div class="border border-gray-200 rounded-lg p-4">
-              <div class="flex items-center justify-between mb-3">
-                <div>
-                  <h3 class="text-base font-semibold text-gray-900 flex items-center gap-2">
-                    <i data-lucide="file-text" class="w-4 h-4" style="color: #0EA5E9;"></i>
-                    이력서
-                  </h3>
-                  <p class="text-xs text-gray-500 mt-0.5">포트폴리오에 표시될 이력서 PDF 파일</p>
-                </div>
-              </div>
-              <div id="resume-status" class="mb-3">
-                <!-- 현재 파일 정보가 여기에 표시됩니다 -->
-              </div>
-              <div class="flex items-center gap-2 flex-wrap mb-3">
-                <input type="file" id="resume-upload" accept=".pdf" class="hidden" />
-                <button type="button" id="resume-upload-btn" class="px-2.5 py-1.5 text-white rounded text-xs" style="background-color: #0EA5E9;" onmouseover="this.style.backgroundColor='#0284C7'" onmouseout="this.style.backgroundColor='#0EA5E9'">파일 선택</button>
-                <button id="resume-delete" class="px-2 py-1 text-xs text-red-600 border border-red-200 rounded hover:bg-red-50 transition-colors flex-shrink-0" style="display:none;">
-                  삭제
-                </button>
-                <span id="resume-status-text" class="text-xs text-gray-600">
-                  <span class="text-gray-400">선택된 파일 없음</span>
-                </span>
-                <span id="resume-upload-status" class="text-xs text-gray-500"></span>
-              </div>
-              <div class="mt-6 pt-4 border-t border-gray-200">
-                <button type="button" id="resume-save-btn" class="w-full px-4 py-2 text-white rounded-lg text-sm font-medium transition-colors" style="background-color: #0EA5E9;" onmouseover="this.style.backgroundColor='#0284C7'" onmouseout="this.style.backgroundColor='#0EA5E9'">
-                  저장
-                </button>
-              </div>
+  <!-- 좌측 아코디언 사이드바 + 우측 본문 쉘 -->
+  <div class="admin-shell">
+    <aside class="admin-sidebar" aria-label="관리자 사이드 메뉴">
+      <!-- 1뎁스: 콘텐츠 관리 -->
+      <div class="acc-group open" data-group="content">
+        <button type="button" class="acc-header group-active" onclick="toggleAccGroup('content')">
+          <span>콘텐츠 관리</span>
+          <i data-lucide="chevron-down" class="acc-chevron"></i>
+        </button>
+        <div class="acc-panel">
+          <div class="depth2-group open" data-depth2="documents">
+            <button type="button" class="tab-btn" data-tab="documents" data-group="content" data-label="문서 관리">
+              <span>문서 관리</span>
+              <i data-lucide="chevron-down" class="depth2-chevron"></i>
+            </button>
+            <div class="depth3-list">
+              <button type="button" class="depth3-btn" data-tab="documents" data-target="doc-resume-card" data-label="이력서 PDF">이력서 PDF</button>
+              <button type="button" class="depth3-btn" data-tab="documents" data-target="doc-coverletter-card" data-label="자기소개서 PDF">자기소개서 PDF</button>
             </div>
+          </div>
 
-            <!-- 자기소개서 -->
-            <div class="border border-gray-200 rounded-lg p-4">
-              <div class="flex items-center justify-between mb-3">
-                <div>
-                  <h3 class="text-base font-semibold text-gray-900 flex items-center gap-2">
-                    <i data-lucide="file-text" class="w-4 h-4" style="color: #0EA5E9;"></i>
-                    자기소개서
-                  </h3>
-                  <p class="text-xs text-gray-500 mt-0.5">포트폴리오에 표시될 자기소개서 PDF 파일</p>
-                </div>
-              </div>
-              <div id="coverletter-status" class="mb-3">
-                <!-- 현재 파일 정보가 여기에 표시됩니다 -->
-              </div>
-              <div class="flex items-center gap-2 flex-wrap mb-3">
-                <input type="file" id="coverletter-upload" accept=".pdf" class="hidden" />
-                <button type="button" id="coverletter-upload-btn" class="px-2.5 py-1.5 text-white rounded text-xs" style="background-color: #0EA5E9;" onmouseover="this.style.backgroundColor='#0284C7'" onmouseout="this.style.backgroundColor='#0EA5E9'">파일 선택</button>
-                <button id="coverletter-delete" class="px-2 py-1 text-xs text-red-600 border border-red-200 rounded hover:bg-red-50 transition-colors flex-shrink-0" style="display:none;">
-                  삭제
-                </button>
-                <span id="coverletter-status-text" class="text-xs text-gray-600">
-                  <span class="text-gray-400">선택된 파일 없음</span>
-                </span>
-                <span id="coverletter-upload-status" class="text-xs text-gray-500"></span>
-              </div>
-              <div class="mt-6 pt-4 border-t border-gray-200">
-                <button type="button" id="coverletter-save-btn" class="w-full px-4 py-2 text-white rounded-lg text-sm font-medium transition-colors" style="background-color: #0EA5E9;" onmouseover="this.style.backgroundColor='#0284C7'" onmouseout="this.style.backgroundColor='#0EA5E9'">
-                  저장
-                </button>
-              </div>
+          <div class="depth2-group" data-depth2="projects">
+            <button type="button" class="tab-btn" data-tab="projects" data-group="content" data-label="프로젝트 관리">
+              <span>프로젝트 관리</span>
+              <i data-lucide="chevron-down" class="depth2-chevron"></i>
+            </button>
+            <div class="depth3-list">
+              <button type="button" class="depth3-btn" data-tab="projects" data-target="content-projects" data-label="프로젝트 목록">프로젝트 목록</button>
+              <button type="button" class="depth3-btn" data-tab="projects" data-action="create-project" data-label="새 프로젝트 등록">새 프로젝트 등록</button>
+            </div>
+          </div>
+
+          <div class="depth2-group" data-depth2="magazines">
+            <button type="button" class="tab-btn" data-tab="magazines" data-group="content" data-label="매거진(회고) 관리">
+              <span>매거진(회고) 관리</span>
+              <i data-lucide="chevron-down" class="depth2-chevron"></i>
+            </button>
+            <div class="depth3-list">
+              <button type="button" class="depth3-btn" data-tab="magazines" data-target="content-magazines" data-label="회고 글 목록">회고 글 목록</button>
+              <button type="button" class="depth3-btn" data-tab="magazines" data-action="open-magazine-form" data-label="새 회고 글 작성">새 회고 글 작성</button>
             </div>
           </div>
         </div>
       </div>
+
+      <!-- 1뎁스: 화면 · 배너 관리 -->
+      <div class="acc-group" data-group="display">
+        <button type="button" class="acc-header" onclick="toggleAccGroup('display')">
+          <span>화면 · 배너 관리</span>
+          <i data-lucide="chevron-down" class="acc-chevron"></i>
+        </button>
+        <div class="acc-panel">
+          <div class="depth2-group" data-depth2="banners">
+            <button type="button" class="tab-btn" data-tab="banners" data-group="display" data-label="배너 · 슬라이더 관리">
+              <span>배너 · 슬라이더 관리</span>
+              <i data-lucide="chevron-down" class="depth2-chevron"></i>
+            </button>
+            <div class="depth3-list">
+              <button type="button" class="depth3-btn" data-tab="banners" data-target="content-banners" data-label="배너 · 슬라이더 목록">배너 · 슬라이더 목록</button>
+              <button type="button" class="depth3-btn" data-tab="banners" data-target="logo-preview" data-label="로고 설정">로고 설정</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1뎁스: 운영 · 통계 -->
+      <div class="acc-group" data-group="ops">
+        <button type="button" class="acc-header" onclick="toggleAccGroup('ops')">
+          <span>운영 · 통계</span>
+          <i data-lucide="chevron-down" class="acc-chevron"></i>
+        </button>
+        <div class="acc-panel">
+          <div class="depth2-group" data-depth2="contacts">
+            <button type="button" class="tab-btn" data-tab="contacts" data-group="ops" data-label="연락(문의) 관리">
+              <span>연락(문의) 관리</span>
+              <i data-lucide="chevron-down" class="depth2-chevron"></i>
+            </button>
+            <div class="depth3-list">
+              <button type="button" class="depth3-btn" data-tab="contacts" data-target="contact-stats" data-label="문의 현황 요약">문의 현황 요약</button>
+              <button type="button" class="depth3-btn" data-tab="contacts" data-target="contactsTable" data-label="문의 내역 목록">문의 내역 목록</button>
+            </div>
+          </div>
+
+          <div class="depth2-group" data-depth2="visitors">
+            <button type="button" class="tab-btn" data-tab="visitors" data-group="ops" data-label="방문자 통계">
+              <span>방문자 통계</span>
+              <i data-lucide="chevron-down" class="depth2-chevron"></i>
+            </button>
+            <div class="depth3-list">
+              <button type="button" class="depth3-btn" data-tab="visitors" data-target="visitor-stats" data-label="방문자 차트">방문자 차트</button>
+              <button type="button" class="depth3-btn" data-tab="visitors" data-target="clearVisitorsBtn" data-label="방문자 기록">방문자 기록</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1뎁스: 접근 권한 관리 (대메뉴) -->
+      <div class="acc-group" data-group="access">
+        <button type="button" class="acc-header" onclick="toggleAccGroup('access')">
+          <span>접근 권한 관리</span>
+          <i data-lucide="chevron-down" class="acc-chevron"></i>
+        </button>
+        <div class="acc-panel">
+          <div class="depth2-group" data-depth2="access">
+            <button type="button" class="tab-btn" data-tab="access" data-group="access" data-label="공개 · 열람 권한">
+              <span>공개 · 열람 권한</span>
+              <i data-lucide="chevron-down" class="depth2-chevron"></i>
+            </button>
+            <div class="depth3-list">
+              <button type="button" class="depth3-btn" data-tab="access" data-target="access-general-section" data-label="공개 / 비공개 설정">공개 / 비공개 설정</button>
+              <button type="button" class="depth3-btn" data-tab="access" data-target="access-users-section" data-label="열람 권한 사용자">열람 권한 사용자</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- 메인 콘텐츠 영역 -->
+    <main class="admin-main">
+      <div id="adminBreadcrumb" class="admin-breadcrumb">
+        <span>HOME</span> <span>&gt;</span> <span>콘텐츠 관리</span> <span>&gt;</span> <strong>문서 관리</strong>
+      </div>
+      <div class="max-w-6xl">
+
+    <!-- 문서 관리 탭 (표 레이아웃) -->
+    <div id="content-documents" class="tab-content hidden">
+      <div class="mb-4">
+        <h2 class="text-xl font-bold text-slate-900">문서 관리</h2>
+        <p class="text-sm text-slate-500 mt-1">이력서와 자기소개서 PDF를 업로드하고 관리하세요.</p>
+      </div>
+      <table class="bo-kv-table">
+        <tbody>
+          <tr id="doc-resume-card">
+            <th>
+              <div class="flex items-center gap-2">
+                <i data-lucide="file-text" class="w-4 h-4" style="color: #1B365D;"></i>
+                <span>이력서 PDF</span>
+              </div>
+              <p class="text-xs font-normal text-slate-500 mt-1">포트폴리오 이력서 파일</p>
+            </th>
+            <td>
+              <div id="resume-status" class="mb-2"></div>
+              <div class="flex items-center justify-between gap-3 flex-wrap">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <input type="file" id="resume-upload" accept=".pdf" class="hidden" />
+                  <button type="button" id="resume-upload-btn" class="px-3 py-1.5 text-white rounded text-xs font-medium" style="background-color: #1B365D;" onmouseover="this.style.backgroundColor='#132846'" onmouseout="this.style.backgroundColor='#1B365D'">파일 선택</button>
+                  <button id="resume-delete" class="px-2.5 py-1.5 text-xs text-red-600 border border-red-200 rounded hover:bg-red-50 transition-colors flex-shrink-0" style="display:none;">삭제</button>
+                  <span id="resume-status-text" class="text-xs text-slate-600"><span class="text-slate-400">선택된 파일 없음</span></span>
+                  <span id="resume-upload-status" class="text-xs text-slate-500"></span>
+                </div>
+                <button type="button" id="resume-save-btn" class="px-5 py-1.5 text-white rounded text-xs font-medium transition-colors" style="background-color: #1B365D;" onmouseover="this.style.backgroundColor='#132846'" onmouseout="this.style.backgroundColor='#1B365D'">저장</button>
+              </div>
+            </td>
+          </tr>
+          <tr id="doc-coverletter-card">
+            <th>
+              <div class="flex items-center gap-2">
+                <i data-lucide="file-text" class="w-4 h-4" style="color: #1B365D;"></i>
+                <span>자기소개서 PDF</span>
+              </div>
+              <p class="text-xs font-normal text-slate-500 mt-1">포트폴리오 자기소개서 파일</p>
+            </th>
+            <td>
+              <div id="coverletter-status" class="mb-2"></div>
+              <div class="flex items-center justify-between gap-3 flex-wrap">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <input type="file" id="coverletter-upload" accept=".pdf" class="hidden" />
+                  <button type="button" id="coverletter-upload-btn" class="px-3 py-1.5 text-white rounded text-xs font-medium" style="background-color: #1B365D;" onmouseover="this.style.backgroundColor='#132846'" onmouseout="this.style.backgroundColor='#1B365D'">파일 선택</button>
+                  <button id="coverletter-delete" class="px-2.5 py-1.5 text-xs text-red-600 border border-red-200 rounded hover:bg-red-50 transition-colors flex-shrink-0" style="display:none;">삭제</button>
+                  <span id="coverletter-status-text" class="text-xs text-slate-600"><span class="text-slate-400">선택된 파일 없음</span></span>
+                  <span id="coverletter-upload-status" class="text-xs text-slate-500"></span>
+                </div>
+                <button type="button" id="coverletter-save-btn" class="px-5 py-1.5 text-white rounded text-xs font-medium transition-colors" style="background-color: #1B365D;" onmouseover="this.style.backgroundColor='#132846'" onmouseout="this.style.backgroundColor='#1B365D'">저장</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
     <div id="content-projects" class="tab-content hidden">
       <div class="bg-white border rounded-xl shadow-sm">
         <div class="px-6 py-4 border-b flex items-center justify-between">
           <h2 class="text-xl font-semibold text-gray-900">프로젝트 목록</h2>
-          <a href="/admin/create" id="createBtn" class="px-4 py-2 text-white rounded-lg text-sm font-medium" style="display:none; background-color: #0EA5E9;" onmouseover="this.style.backgroundColor='#0284C7'" onmouseout="this.style.backgroundColor='#0EA5E9'">프로젝트 추가</a>
+          <a href="/admin/create" id="createBtn" class="px-4 py-2 text-white rounded-lg text-sm font-medium" style="display:none; background-color: #1B365D;" onmouseover="this.style.backgroundColor='#132846'" onmouseout="this.style.backgroundColor='#1B365D'">프로젝트 추가</a>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full">
@@ -155,7 +660,7 @@
             <h2 class="text-xl font-bold text-gray-900">매거진(회고) 관리</h2>
             <p class="text-sm text-gray-500 mt-1">포트폴리오 메인 하단 Magazine 섹션과 상세 블로그 페이지에 표시되는 회고 글을 관리합니다.</p>
           </div>
-          <button type="button" onclick="openMagazineForm()" class="px-4 py-2 rounded-lg text-white font-medium text-sm transition" style="background-color: #0EA5E9;">
+          <button type="button" onclick="openMagazineForm()" style="background-color: #111111; color: #FFFFFF; padding: 10px 20px; border-radius: 9999px; font-size: 14px; font-weight: 500; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#1B365D'" onmouseout="this.style.backgroundColor='#111111'">
             + 새 매거진 글 작성
           </button>
         </div>
@@ -233,7 +738,7 @@
 
             <div class="flex justify-end gap-2 pt-2">
               <button type="button" onclick="closeMagazineForm()" class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 text-sm hover:bg-gray-100">취소</button>
-              <button type="submit" class="px-5 py-2 rounded-lg text-white font-medium text-sm" style="background-color: #0EA5E9;">저장하기</button>
+              <button type="submit" style="background-color: #111111; color: #FFFFFF; padding: 9px 24px; border-radius: 9999px; font-size: 14px; font-weight: 500; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#1B365D'" onmouseout="this.style.backgroundColor='#111111'">저장하기</button>
             </div>
           </form>
         </div>
@@ -252,7 +757,7 @@
             <h2 class="text-xl font-semibold text-gray-900">배너 관리</h2>
             <p class="text-sm text-gray-500 mt-1">홈페이지 메인에 표시될 배너 이미지를 관리하세요.</p>
           </div>
-          <button onclick="showBannerModal()" class="px-4 py-2 text-white rounded-lg text-sm font-medium transition-colors" style="background-color: #0EA5E9;" onmouseover="this.style.backgroundColor='#0284C7'" onmouseout="this.style.backgroundColor='#0EA5E9'">
+          <button onclick="showBannerModal()" class="px-4 py-2 text-white rounded-lg text-sm font-medium transition-colors" style="background-color: #1B365D;" onmouseover="this.style.backgroundColor='#132846'" onmouseout="this.style.backgroundColor='#1B365D'">
             <i data-lucide="plus" class="w-4 h-4 inline-block mr-1"></i> 배너 추가
           </button>
         </div>
@@ -262,7 +767,7 @@
             <div class="flex items-center justify-between mb-4">
               <div>
                 <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                  <i data-lucide="image" class="w-5 h-5" style="color: #0EA5E9;"></i>
+                  <i data-lucide="image" class="w-5 h-5" style="color: #1B365D;"></i>
                   헤더 로고
                 </h3>
                 <p class="text-xs text-gray-500 mt-1">웹사이트 상단 헤더에 표시될 로고 이미지를 업로드하세요.</p>
@@ -274,7 +779,7 @@
               </div>
               <div class="flex items-center gap-3 flex-wrap">
                 <input type="file" id="header-logo-upload" accept="image/*" class="hidden" />
-                <button type="button" id="header-logo-upload-btn" class="px-4 py-2 text-white rounded-lg text-sm font-medium transition-colors" style="background-color: #0EA5E9;" onmouseover="this.style.backgroundColor='#0284C7'" onmouseout="this.style.backgroundColor='#0EA5E9'">
+                <button type="button" id="header-logo-upload-btn" class="px-4 py-2 text-white rounded-lg text-sm font-medium transition-colors" style="background-color: #1B365D;" onmouseover="this.style.backgroundColor='#132846'" onmouseout="this.style.backgroundColor='#1B365D'">
                   <i data-lucide="upload" class="w-4 h-4 inline-block mr-1"></i> 로고 업로드
                 </button>
                 <button id="header-logo-delete" class="px-4 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors flex-shrink-0" style="display:none;">
@@ -335,9 +840,9 @@
                 <button
                   onclick="applyContactFilters()"
                   class="px-4 py-2 text-white rounded-lg transition-colors text-sm font-medium flex items-center gap-2"
-                  style="background-color: #0EA5E9;"
-                  onmouseover="this.style.backgroundColor='#0284C7'"
-                  onmouseout="this.style.backgroundColor='#0EA5E9'"
+                  style="background-color: #1B365D;"
+                  onmouseover="this.style.backgroundColor='#132846'"
+                  onmouseout="this.style.backgroundColor='#1B365D'"
                 >
                   <i data-lucide="search" class="w-4 h-4"></i>
                   검색
@@ -385,9 +890,9 @@
               <button
                 onclick="clearVisitors()"
                 class="px-4 py-2 text-white rounded-lg transition-colors text-sm font-medium flex items-center gap-2"
-                style="background-color: #0EA5E9;"
-                onmouseover="this.style.backgroundColor='#0284C7'"
-                onmouseout="this.style.backgroundColor='#0EA5E9'"
+                style="background-color: #1B365D;"
+                onmouseover="this.style.backgroundColor='#132846'"
+                onmouseout="this.style.backgroundColor='#1B365D'"
                 id="clearVisitorsBtn"
               >
                 <i data-lucide="trash-2" class="w-4 h-4"></i>
@@ -426,9 +931,9 @@
             <button
               onclick="searchVisitors()"
               class="px-4 py-1.5 text-white rounded-lg transition-colors text-sm font-medium flex items-center gap-2 whitespace-nowrap"
-              style="background-color: #0EA5E9;"
-              onmouseover="this.style.backgroundColor='#0284C7'"
-              onmouseout="this.style.backgroundColor='#0EA5E9'"
+              style="background-color: #1B365D;"
+              onmouseover="this.style.backgroundColor='#132846'"
+              onmouseout="this.style.backgroundColor='#1B365D'"
             >
               <i data-lucide="search" class="w-4 h-4"></i>
               검색
@@ -438,7 +943,7 @@
                 type="checkbox"
                 id="visitor-exclude-ip"
                 class="w-4 h-4 border-gray-300 rounded focus:ring-purple-500"
-                style="accent-color: #7A68F6;"
+                style="accent-color: #1B365D;"
               />
             </label>
           </div>
@@ -459,6 +964,106 @@
           </table>
         </div>
         <div id="visitor-pagination" class="px-6 py-4 flex flex-col items-center justify-center gap-3 text-sm text-gray-600 text-center"></div>
+      </div>
+    </div>
+
+    <!-- 접근 권한 관리 탭 (공개/비공개 + 구글 드라이브 스타일 권한 부여) -->
+    <div id="content-access" class="tab-content hidden">
+      <div class="mb-4 flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h2 class="text-xl font-bold text-slate-900">접근 권한 관리</h2>
+          <p class="text-sm text-slate-500 mt-1">프론트 포트폴리오의 공개/비공개 상태를 전환하고, 비공개 시 열람 가능한 사용자와 공유 링크를 관리합니다.</p>
+        </div>
+        <span id="accessModeBadge" class="px-3 py-1 rounded-full text-xs font-semibold" style="background-color: #E3ECF7; color: #1B365D;">전체 공개</span>
+      </div>
+
+      <!-- 1. 일반 액세스 (공개 / 비공개 설정) -->
+      <div id="access-general-section" class="mb-8">
+        <h3 class="text-sm font-semibold text-slate-800 mb-2">일반 액세스 설정</h3>
+        <table class="bo-kv-table">
+          <tbody>
+            <tr>
+              <th>사이트 공개 모드</th>
+              <td>
+                <div class="flex flex-wrap items-center gap-6">
+                  <label class="inline-flex items-center gap-2 cursor-pointer text-sm text-slate-800">
+                    <input type="radio" name="siteAccessMode" value="public" checked style="accent-color: #1B365D;" onchange="saveAccessMode()" />
+                    <span><strong>전체 공개</strong> (누구나 열람 가능)</span>
+                  </label>
+                  <label class="inline-flex items-center gap-2 cursor-pointer text-sm text-slate-800">
+                    <input type="radio" name="siteAccessMode" value="private" style="accent-color: #1B365D;" onclick="event.preventDefault(); window.openPrivateConfirmModal();" />
+                    <span><strong>비공개 (제한됨)</strong> (권한이 있는 사용자 또는 공유 링크로만 열람)</span>
+                  </label>
+                </div>
+              </td>
+            </tr>
+            <tr id="access-share-link-row">
+              <th>공유 링크 액세스</th>
+              <td>
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                  <label class="inline-flex items-center gap-2 cursor-pointer text-sm text-slate-700">
+                    <input type="checkbox" id="shareLinkEnabledCheckbox" checked style="accent-color: #1B365D;" onchange="saveAccessMode()" />
+                    <span>링크가 있는 모든 사용자 (뷰어) 허용</span>
+                  </label>
+                  <div class="flex items-center gap-2">
+                    <button type="button" onclick="copyShareLink()" class="px-3 py-1.5 rounded border border-[#B8CCE4] bg-white text-[#1B365D] hover:bg-[#E3ECF7] text-xs font-medium transition">공유 링크 복사</button>
+                    <button type="button" onclick="regenerateShareLink()" class="px-3 py-1.5 rounded border border-slate-300 bg-white text-slate-600 hover:bg-slate-50 text-xs font-medium transition">링크 재발급</button>
+                  </div>
+                </div>
+                <p id="shareLinkPreview" class="text-xs text-slate-500 mt-2 font-mono break-all"></p>
+              </td>
+            </tr>
+            <tr>
+              <th>비공개 안내 문구</th>
+              <td>
+                <div class="flex items-center gap-2">
+                  <input type="text" id="privateMessageInput" class="flex-1 px-3 py-2 text-sm border border-slate-300 rounded" placeholder="비공개 화면에 표시할 안내 문구" />
+                  <button type="button" onclick="saveAccessMode()" class="px-4 py-2 text-white rounded text-xs font-medium" style="background-color: #1B365D;" onmouseover="this.style.backgroundColor='#132846'" onmouseout="this.style.backgroundColor='#1B365D'">저장</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 어드민 뷰어 모드(미로그인) 안내 -->
+      <div id="access-viewer-notice" class="hidden rounded-lg border border-slate-200 bg-slate-50 px-5 py-6 text-center text-sm text-slate-600 mb-6">
+        공유 링크 및 열람 권한 사용자 이메일 등 개인정보는 <strong>관리자 로그인</strong> 후에만 확인할 수 있습니다.
+      </div>
+
+      <!-- 2. 열람 권한이 있는 사용자 -->
+      <div id="access-users-section">
+        <h3 class="text-sm font-semibold text-slate-800 mb-2">열람 권한이 있는 사용자</h3>
+        <table class="bo-kv-table mb-4">
+          <tbody>
+            <tr>
+              <th>열람 권한 사용자 추가</th>
+              <td>
+                <form id="addAccessUserForm" onsubmit="addAccessUser(event)" class="flex flex-wrap items-center gap-2">
+                  <input type="email" id="accessUserEmail" required placeholder="이메일 주소 입력 (예: hr@company.com)" class="flex-1 min-w-[220px] px-3 py-2 text-sm border border-slate-300 rounded" />
+                  <input type="text" id="accessUserName" placeholder="이름 / 소속 (선택)" class="w-40 px-3 py-2 text-sm border border-slate-300 rounded" />
+                  <button type="submit" class="px-4 py-2 text-white rounded text-xs font-medium" style="background-color: #1B365D;" onmouseover="this.style.backgroundColor='#132846'" onmouseout="this.style.backgroundColor='#1B365D'">열람 권한 부여</button>
+                </form>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead>
+              <tr>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-700">이메일</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-700 w-36">이름 / 소속</th>
+                <th class="px-4 py-3 text-center text-xs font-semibold text-slate-700 w-28">열람 권한</th>
+                <th class="px-4 py-3 text-right text-xs font-semibold text-slate-700 w-48">관리</th>
+              </tr>
+            </thead>
+            <tbody id="accessUsersTableBody">
+              <tr><td colspan="4" class="px-4 py-8 text-center text-sm text-slate-500">불러오는 중...</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
@@ -495,7 +1100,7 @@
 
   <script type="module">
     import { renderDetailModal, renderEditModal } from '/templates/projectTemplates.js';
-    import { statsCardsTemplate, todayChartTemplate, weeklyChartTemplate, monthlyChartTemplate } from '/templates/statsTemplates.js';
+    import { statsCardsTemplate, todayChartTemplate, weeklyChartTemplate, monthlyChartTemplate } from '/templates/statsTemplates.js?v=navy3';
     import { categoryLabels } from '/templates/utils.js';
 
     // lucide 로드 보장 함수
@@ -614,19 +1219,117 @@
     };
     let totalVisitorsCount = 0;
 
+    const TAB_GROUPS = {
+      content: { label: '콘텐츠 관리', tabs: ['documents', 'projects', 'magazines'] },
+      display: { label: '화면 · 배너 관리', tabs: ['banners'] },
+      ops: { label: '운영 · 통계', tabs: ['contacts', 'visitors'] },
+      access: { label: '접근 권한 관리', tabs: ['access'] },
+    };
+    const TAB_LABELS = {
+      documents: '문서 관리',
+      projects: '프로젝트 관리',
+      magazines: '매거진(회고) 관리',
+      banners: '배너 · 슬라이더 관리',
+      contacts: '연락(문의) 관리',
+      visitors: '방문자 통계',
+      access: '공개 · 열람 권한',
+    };
+    const loadedGroups = new Set();
+    let currentGroupKey = null;
+
+    window.toggleAccGroup = function(groupKey) {
+      const groupEl = document.querySelector(`.acc-group[data-group="${groupKey}"]`);
+      if (!groupEl) return;
+      const isAlreadyOpen = groupEl.classList.contains('open');
+      const header = groupEl.querySelector('.acc-header');
+      const isActiveGroup = header && header.classList.contains('group-active');
+
+      // 이미 선택·열려 있는 1뎁스를 다시 누르면 접기/펼치기만 토글
+      if (isActiveGroup && isAlreadyOpen) {
+        groupEl.classList.remove('open');
+        return;
+      }
+
+      // 다른 1뎁스를 누르면 해당 1뎁스를 펼치고 첫 번째 하위 메뉴로 바로 이동
+      const firstTab = TAB_GROUPS[groupKey]?.tabs?.[0];
+      if (firstTab) {
+        switchTab(firstTab);
+      } else {
+        document.querySelectorAll('.acc-group').forEach((g) => {
+          g.classList.toggle('open', g.dataset.group === groupKey);
+        });
+      }
+    };
+
+    function getGroupKeyByTab(tab) {
+      for (const [key, info] of Object.entries(TAB_GROUPS)) {
+        if (info.tabs.includes(tab)) return key;
+      }
+      return 'content';
+    }
+
     const tabButtons = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
 
-    async function switchTab(tab) {
+    async function switchTab(tab, optionsOrScroll = true) {
+      const options = typeof optionsOrScroll === 'object' && optionsOrScroll !== null ? optionsOrScroll : {};
+      const shouldScroll = typeof optionsOrScroll === 'boolean' ? optionsOrScroll : (options.shouldScroll ?? true);
+      const groupKey = getGroupKeyByTab(tab);
+      const groupInfo = TAB_GROUPS[groupKey];
+      const isSameGroup = currentGroupKey === groupKey;
+      currentGroupKey = groupKey;
+
+      // 해당 1뎁스 아코디언 자동 펼침 & 활성화 표시
+      // 1뎁스 아코디언: 선택된 1뎁스만 펼치고 나머지는 닫기
+      document.querySelectorAll('.acc-group').forEach((g) => {
+        const header = g.querySelector('.acc-header');
+        const isCurrent = g.dataset.group === groupKey;
+        g.classList.toggle('open', isCurrent);
+        if (header) header.classList.toggle('group-active', isCurrent);
+      });
+
+      // 2뎁스 버튼 활성화 표시: 선택된 2뎁스만 3뎁스 펼치고 나머지는 닫기
       tabButtons.forEach(btn => {
         const active = btn.dataset.tab === tab;
         btn.classList.toggle('active', active);
+        const depth2Group = btn.closest('.depth2-group');
+        if (depth2Group) {
+          depth2Group.classList.toggle('open', active);
+        }
       });
+
+      // 3뎁스 버튼 활성화 표시
+      const depth3Buttons = document.querySelectorAll('.depth3-btn');
+      depth3Buttons.forEach(btn => btn.classList.remove('active'));
+      if (options.depth3Btn) {
+        options.depth3Btn.classList.add('active');
+      } else {
+        const firstDepth3 = document.querySelector(`.depth2-group[data-depth2="${tab}"] .depth3-btn`);
+        if (firstDepth3) firstDepth3.classList.add('active');
+      }
+
+      // 같은 1뎁스에 속한 모든 2뎁스 섹션을 한 페이지에 함께 노출 (다른 1뎁스만 숨김)
       tabContents.forEach(content => {
-        content.classList.toggle('hidden', content.id !== `content-${tab}`);
+        const contentTab = content.id.replace('content-', '');
+        const belongsToGroup = groupInfo.tabs.includes(contentTab);
+        content.classList.toggle('hidden', !belongsToGroup);
       });
-      
-      // 현재 탭을 localStorage에 저장 (새로고침 시 복원용)
+
+      // 상단 브레드크럼 업데이트 (클릭 시 상위 메뉴/홈으로 이동 가능)
+      const activeDepth3Label = options.depth3Label ||
+        document.querySelector(`.depth2-group[data-depth2="${tab}"] .depth3-btn.active`)?.dataset.label || '';
+      const breadcrumbEl = document.getElementById('adminBreadcrumb');
+      if (breadcrumbEl) {
+        const firstTabOfGroup = groupInfo.tabs[0];
+        const homeBtn = `<button type="button" onclick="switchTab('documents')" class="hover:text-[#1B365D] hover:underline cursor-pointer bg-transparent border-0 p-0 text-inherit">HOME</button>`;
+        const groupBtn = `<button type="button" onclick="switchTab('${firstTabOfGroup}')" class="hover:text-[#1B365D] hover:underline cursor-pointer bg-transparent border-0 p-0 text-inherit">${groupInfo.label}</button>`;
+        const tabBtnHtml = `<button type="button" onclick="if('${tab}'==='magazines'&&typeof closeMagazineForm==='function')closeMagazineForm(); switchTab('${tab}')" class="hover:text-[#1B365D] hover:underline cursor-pointer bg-transparent border-0 p-0 text-inherit">${TAB_LABELS[tab] || tab}</button>`;
+        breadcrumbEl.innerHTML = activeDepth3Label
+          ? `${homeBtn} <span>&gt;</span> ${groupBtn} <span>&gt;</span> ${tabBtnHtml} <span>&gt;</span> <strong>${activeDepth3Label}</strong>`
+          : `${homeBtn} <span>&gt;</span> ${groupBtn} <span>&gt;</span> <strong>${TAB_LABELS[tab] || tab}</strong>`;
+      }
+
+      // 현재 탭을 localStorage에 저장
       if (typeof window !== 'undefined' && window.localStorage) {
         try {
           localStorage.setItem('admin-dashboard-active-tab', tab);
@@ -634,23 +1337,42 @@
           console.warn('탭 상태 저장 실패:', e);
         }
       }
-      
-      // 탭 전환 시 해당 탭 데이터 로드
-      if (tab === 'documents') {
-        loadDocuments();
-      } else if (tab === 'projects') {
-        loadProjects();
-      } else if (tab === 'magazines') {
-        loadMagazines();
-      } else if (tab === 'banners') {
-        loadHeroSliders();
-      } else if (tab === 'contacts') {
-        loadContacts();
-      } else if (tab === 'visitors') {
-        // 그래프 로딩 순서를 맞추기 위해 방문자 통계 렌더 후 월간 그래프 호출
-        await loadVisitorStatsForTab();
-        loadVisitors();
-        await loadMonthlyData(currentMonthlyYear, currentMonthlyMonth);
+
+      // 해당 1뎁스 그룹의 데이터 로드 (최초 진입 또는 그룹 전환 시)
+      if (!loadedGroups.has(groupKey)) {
+        loadedGroups.add(groupKey);
+        if (groupKey === 'content') {
+          loadDocuments();
+          loadProjects();
+          loadMagazines();
+        } else if (groupKey === 'display') {
+          loadHeroSliders();
+        } else if (groupKey === 'ops') {
+          loadContacts();
+          await loadVisitorStatsForTab();
+          loadVisitors();
+          await loadMonthlyData(currentMonthlyYear, currentMonthlyMonth);
+        } else if (groupKey === 'access') {
+          loadAccessSettings();
+        }
+      }
+
+      // 1뎁스 전환 또는 해당 그룹 첫 번째 메뉴 클릭 시 브레드크럼이 안 잘리도록 최상단으로 스크롤
+      if (shouldScroll) {
+        const isFirstTabOfGroup = tab === TAB_GROUPS[groupKey]?.tabs?.[0];
+        if (!options.scrollTargetId && (!isSameGroup || isFirstTabOfGroup)) {
+          setTimeout(() => {
+            window.scrollTo({ top: 0, behavior: isSameGroup ? 'smooth' : 'auto' });
+          }, 40);
+        } else {
+          const targetId = options.scrollTargetId || `content-${tab}`;
+          const targetEl = document.getElementById(targetId);
+          if (targetEl) {
+            setTimeout(() => {
+              targetEl.scrollIntoView({ behavior: isSameGroup ? 'smooth' : 'auto', block: 'start' });
+            }, 40);
+          }
+        }
       }
     }
     
@@ -658,14 +1380,51 @@
     const savedTab = typeof window !== 'undefined' && window.localStorage 
       ? localStorage.getItem('admin-dashboard-active-tab') 
       : null;
-    const initialTab = savedTab && ['documents', 'projects', 'magazines', 'banners', 'contacts', 'visitors'].includes(savedTab) 
+    const initialTab = savedTab && ['documents', 'projects', 'magazines', 'banners', 'contacts', 'visitors', 'access'].includes(savedTab) 
       ? savedTab 
       : 'documents';
     
     // 초기 탭 설정 (비동기 처리 대기)
+    window.switchTab = switchTab;
     switchTab(initialTab);
     
-    tabButtons.forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
+    tabButtons.forEach(btn => btn.addEventListener('click', () => {
+      const depth2Group = btn.closest('.depth2-group');
+      const isAlreadyActive = btn.classList.contains('active');
+      if (depth2Group && isAlreadyActive) {
+        depth2Group.classList.toggle('open');
+      } else {
+        switchTab(btn.dataset.tab);
+      }
+    }));
+
+    // 3뎁스 메뉴 클릭 핸들러
+    document.querySelectorAll('.depth3-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const tab = btn.dataset.tab;
+        const action = btn.dataset.action;
+        const target = btn.dataset.target;
+        const label = btn.dataset.label;
+
+        if (action === 'create-project') {
+          window.location.href = '/admin/create';
+          return;
+        }
+
+        await switchTab(tab, {
+          depth3Btn: btn,
+          depth3Label: label,
+          scrollTargetId: target || `content-${tab}`,
+        });
+
+        if (action === 'open-magazine-form' && typeof openMagazineForm === 'function') {
+          openMagazineForm();
+        } else if (tab === 'magazines' && target === 'content-magazines') {
+          if (typeof closeMagazineForm === 'function') closeMagazineForm();
+          if (typeof loadMagazines === 'function') loadMagazines();
+        }
+      });
+    });
 
     // 문서 관리 함수들
     async function loadDocuments() {
@@ -1281,24 +2040,24 @@
             <td class="px-6 py-3 text-sm text-gray-600">${(p.tags || []).slice(0,3).join(', ')}</td>
             <td class="px-6 py-3 text-center">
               <div class="flex items-center justify-center gap-3">
-                <div class="w-3 h-3 rounded-full ${hasDescription ? '' : 'border bg-transparent'}" title="프로젝트 설명 ${hasDescription ? '완료' : '미완료'}" style="transition: all 0.3s; ${hasDescription ? 'background-color: #0EA5E9;' : 'border-color: #0EA5E9;'}"></div>
+                <div class="w-3 h-3 rounded-full ${hasDescription ? '' : 'border bg-transparent'}" title="프로젝트 설명 ${hasDescription ? '완료' : '미완료'}" style="transition: all 0.3s; ${hasDescription ? 'background-color: #1B365D;' : 'border-color: #1B365D;'}"></div>
                 <div class="w-3 h-3 rounded-full ${hasPdf ? 'bg-blue-500' : 'border border-blue-500 bg-transparent'}" title="PDF 업로드 ${hasPdf ? '완료' : '미완료'}" style="transition: all 0.3s;"></div>
                 <div class="w-3 h-3 rounded-full ${hasImage ? 'bg-emerald-600' : 'border border-emerald-600 bg-transparent'}" title="이미지 업로드 ${hasImage ? '완료' : '미완료'}" style="transition: all 0.3s;"></div>
               </div>
             </td>
             <td class="px-6 py-3 text-center">
-              <button class="inline-flex items-center justify-center p-1 hover:bg-purple-50 rounded" onclick="event.stopPropagation(); toggleFeatured('${projectId}')" title="${isFeatured ? '대표 해제' : '대표 설정'}">
-                <i data-lucide="${isFeatured ? 'pin' : 'pin-off'}" class="w-4 h-4" style="color: #7A68F6;" fill="${isFeatured ? 'currentColor' : 'none'}"></i>
+              <button class="icon-action inline-flex items-center justify-center p-1 rounded" onclick="event.stopPropagation(); toggleFeatured('${projectId}')" title="${isFeatured ? '대표 해제' : '대표 설정'}">
+                <i data-lucide="${isFeatured ? 'pin' : 'pin-off'}" class="w-4 h-4" style="color: #1B365D;" fill="${isFeatured ? 'currentColor' : 'none'}"></i>
               </button>
             </td>
             <td class="px-6 py-3 text-right space-x-2">
-              <button class="inline-flex items-center justify-center p-1.5 hover:bg-purple-50 rounded transition-colors" style="color: #7A68F6;" onclick="event.stopPropagation(); viewDetail('${projectId}')" title="상세 보기">
+              <button class="icon-action inline-flex items-center justify-center p-1.5 rounded transition-colors" style="color: #1B365D;" onclick="event.stopPropagation(); viewDetail('${projectId}')" title="상세 보기">
                 <i data-lucide="search" class="w-4 h-4"></i>
               </button>
-              <button class="inline-flex items-center justify-center p-1.5 hover:bg-purple-50 rounded transition-colors" style="color: #7A68F6;" onclick="event.stopPropagation(); editProject('${projectId}')" title="수정하기">
+              <button class="icon-action inline-flex items-center justify-center p-1.5 rounded transition-colors" style="color: #1B365D;" onclick="event.stopPropagation(); editProject('${projectId}')" title="수정하기">
                 <i data-lucide="pencil" class="w-4 h-4"></i>
               </button>
-              <button class="inline-flex items-center justify-center p-1.5 hover:bg-purple-50 rounded transition-colors" style="color: #7A68F6;" onclick="event.stopPropagation(); deleteProject('${projectId}')" title="삭제하기">
+              <button class="icon-action inline-flex items-center justify-center p-1.5 rounded transition-colors" style="color: #1B365D;" onclick="event.stopPropagation(); deleteProject('${projectId}')" title="삭제하기">
                 <i data-lucide="trash-2" class="w-4 h-4"></i>
               </button>
             </td>
@@ -2051,13 +2810,13 @@
           // 보라색 (프로젝트 설명)
           if (hasDescription) {
             indicators[0].classList.remove('border', 'bg-transparent');
-            indicators[0].style.backgroundColor = '#7A68F6';
+            indicators[0].style.backgroundColor = '#1B365D';
             indicators[0].style.borderColor = '';
             indicators[0].setAttribute('title', '프로젝트 설명 완료');
           } else {
             indicators[0].classList.add('border', 'bg-transparent');
             indicators[0].style.backgroundColor = '';
-            indicators[0].style.borderColor = '#7A68F6';
+            indicators[0].style.borderColor = '#1B365D';
             indicators[0].setAttribute('title', '프로젝트 설명 미완료');
           }
           
@@ -2886,30 +3645,30 @@
       const read = total - unread;
 
       statsContainer.innerHTML = `
-        <div class="p-4 rounded-xl border shadow-sm flex items-center justify-between">
+        <div class="p-4 rounded-xl border border-[#E2E8F0] shadow-sm bg-white flex items-center justify-between">
           <div>
             <p class="text-sm text-gray-500">총 연락 수</p>
-            <p class="text-2xl font-semibold mt-1" style="color: #2563eb;">${total}</p>
+            <p class="text-2xl font-semibold mt-1 stat-num-blue">${total}</p>
           </div>
-          <div class="p-3 bg-blue-50 text-blue-600 rounded-lg">
+          <div class="p-3 rounded-lg stat-icon-blue">
             <i data-lucide="inbox" class="w-6 h-6"></i>
           </div>
         </div>
-        <div class="p-4 rounded-xl border shadow-sm flex items-center justify-between">
+        <div class="p-4 rounded-xl border border-[#E2E8F0] shadow-sm bg-white flex items-center justify-between">
           <div>
             <p class="text-sm text-gray-500">읽지 않음</p>
-            <p class="text-2xl font-semibold mt-1" style="color: #7A68F6;">${unread}</p>
+            <p class="text-2xl font-semibold mt-1 stat-num-indigo">${unread}</p>
           </div>
-          <div class="p-3 bg-indigo-50 text-indigo-600 rounded-lg">
+          <div class="p-3 rounded-lg stat-icon-indigo">
             <i data-lucide="mail" class="w-6 h-6"></i>
           </div>
         </div>
-        <div class="p-4 rounded-xl border shadow-sm flex items-center justify-between">
+        <div class="p-4 rounded-xl border border-[#E2E8F0] shadow-sm bg-white flex items-center justify-between">
           <div>
             <p class="text-sm text-gray-500">읽음</p>
-            <p class="text-2xl font-semibold text-green-700 mt-1">${read}</p>
+            <p class="text-2xl font-semibold mt-1 stat-num-green">${read}</p>
           </div>
-          <div class="p-3 bg-emerald-50 text-emerald-600 rounded-lg">
+          <div class="p-3 rounded-lg stat-icon-green">
             <i data-lucide="mail-open" class="w-6 h-6"></i>
           </div>
         </div>
@@ -2926,30 +3685,30 @@
       const read = total - unread;
 
       statsContainer.innerHTML = `
-        <div class="p-4 rounded-xl border shadow-sm flex items-center justify-between">
+        <div class="p-4 rounded-xl border border-[#E2E8F0] shadow-sm bg-white flex items-center justify-between">
           <div>
             <p class="text-sm text-gray-500">총 연락 수</p>
-            <p class="text-2xl font-semibold mt-1" style="color: #2563eb;">${total}</p>
+            <p class="text-2xl font-semibold mt-1 stat-num-blue">${total}</p>
           </div>
-          <div class="p-3 bg-blue-50 text-blue-600 rounded-lg">
+          <div class="p-3 rounded-lg stat-icon-blue">
             <i data-lucide="inbox" class="w-6 h-6"></i>
           </div>
         </div>
-        <div class="p-4 rounded-xl border shadow-sm flex items-center justify-between">
+        <div class="p-4 rounded-xl border border-[#E2E8F0] shadow-sm bg-white flex items-center justify-between">
           <div>
             <p class="text-sm text-gray-500">읽지 않음</p>
-            <p class="text-2xl font-semibold mt-1" style="color: #7A68F6;">${unread}</p>
+            <p class="text-2xl font-semibold mt-1 stat-num-indigo">${unread}</p>
           </div>
-          <div class="p-3 bg-indigo-50 text-indigo-600 rounded-lg">
+          <div class="p-3 rounded-lg stat-icon-indigo">
             <i data-lucide="mail" class="w-6 h-6"></i>
           </div>
         </div>
-        <div class="p-4 rounded-xl border shadow-sm flex items-center justify-between">
+        <div class="p-4 rounded-xl border border-[#E2E8F0] shadow-sm bg-white flex items-center justify-between">
           <div>
             <p class="text-sm text-gray-500">읽음</p>
-            <p class="text-2xl font-semibold text-green-700 mt-1">${read}</p>
+            <p class="text-2xl font-semibold mt-1 stat-num-green">${read}</p>
           </div>
-          <div class="p-3 bg-emerald-50 text-emerald-600 rounded-lg">
+          <div class="p-3 rounded-lg stat-icon-green">
             <i data-lucide="mail-open" class="w-6 h-6"></i>
           </div>
         </div>
@@ -2992,15 +3751,17 @@
         });
         const message = contact.message || '';
         const statusLabel = contact.read ? '읽음' : '읽지 않음';
-        const statusClasses = contact.read ? 'bg-green-100 text-green-700' : '';
-        const statusStyle = contact.read ? '' : 'background-color: #E0F7FA; color: #0EA5E9; border: 1px solid #7DD3FC;';
+        const statusClasses = '';
+        const statusStyle = contact.read
+          ? 'background-color: #F1F5F9; color: #475569; border: 1px solid #CBD5E1;'
+          : 'background-color: #E3ECF7; color: #1B365D; border: 1px solid #B8CCE4;';
 
         return `
-          <tr class="hover:bg-gray-50 ${contact.read ? '' : 'bg-purple-50/50'}">
-            <td class="px-6 py-3 text-sm text-gray-600 whitespace-nowrap">${formattedDate}</td>
-            <td class="px-6 py-3 text-sm font-medium text-gray-900">${contact.name || '-'}</td>
-            <td class="px-6 py-3 text-sm text-gray-600">${contact.email || '-'}</td>
-            <td class="px-6 py-3 text-sm text-gray-600 max-w-[320px]">
+          <tr class="hover:bg-[#F8FAFC] ${contact.read ? '' : 'bg-[#F7F9FC]'}">
+            <td class="px-6 py-3 text-sm text-slate-600 whitespace-nowrap">${formattedDate}</td>
+            <td class="px-6 py-3 text-sm font-medium text-slate-900">${contact.name || '-'}</td>
+            <td class="px-6 py-3 text-sm text-slate-600">${contact.email || '-'}</td>
+            <td class="px-6 py-3 text-sm text-slate-600 max-w-[320px]">
               <div class="line-clamp-2" title="${message}">${message}</div>
             </td>
             <td class="px-6 py-3 text-sm">
@@ -3009,10 +3770,10 @@
             <td class="px-6 py-3 text-right text-sm space-x-2 whitespace-nowrap">
               ${contact.read ? '' : `
                 <button
-                  class="inline-flex items-center gap-1 px-3 py-1.5 border rounded-lg transition-colors text-xs"
-                  style="border-color: #C4B5FD; color: #7A68F6;"
-                  onmouseover="this.style.backgroundColor='#E0F7FA'"
-                  onmouseout="this.style.backgroundColor='transparent'"
+                  class="inline-flex items-center gap-1 px-3 py-1.5 border rounded-lg transition-colors text-xs font-medium"
+                  style="border-color: #B8CCE4; color: #1B365D; background-color: #FFFFFF;"
+                  onmouseover="this.style.backgroundColor='#E3ECF7'"
+                  onmouseout="this.style.backgroundColor='#FFFFFF'"
                   onclick="markContactRead('${contactId}')"
                   title="읽음 처리"
                 >
@@ -3021,10 +3782,10 @@
                 </button>
               `}
               <button
-                class="inline-flex items-center gap-1 px-3 py-1.5 border rounded-lg transition-colors text-xs"
-                style="border-color: #C4B5FD; color: #7A68F6;"
-                onmouseover="this.style.backgroundColor='#E8E4FF'"
-                onmouseout="this.style.backgroundColor='transparent'"
+                class="inline-flex items-center gap-1 px-3 py-1.5 border rounded-lg transition-colors text-xs font-medium"
+                style="border-color: #CBD5E1; color: #475569; background-color: #FFFFFF;"
+                onmouseover="this.style.backgroundColor='#F1F5F9'; this.style.color='#1B365D';"
+                onmouseout="this.style.backgroundColor='#FFFFFF'; this.style.color='#475569';"
                 onclick="deleteContact('${contactId}')"
                 title="삭제"
               >
@@ -3282,7 +4043,7 @@
                     </div>
                     ${banner.link ? `<p class="text-sm text-gray-500 mb-2"><a href="${(banner.link || '').replace(/"/g, '&quot;')}" target="_blank" class="text-blue-600 hover:underline" rel="noopener noreferrer">${(banner.link || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</a></p>` : ''}
                     <div class="flex items-center gap-2 mt-4">
-                      <button onclick="editBanner('${banner._id || banner.id}')" class="px-3 py-1.5 text-sm text-white rounded transition-colors" style="background-color: #7A68F6;" onmouseover="this.style.backgroundColor='#6B5AE5'" onmouseout="this.style.backgroundColor='#7A68F6'">
+                      <button onclick="editBanner('${banner._id || banner.id}')" class="px-3 py-1.5 text-sm text-white rounded transition-colors" style="background-color: #1B365D;" onmouseover="this.style.backgroundColor='#142A4A'" onmouseout="this.style.backgroundColor='#1B365D'">
                         수정
                       </button>
                       <button onclick="deleteBanner('${banner._id || banner.id}')" class="px-3 py-1.5 text-sm text-red-600 border border-red-200 rounded hover:bg-red-50 transition-colors">
@@ -3339,7 +4100,7 @@
                 </div>
                 <div class="flex items-center gap-2 flex-wrap mb-3">
                   <input type="file" id="banner-image-input" accept="image/*" multiple class="hidden" />
-                  <button type="button" id="banner-image-upload-btn" class="px-3 py-2 text-white rounded text-sm" style="background-color: #7A68F6;" onmouseover="this.style.backgroundColor='#6B5AE5'" onmouseout="this.style.backgroundColor='#7A68F6'">
+                  <button type="button" id="banner-image-upload-btn" class="px-3 py-2 text-white rounded text-sm" style="background-color: #1B365D;" onmouseover="this.style.backgroundColor='#142A4A'" onmouseout="this.style.backgroundColor='#1B365D'">
                     <i data-lucide="upload" class="w-4 h-4 inline-block mr-1"></i> 이미지 선택
                   </button>
                   <span id="banner-image-status-text" class="text-xs text-gray-600">
@@ -3386,7 +4147,7 @@
                 </div>
               </div>
               <div class="flex items-center gap-3 pt-4 border-t">
-                <button type="submit" class="flex-1 px-4 py-2 text-white rounded-lg font-medium transition-colors" style="background-color: #7A68F6;" onmouseover="this.style.backgroundColor='#6B5AE5'" onmouseout="this.style.backgroundColor='#7A68F6'">
+                <button type="submit" class="flex-1 px-4 py-2 text-white rounded-lg font-medium transition-colors" style="background-color: #1B365D;" onmouseover="this.style.backgroundColor='#142A4A'" onmouseout="this.style.backgroundColor='#1B365D'">
                   ${isEdit ? '수정' : '추가'}
                 </button>
                 <button type="button" onclick="closeBannerModal()" class="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
@@ -4467,7 +5228,7 @@
       }
 
       for (let i = startPage; i <= endPage; i++) {
-        html += `<button onclick="changeVisitorPage(${i})" class="px-3 py-1 rounded-lg ${i === currentPage ? 'text-white' : 'hover:bg-gray-100 transition-colors'}" ${i === currentPage ? `style="background-color: #0EA5E9;"` : ''}>
+        html += `<button onclick="changeVisitorPage(${i})" class="px-3 py-1 rounded-lg ${i === currentPage ? 'text-white' : 'hover:bg-gray-100 transition-colors'}" ${i === currentPage ? `style="background-color: #1B365D;"` : ''}>
           ${i}
         </button>`;
       }
@@ -5897,7 +6658,7 @@
       if (!container) return;
       container.innerHTML = '<p class="text-sm text-gray-500 py-8 text-center">매거진 목록을 불러오는 중...</p>';
       try {
-        const res = await fetch(`${API_URL}/magazines`, { credentials: 'include' });
+        const res = await fetch(`${API_URL}/magazines`, { credentials: 'include', cache: 'no-store' });
         const json = await res.json();
         if (!json.success) throw new Error(json.message || '조회 실패');
         cachedMagazines = json.data || [];
@@ -5907,35 +6668,45 @@
           return;
         }
 
-        container.innerHTML = cachedMagazines
-          .map((item) => {
+        const rows = cachedMagazines
+          .map((item, idx) => {
             const safeId = escapeHtml(item.id || item._id);
-            const thumbHtml = item.image
-              ? `<img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title)}" class="w-24 h-16 object-cover rounded-lg border border-gray-100 flex-shrink-0 bg-[#D9D9D9]" />`
-              : `<div class="w-24 h-16 rounded-lg border border-gray-100 flex-shrink-0 bg-[#D9D9D9]"></div>`;
+            const safeSlug = encodeURIComponent(item.id || item._id || '');
             return `
-              <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-xl border border-gray-200 hover:border-sky-300 transition bg-white">
-                <div class="flex items-start gap-4 flex-1 min-w-0">
-                  ${thumbHtml}
-                  <div class="min-w-0 flex-1">
-                    <div class="flex flex-wrap items-center gap-2 text-xs text-gray-500 mb-1">
-                      <span class="px-2 py-0.5 rounded bg-purple-50 text-purple-700 font-medium">${escapeHtml(item.projectTag || '')}</span>
-                      <span>${escapeHtml(item.date || '')}</span>
-                      <span>· 순서 ${item.order ?? 0}</span>
-                    </div>
-                    <h4 class="font-bold text-gray-900 text-base truncate">${escapeHtml(item.title)}</h4>
-                    <p class="text-xs text-gray-500 line-clamp-1 mt-0.5">${escapeHtml(item.excerpt || '')}</p>
-                  </div>
-                </div>
-                <div class="flex items-center gap-2 flex-shrink-0">
-                  <a href="http://localhost:3000/magazine/${encodeURIComponent(item.id)}" target="_blank" class="px-3 py-1.5 rounded-lg border border-gray-200 text-xs text-gray-600 hover:bg-gray-50">보기</a>
-                  <button type="button" onclick="openMagazineForm('${safeId}')" class="px-3 py-1.5 rounded-lg bg-sky-50 text-sky-700 text-xs font-medium hover:bg-sky-100">수정</button>
-                  <button type="button" onclick="deleteMagazine('${safeId}')" class="px-3 py-1.5 rounded-lg bg-red-50 text-red-600 text-xs font-medium hover:bg-red-100">삭제</button>
-                </div>
-              </div>
+              <tr>
+                <td class="px-4 py-3 text-center text-xs text-slate-500 whitespace-nowrap">${idx + 1}</td>
+                <td class="px-4 py-3 text-sm">
+                  <div class="font-semibold text-slate-900">${escapeHtml(item.title || '-')}</div>
+                  ${item.excerpt ? `<div class="text-xs text-slate-500 line-clamp-1 mt-0.5">${escapeHtml(item.excerpt)}</div>` : ''}
+                </td>
+                <td class="px-4 py-3 text-xs text-slate-600 whitespace-nowrap">${escapeHtml(item.projectTag || '-')}</td>
+                <td class="px-4 py-3 text-xs text-slate-500 whitespace-nowrap text-center">${escapeHtml(item.date || '-')}</td>
+                <td class="px-4 py-3 text-right whitespace-nowrap space-x-1.5">
+                  <a href="${FO_BASE_URL}/magazine/${safeSlug}" target="_blank" class="inline-flex items-center px-2.5 py-1 rounded border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 text-xs font-medium">FO 보기</a>
+                  <button type="button" onclick="openMagazineForm('${safeId}')" class="inline-flex items-center px-2.5 py-1 rounded border border-[#B8CCE4] bg-white text-[#1B365D] hover:bg-[#E3ECF7] text-xs font-medium">수정</button>
+                  <button type="button" onclick="deleteMagazine('${safeId}')" class="inline-flex items-center px-2.5 py-1 rounded border border-slate-300 bg-white text-slate-600 hover:bg-slate-50 text-xs font-medium">삭제</button>
+                </td>
+              </tr>
             `;
           })
           .join('');
+
+        container.innerHTML = `
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead>
+                <tr>
+                  <th class="px-4 py-3 text-center text-xs font-semibold text-slate-700 w-14">No.</th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold text-slate-700">제목 / 요약</th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold text-slate-700">프로젝트 태그</th>
+                  <th class="px-4 py-3 text-center text-xs font-semibold text-slate-700 w-28">작성일</th>
+                  <th class="px-4 py-3 text-right text-xs font-semibold text-slate-700 w-44">관리</th>
+                </tr>
+              </thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>
+        `;
       } catch (err) {
         console.error('매거진 로드 실패:', err);
         container.innerHTML = `<p class="text-sm text-red-500 py-8 text-center">불러오기 실패: ${escapeHtml(err.message)}</p>`;
@@ -6042,8 +6813,267 @@
         alert(`삭제 오류: ${err.message}`);
       }
     }
+    // ================================
+    // 접근 권한 관리 (공개/비공개 + Google Drive 스타일 공유 권한)
+    // ================================
+    let cachedAccessSettings = null;
+    const FO_BASE_URL = window.location.hostname === 'localhost'
+      ? 'http://localhost:3000'
+      : window.location.origin;
+
+    function escapeHtml(str) {
+      return String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function renderAccessSettings(data) {
+      cachedAccessSettings = data;
+      const mode = data.mode === 'private' ? 'private' : 'public';
+      const badge = document.getElementById('accessModeBadge');
+      if (badge) {
+        badge.textContent = mode === 'private' ? '비공개 (제한됨)' : '전체 공개';
+        badge.style.backgroundColor = mode === 'private' ? '#1B365D' : '#E3ECF7';
+        badge.style.color = mode === 'private' ? '#FFFFFF' : '#1B365D';
+      }
+
+      document.querySelectorAll('input[name="siteAccessMode"]').forEach((r) => {
+        r.checked = r.value === mode;
+      });
+
+      const linkCb = document.getElementById('shareLinkEnabledCheckbox');
+      if (linkCb) linkCb.checked = !!data.shareLinkEnabled;
+
+      const msgInput = document.getElementById('privateMessageInput');
+      if (msgInput) msgInput.value = data.privateMessage || '';
+
+      const linkPreview = document.getElementById('shareLinkPreview');
+      if (linkPreview) {
+        const shareUrl = `${FO_BASE_URL}/?access=${encodeURIComponent(data.shareLinkToken || '')}`;
+        linkPreview.textContent = data.shareLinkEnabled
+          ? `공유 링크: ${shareUrl}`
+          : '공유 링크 액세스가 비활성화되어 있습니다.';
+      }
+
+      const tbody = document.getElementById('accessUsersTableBody');
+      if (!tbody) return;
+      const users = Array.isArray(data.allowedUsers) ? data.allowedUsers : [];
+      if (users.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="px-4 py-8 text-center text-sm text-slate-500">등록된 허용 사용자가 없습니다. 위에서 이메일을 추가해 권한을 부여하세요.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = users.map((u) => {
+        const safeEmail = escapeHtml(u.email);
+        const encEmail = encodeURIComponent(u.email);
+        const userLink = `${FO_BASE_URL}/?access=${encodeURIComponent(u.token || '')}`;
+        return `
+          <tr>
+            <td class="px-4 py-3 text-sm font-medium text-slate-900">${safeEmail}</td>
+            <td class="px-4 py-3 text-sm text-slate-600">${escapeHtml(u.name || '-')}</td>
+            <td class="px-4 py-3 text-center text-xs text-slate-600">열람</td>
+            <td class="px-4 py-3 text-right whitespace-nowrap space-x-1.5">
+              <button type="button" onclick="copyTextToClipboard('${escapeHtml(userLink)}', '전용 초대 링크가 복사되었습니다.')" class="px-2.5 py-1 rounded border border-[#B8CCE4] bg-white text-[#1B365D] hover:bg-[#E3ECF7] text-xs font-medium">초대 링크 복사</button>
+              <button type="button" onclick="removeAccessUser('${encEmail}')" class="px-2.5 py-1 rounded border border-slate-300 bg-white text-slate-600 hover:bg-slate-50 text-xs font-medium">권한 회수</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function applyAccessViewerVisibility() {
+      const restricted = isViewerMode || !isAuthenticated;
+      const shareRow = document.getElementById('access-share-link-row');
+      const usersSection = document.getElementById('access-users-section');
+      const viewerNotice = document.getElementById('access-viewer-notice');
+      if (shareRow) shareRow.style.display = restricted ? 'none' : '';
+      if (usersSection) usersSection.style.display = restricted ? 'none' : '';
+      if (viewerNotice) {
+        viewerNotice.classList.toggle('hidden', !restricted);
+      }
+      document.querySelectorAll('#content-access input[name="siteAccessMode"], #privateMessageInput').forEach((el) => {
+        el.disabled = restricted;
+      });
+      return restricted;
+    }
+
+    async function loadAccessSettings() {
+      const restricted = applyAccessViewerVisibility();
+      if (restricted) {
+        return;
+      }
+      try {
+        const res = await fetch(`${API_URL}/access/settings`, { credentials: 'include', cache: 'no-store' });
+        const json = await res.json();
+        if (json.success && json.data) {
+          renderAccessSettings(json.data);
+        }
+      } catch (err) {
+        console.error('접근 권한 설정 로드 실패:', err);
+      }
+    }
+
+    function openPrivateConfirmModal() {
+      const modal = document.getElementById('privateModeConfirmModal');
+      if (modal) {
+        modal.style.display = 'flex';
+        modal.classList.remove('hidden');
+      }
+    }
+
+    function closePrivateConfirmModal() {
+      const modal = document.getElementById('privateModeConfirmModal');
+      if (modal) {
+        modal.style.display = 'none';
+        modal.classList.add('hidden');
+      }
+      // 취소 시 전체 공개로 체크 복원
+      document.querySelectorAll('input[name="siteAccessMode"]').forEach((r) => {
+        r.checked = r.value === 'public';
+      });
+    }
+
+    async function confirmPrivateMode() {
+      const modal = document.getElementById('privateModeConfirmModal');
+      if (modal) {
+        modal.style.display = 'none';
+        modal.classList.add('hidden');
+      }
+      document.querySelectorAll('input[name="siteAccessMode"]').forEach((r) => {
+        r.checked = r.value === 'private';
+      });
+      await saveAccessMode(true);
+    }
+
+    window.openPrivateConfirmModal = openPrivateConfirmModal;
+    window.closePrivateConfirmModal = closePrivateConfirmModal;
+    window.confirmPrivateMode = confirmPrivateMode;
+
+    async function saveAccessMode(showSavedAlert = false) {
+      try {
+        const selected = document.querySelector('input[name="siteAccessMode"]:checked');
+        const mode = selected ? selected.value : 'public';
+        const shareLinkEnabled = !!document.getElementById('shareLinkEnabledCheckbox')?.checked;
+        const privateMessage = document.getElementById('privateMessageInput')?.value || '';
+
+        const res = await fetch(`${API_URL}/access/mode`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ mode, shareLinkEnabled, privateMessage }),
+        });
+        const json = await res.json();
+        if (!res.ok || !json.success) throw new Error(json.message || '저장 실패');
+        renderAccessSettings(json.data);
+        if (showSavedAlert) {
+          alert('비공개 모드로 설정이 저장되었습니다.');
+        }
+      } catch (err) {
+        alert(`설정 저장 오류: ${err.message}`);
+      }
+    }
+
+    async function regenerateShareLink() {
+      if (!confirm('공유 링크를 재발급하시겠습니까? 기존 링크는 더 이상 사용할 수 없습니다.')) return;
+      try {
+        const res = await fetch(`${API_URL}/access/regenerate-link`, {
+          method: 'POST',
+          credentials: 'include',
+        });
+        const json = await res.json();
+        if (!res.ok || !json.success) throw new Error(json.message || '재발급 실패');
+        renderAccessSettings(json.data);
+        alert('새 공유 링크가 발급되었습니다.');
+      } catch (err) {
+        alert(`재발급 오류: ${err.message}`);
+      }
+    }
+
+    function copyTextToClipboard(text, message) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => alert(message));
+      } else {
+        prompt('아래 링크를 복사하세요:', text);
+      }
+    }
+
+    function copyShareLink() {
+      if (!cachedAccessSettings?.shareLinkToken) return;
+      const url = `${FO_BASE_URL}/?access=${encodeURIComponent(cachedAccessSettings.shareLinkToken)}`;
+      copyTextToClipboard(url, '공유 링크가 복사되었습니다.');
+    }
+
+    async function addAccessUser(e) {
+      e.preventDefault();
+      const emailEl = document.getElementById('accessUserEmail');
+      const nameEl = document.getElementById('accessUserName');
+      try {
+        const res = await fetch(`${API_URL}/access/users`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            email: emailEl.value.trim(),
+            name: nameEl.value.trim(),
+          }),
+        });
+        const json = await res.json();
+        if (!res.ok || !json.success) throw new Error(json.message || '추가 실패');
+        emailEl.value = '';
+        nameEl.value = '';
+        renderAccessSettings(json.data);
+      } catch (err) {
+        alert(`사용자 추가 오류: ${err.message}`);
+      }
+    }
+
+    async function removeAccessUser(encEmail) {
+      if (!confirm('이 사용자의 접근 권한을 회수하시겠습니까?')) return;
+      try {
+        const res = await fetch(`${API_URL}/access/users/${encEmail}`, {
+          method: 'DELETE',
+          credentials: 'include',
+        });
+        const json = await res.json();
+        if (!res.ok || !json.success) throw new Error(json.message || '삭제 실패');
+        renderAccessSettings(json.data);
+      } catch (err) {
+        alert(`권한 회수 오류: ${err.message}`);
+      }
+    }
+
+    window.saveAccessMode = saveAccessMode;
+    window.regenerateShareLink = regenerateShareLink;
+    window.copyShareLink = copyShareLink;
+    window.copyTextToClipboard = copyTextToClipboard;
+    window.addAccessUser = addAccessUser;
+    window.removeAccessUser = removeAccessUser;
   </script>
+      </div>
+    </main>
   </div>
+  <!-- 비공개 모드 전환 확인 모달 -->
+  <div id="privateModeConfirmModal" style="display: none; position: fixed; inset: 0; z-index: 9999; align-items: center; justify-content: center; background: rgba(15, 23, 42, 0.45); padding: 16px;" onclick="if(event.target === this) window.closePrivateConfirmModal()">
+    <div style="width: 100%; max-width: 420px; background: #ffffff; border-radius: 12px; border: 1px solid #E2E8F0; box-shadow: 0 20px 40px rgba(15, 23, 42, 0.18); overflow: hidden;">
+      <div style="padding: 24px 24px 20px; border-bottom: 1px solid #F1F5F9;">
+        <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: #0F172A;">비공개 모드로 전환하시겠습니까?</h3>
+        <p style="margin: 8px 0 0; font-size: 13px; color: #64748B; line-height: 1.6;">
+          비공개로 저장하면 <strong style="color: #334155;">열람 권한이 있는 사용자</strong> 또는 <strong style="color: #334155;">공유 링크</strong>로만 포트폴리오를 볼 수 있습니다.
+        </p>
+      </div>
+      <div style="padding: 14px 24px; background: #F8FAFC; display: flex; align-items: center; justify-content: flex-end; gap: 8px;">
+        <button type="button" onclick="window.closePrivateConfirmModal()" style="padding: 8px 16px; border-radius: 8px; border: 1px solid #CBD5E1; background: #ffffff; color: #334155; font-size: 13px; font-weight: 600; cursor: pointer;">
+          취소
+        </button>
+        <button type="button" onclick="window.confirmPrivateMode()" style="padding: 8px 16px; border-radius: 8px; border: none; background: #1B365D; color: #ffffff; font-size: 13px; font-weight: 600; cursor: pointer;">
+          저장
+        </button>
+      </div>
+    </div>
   </div>
+
 </body>
 </html>

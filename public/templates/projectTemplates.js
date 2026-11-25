@@ -279,7 +279,7 @@ export const renderDetailModal = (project, files, categoryLabels, isAuthenticate
               <ul class="list-none space-y-2 text-gray-700">
                 ${(project.achievements || []).slice(0, 3).map(achievement => `
                   <li class="flex items-start gap-2">
-                    <span class="text-purple-600 mt-0.5">🎯</span>
+                    <span class="text-slate-400 mt-0.5">·</span>
                     <span class="whitespace-pre-line">${achievement.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</span>
                   </li>
                 `).join('')}
@@ -313,7 +313,7 @@ export const renderDetailModal = (project, files, categoryLabels, isAuthenticate
         <div class="flex-shrink-0 bg-white border-t px-6 py-4 flex justify-end gap-3">
           ${
             isAuthenticated
-              ? `<button onclick="editProject('${project.id}'); this.closest('.fixed').remove();" class="px-4 py-2 text-white rounded-lg transition" style="background-color: #7A68F6;" onmouseover="this.style.backgroundColor='#6B5AE5'" onmouseout="this.style.backgroundColor='#7A68F6'">
+              ? `<button onclick="editProject('${project.id}'); this.closest('.fixed').remove();" class="px-4 py-2 text-white rounded-lg transition" style="background-color: #1B365D;" onmouseover="this.style.backgroundColor='#142A4A'" onmouseout="this.style.backgroundColor='#1B365D'">
             수정하기
           </button>`
               : ''
@@ -346,7 +346,7 @@ export const renderEditModal = (project, categoryLabels) => {
               <p class="text-xs text-gray-500 mt-0.5">프로젝트 정보를 수정하세요</p>
             </div>
             <div class="flex items-center gap-3 ml-2">
-              <div class="w-3 h-3 rounded-full ${hasDescription ? '' : 'border bg-transparent'}" title="프로젝트 설명 ${hasDescription ? '완료' : '미완료'}" style="transition: all 0.3s; ${hasDescription ? 'background-color: #7A68F6;' : 'border-color: #7A68F6;'}"></div>
+              <div class="w-3 h-3 rounded-full ${hasDescription ? '' : 'border bg-transparent'}" title="프로젝트 설명 ${hasDescription ? '완료' : '미완료'}" style="transition: all 0.3s; ${hasDescription ? 'background-color: #1B365D;' : 'border-color: #1B365D;'}"></div>
               <div class="w-3 h-3 rounded-full ${hasPdf ? 'bg-blue-500' : 'border border-blue-500 bg-transparent'}" title="PDF 업로드 ${hasPdf ? '완료' : '미완료'}" style="transition: all 0.3s;"></div>
               <div class="w-3 h-3 rounded-full ${hasImage ? 'bg-emerald-600' : 'border border-emerald-600 bg-transparent'}" title="이미지 업로드 ${hasImage ? '완료' : '미완료'}" style="transition: all 0.3s;"></div>
             </div>
@@ -390,7 +390,7 @@ export const renderEditModal = (project, categoryLabels) => {
                       : project.category === key;
                     return `
                     <label class="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors">
-                      <input type="checkbox" name="category" value="${key}" ${isSelected ? 'checked' : ''} class="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500 focus:ring-2" style="accent-color: #7A68F6;" />
+                      <input type="checkbox" name="category" value="${key}" ${isSelected ? 'checked' : ''} class="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500 focus:ring-2" style="accent-color: #1B365D;" />
                       <span class="ml-2 text-xs text-gray-700">${label}</span>
                     </label>
                     `;
@@ -443,7 +443,7 @@ export const renderEditModal = (project, categoryLabels) => {
                   return `
                   <div class="flex gap-2 items-start achievement-item">
                     <div class="flex items-center justify-center w-8 h-8 mt-1 flex-shrink-0">
-                      <span class="text-purple-600 text-lg">🎯</span>
+                      <span class="text-slate-400 text-xs font-semibold">·</span>
                     </div>
                     <textarea name="achievements[]" rows="2" placeholder="성과 ${index + 1} (엔터로 줄바꿈 가능)" class="flex-1 px-4 py-2.5 text-xs text-gray-700 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all resize-y bg-white">${achievement.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</textarea>
                     ${achievement ? `
@@ -462,7 +462,7 @@ export const renderEditModal = (project, categoryLabels) => {
               <textarea name="retrospective" rows="5" class="w-full px-4 py-2.5 text-xs text-gray-700 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all resize-none bg-white" placeholder="프로젝트를 진행하며 느낀 점, 배운 점, 개선할 점 등을 작성하세요">${project.retrospective || ''}</textarea>
             </div>
             <div class="flex justify-center pt-4 border-t border-gray-200 mt-4">
-              <button type="submit" form="editForm" class="w-full px-6 py-3 text-white rounded-lg text-sm font-medium shadow-sm transition-colors" style="background-color: #7A68F6;" onmouseover="this.style.backgroundColor='#6B5AE5'" onmouseout="this.style.backgroundColor='#7A68F6'">
+              <button type="submit" form="editForm" class="w-full px-6 py-3 text-white rounded-lg text-sm font-medium shadow-sm transition-colors" style="background-color: #1B365D;" onmouseover="this.style.backgroundColor='#142A4A'" onmouseout="this.style.backgroundColor='#1B365D'">
                 저장
               </button>
             </div>

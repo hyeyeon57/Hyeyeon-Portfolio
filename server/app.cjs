@@ -17,7 +17,7 @@ try {
 
 // 모듈 로드를 try-catch로 감싸서 에러 처리
 let ALLOWED_ORIGINS, SESSION_CONFIG, ADMIN_CONFIG;
-let adminRoutes, authRoutes, visitorRoutes, projectRoutes, contactRoutes, fileRoutes, documentRoutes, healthRoutes, heroSliderRoutes, headerLogoRoutes, magazineRoutes;
+let adminRoutes, authRoutes, visitorRoutes, projectRoutes, contactRoutes, fileRoutes, documentRoutes, healthRoutes, heroSliderRoutes, headerLogoRoutes, magazineRoutes, accessRoutes;
 let PUBLIC_DIR;
 let asyncHandler, connectDB;
 
@@ -38,6 +38,7 @@ try {
   heroSliderRoutes = require('./routes/heroSliderRoutes.cjs');
   headerLogoRoutes = require('./routes/headerLogoRoutes.cjs');
   magazineRoutes = require('./routes/magazineRoutes.cjs');
+  accessRoutes = require('./routes/accessRoutes.cjs');
   
   const pathHelpers = require('./utils/pathHelpers.cjs');
   PUBLIC_DIR = pathHelpers.PUBLIC_DIR;
@@ -221,6 +222,10 @@ const createApp = ({ withDbMiddleware = false } = {}) => {
     // 매거진(회고)
     app.use('/api/magazines', magazineRoutes);
     app.use('/bo-api/magazines', magazineRoutes);
+
+    // 사이트 공개/비공개 및 접근 권한 관리
+    app.use('/api/access', accessRoutes);
+    app.use('/bo-api/access', accessRoutes);
 
     // 파일(PDF) 업로드 - 더 구체적인 경로이므로 문서 라우트 이후에 등록
     app.use('/api/upload-pdf', fileRoutes);

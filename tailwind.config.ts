@@ -8,8 +8,12 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      screens: {
+        '3xl': '1920px',
+        'qhd': '2200px',
+      },
       maxWidth: {
-        'container': '1800px',
+        'container': '1920px',
       },
       spacing: {
         'container-x': '120px',

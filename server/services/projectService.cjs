@@ -27,7 +27,7 @@ const listProjects = async () => {
 
     console.log('[projectService] 프로젝트 조회 시작...');
     const projects = await Project.find()
-      .sort({ order: 1, featured: -1, createdAt: -1 })
+      .sort({ featured: -1, order: 1, createdAt: -1 })
       .lean()
       .select('id title subtitle description fullDescription image images tags category date startDate endDate role duration team achievements link featured designPdf detailPdf previewPdf designLink figmaLink designFile gallery retrospective order createdAt updatedAt')
       .maxTimeMS(5000); // 5초 타임아웃

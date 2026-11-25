@@ -114,7 +114,7 @@ export const Header: React.FC = () => {
                         <Link
                           href={item.href}
                           className={cn(
-                            'inline-flex items-center justify-center px-5 py-3 rounded-pill text-lg transition-all duration-300 border',
+                            'inline-flex items-center justify-center px-4 py-2 rounded-pill text-sm transition-all duration-300 border',
                             onDark
                               ? isActive
                                 ? 'border-white text-white'
@@ -137,12 +137,12 @@ export const Header: React.FC = () => {
                 <button
                   onClick={() => setLanguage(language === 'ko' ? 'en' : 'ko')}
                   className={cn(
-                    'text-sm font-medium transition-colors',
+                    'text-sm font-medium leading-none transition-colors',
                     onDark ? 'text-white/70 hover:text-white' : 'text-text-secondary hover:text-text-main'
                   )}
                   aria-label="언어 변경"
                 >
-                  {language === 'ko' ? 'KO' : 'EN'}
+                  {language === 'ko' ? 'Ko' : 'En'}
                 </button>
 
                 <Link href="/admin/login" target="_blank" rel="noopener noreferrer">
@@ -150,7 +150,7 @@ export const Header: React.FC = () => {
                     whileHover={{ y: -2 }}
                     whileTap={{ scale: 0.97 }}
                     className={cn(
-                      'inline-flex items-center gap-1.5 text-sm font-medium transition-colors',
+                      'inline-flex items-center gap-1.5 text-sm font-medium leading-none transition-colors',
                       onDark ? 'text-white/70 hover:text-white' : 'text-text-secondary hover:text-text-main'
                     )}
                   >
@@ -217,7 +217,7 @@ export const Header: React.FC = () => {
                         }}
                         className="text-sm font-medium text-text-secondary"
                       >
-                        {language === 'ko' ? 'KO' : 'EN'}
+                        {language === 'ko' ? 'Ko' : 'En'}
                       </button>
                       <Link
                         href="/admin/login"

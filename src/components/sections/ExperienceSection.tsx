@@ -180,7 +180,7 @@ export const ExperienceSection: React.FC<ExperienceSectionProps> = () => {
 
   return (
     <section id="experience" className="relative w-full bg-white text-white overflow-hidden">
-      <div className="pl-5 sm:pl-8 lg:pl-[60px]">
+      <div className="pl-5 sm:pl-8 lg:pl-[60px] 3xl:pl-[max(60px,calc((100vw-1920px)/2))]">
         <div className="relative bg-black">
           <div className="max-w-container mx-auto px-5 sm:px-8 lg:pr-[60px] lg:pl-14">
             <div className="relative grid lg:grid-cols-[360px_1fr_auto] gap-8 lg:gap-12 items-stretch min-h-[780px]">
@@ -190,13 +190,13 @@ export const ExperienceSection: React.FC<ExperienceSectionProps> = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.8 }}
-                className="relative bg-white text-black p-8 sm:p-10 mb-6 sm:mb-8 flex flex-col justify-between min-h-[460px] lg:min-h-[740px] overflow-hidden"
+                className="relative bg-white text-black p-8 sm:p-10 mb-6 sm:mb-8 flex flex-col justify-between min-h-[360px] md:min-h-[340px] lg:min-h-[740px] overflow-hidden"
               >
             <img
               src="/images/life-career-card.png"
               alt="User Experience"
               aria-hidden
-              className="pointer-events-none absolute inset-0 w-full h-full object-cover object-bottom select-none"
+              className="pointer-events-none absolute right-0 bottom-0 w-[85%] sm:w-[58%] md:w-[52%] lg:inset-0 lg:w-full lg:h-full object-contain object-right-bottom lg:object-cover lg:object-bottom select-none"
             />
             <div className="relative z-10 pt-4">
               <h2 className="display-xl text-[clamp(2.75rem,5vw,80px)] leading-[1.1] text-black mb-6">
@@ -260,38 +260,12 @@ export const ExperienceSection: React.FC<ExperienceSectionProps> = () => {
 
                     {currentSlide.left.cardType === 'di9' ? (
                       <>
-                        <div className="w-full max-w-[324px] h-[164px] bg-white text-[#111111] p-5 flex flex-col justify-between shadow-lg">
-                          <div className="flex items-start justify-between">
-                            <div>
-                              <p className="text-[10px] font-medium text-[#2B82C9] mb-0.5">기획팀 사원</p>
-                              <p className="text-lg font-bold text-[#1D74BD] tracking-tight">장혜연</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-xl font-extrabold text-[#1D74BD] leading-none tracking-tight">
-                                di9
-                              </p>
-                              <p className="text-[8px] font-semibold text-[#1D74BD] mt-0.5">디나인컴즈</p>
-                            </div>
-                          </div>
-
-                          <div className="flex items-end justify-between gap-3">
-                            <div className="text-[8px] text-[#3B82B8] leading-[1.45]">
-                              <p>010-2807-5250 &nbsp; janghyeyeon57@di9.co.kr</p>
-                              <p>06540 서울특별시 서초구 신반포로 23길 5 (잠원동) 3층</p>
-                              <p>대표번호 02-3443-8052</p>
-                            </div>
-                            <div className="w-9 h-9 p-1 border border-[#1D74BD]/40 grid grid-cols-3 gap-0.5 flex-shrink-0">
-                              <span className="bg-[#1D74BD]" />
-                              <span className="bg-transparent" />
-                              <span className="bg-[#1D74BD]" />
-                              <span className="bg-transparent" />
-                              <span className="bg-[#1D74BD]" />
-                              <span className="bg-[#1D74BD]" />
-                              <span className="bg-[#1D74BD]" />
-                              <span className="bg-[#1D74BD]" />
-                              <span className="bg-transparent" />
-                            </div>
-                          </div>
+                        <div className="w-full max-w-[340px] overflow-hidden shadow-lg bg-white">
+                          <img
+                            src="/images/di9-card.png"
+                            alt="di9 디나인컴즈 명함"
+                            className="w-full h-auto block object-cover"
+                          />
                         </div>
 
                         {currentSlide.left.bullets && (
@@ -411,56 +385,12 @@ export const ExperienceSection: React.FC<ExperienceSectionProps> = () => {
 
                     {currentSlide.right.cardType === 'ati' ? (
                       <>
-                        <div className="grid grid-cols-[1.9fr_1fr] w-full max-w-[410px] h-[170px] overflow-hidden border border-white/15 bg-[#111111]">
-                          <div className="relative p-4 flex flex-col justify-between bg-gradient-to-br from-[#1B1B1D] via-[#101012] to-[#080809]">
-                            <div className="flex items-start justify-between">
-                              <div>
-                                <p className="text-[9px] text-white/50 tracking-wide mb-0.5">Planner</p>
-                                <p className="text-sm font-semibold text-white tracking-tight">
-                                  장혜연{' '}
-                                  <span className="text-[9px] font-normal text-white/55 ml-1">
-                                    JANG HYE YEON
-                                  </span>
-                                </p>
-                              </div>
-                              <p className="text-[8px] text-white/45 text-right leading-tight">
-                                한 손에 담기는 나만의 전시회
-                                <br />
-                                아트랑
-                              </p>
-                            </div>
-                            <div className="flex items-end justify-between gap-2">
-                              <div className="text-[8px] text-white/60 leading-relaxed space-y-0.5">
-                                <p>
-                                  <span className="text-white/40 mr-2">MOBILE</span>010-2807-5250
-                                </p>
-                                <p>
-                                  <span className="text-white/40 mr-2">E-MAIL</span>janghyeyeon57@gmail.com
-                                </p>
-                              </div>
-                              <span className="text-2xl font-extrabold tracking-tighter text-white leading-none">
-                                AT/.
-                              </span>
-                            </div>
-                          </div>
-
-                          <div className="relative bg-[#EAE8E4] text-[#111111] p-3 flex flex-col justify-between overflow-hidden">
-                            <div className="flex items-center justify-between">
-                              <span className="text-[10px] font-bold tracking-tight">AT/.</span>
-                              <span className="text-[8px] text-black/40">2025</span>
-                            </div>
-                            <div className="my-auto mx-auto w-full h-[88px] rounded bg-white shadow-sm border border-black/10 p-2 flex flex-col justify-between">
-                              <div className="w-8 h-1.5 rounded-full bg-[#5C4AAE]/70" />
-                              <div className="space-y-1">
-                                <div className="w-full h-1.5 rounded bg-black/10" />
-                                <div className="w-3/4 h-1.5 rounded bg-black/10" />
-                              </div>
-                              <div className="flex justify-end">
-                                <span className="w-4 h-4 rounded-full bg-[#111111]" />
-                              </div>
-                            </div>
-                            <p className="text-[8px] text-black/50 text-right">Graduation Exhibition</p>
-                          </div>
+                        <div className="w-full max-w-[420px] overflow-hidden border border-white/15 bg-[#111111] shadow-lg">
+                          <img
+                            src="/images/artlang-card.png"
+                            alt="아트랑 명함 및 졸업전시 부스"
+                            className="w-full h-auto block object-cover"
+                          />
                         </div>
 
                         {currentSlide.right.caption && (
@@ -489,38 +419,12 @@ export const ExperienceSection: React.FC<ExperienceSectionProps> = () => {
                         )}
                       </>
                     ) : currentSlide.right.cardType === 'di9' ? (
-                      <div className="w-full max-w-[324px] h-[164px] bg-white text-[#111111] p-5 flex flex-col justify-between shadow-lg">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <p className="text-[10px] font-medium text-[#2B82C9] mb-0.5">기획팀 사원</p>
-                            <p className="text-lg font-bold text-[#1D74BD] tracking-tight">장혜연</p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-xl font-extrabold text-[#1D74BD] leading-none tracking-tight">
-                              di9
-                            </p>
-                            <p className="text-[8px] font-semibold text-[#1D74BD] mt-0.5">디나인컴즈</p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-end justify-between gap-3">
-                          <div className="text-[8px] text-[#3B82B8] leading-[1.45]">
-                            <p>010-2807-5250 &nbsp; janghyeyeon57@di9.co.kr</p>
-                            <p>06540 서울특별시 서초구 신반포로 23길 5 (잠원동) 3층</p>
-                            <p>대표번호 02-3443-8052</p>
-                          </div>
-                          <div className="w-9 h-9 p-1 border border-[#1D74BD]/40 grid grid-cols-3 gap-0.5 flex-shrink-0">
-                            <span className="bg-[#1D74BD]" />
-                            <span className="bg-transparent" />
-                            <span className="bg-[#1D74BD]" />
-                            <span className="bg-transparent" />
-                            <span className="bg-[#1D74BD]" />
-                            <span className="bg-[#1D74BD]" />
-                            <span className="bg-[#1D74BD]" />
-                            <span className="bg-[#1D74BD]" />
-                            <span className="bg-transparent" />
-                          </div>
-                        </div>
+                      <div className="w-full max-w-[340px] overflow-hidden shadow-lg bg-white">
+                        <img
+                          src="/images/di9-card.png"
+                          alt="di9 디나인컴즈 명함"
+                          className="w-full h-auto block object-cover"
+                        />
                       </div>
                     ) : (
                       <div className="w-full max-w-[324px] p-5 bg-white text-[#111111] shadow-lg space-y-2">

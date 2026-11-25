@@ -1,77 +1,75 @@
 'use client';
 
-import { useEffect } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { useEffect, useRef } from 'react';
+import { usePathname } from 'next/navigation';
 
 /**
- * 새로고침 시 페이지 상단으로 스크롤하는 컴포넌트
- * FO(프론트엔드)에서만 작동
- * 전체 프로젝트 페이지(/projects)는 제외 - 상단으로만 스크롤
- * 다른 페이지는 새로고침 시 홈(/)으로 이동
+ * 스크롤 동작 제어 컴포넌트
+ * - 브라우저 뒤로가기/앞으로가기(popstate) 시에는 기존 스크롤 위치를 그대로 복원
+ * - 새로고침 시에만 홈 상단으로 이동
+ * - 해시(#contact, #all-portfolio 등)가 있으면 해당 섹션으로 스크롤
  */
 export function ScrollToTop() {
   const pathname = usePathname();
-  const router = useRouter();
+  const isFirstMount = useRef(true);
+  const isPopState = useRef(false);
 
   useEffect(() => {
-    // 브라우저의 스크롤 복원 비활성화
-    if (typeof window !== 'undefined' && 'scrollRestoration' in window.history) {
-      window.history.scrollRestoration = 'manual';
+    if (typeof window === 'undefined') return;
+
+    // 브라우저 기본 스크롤 복원 활성화 (뒤로가기 시 이전 스크롤 위치 유지)
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'auto';
     }
 
-    // 새로고침 감지
-    const navigationEntry = typeof window !== 'undefined' 
-      ? (window.performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming)
-      : null;
-    const isReload = navigationEntry?.type === 'reload';
-    const hash = window.location.hash;
+    const handlePopState = () => {
+      isPopState.current = true;
+    };
 
-    // 전체 프로젝트 페이지는 상단으로만 스크롤 (홈으로 이동하지 않음)
-    if (pathname === '/projects') {
-      if (hash) {
-        setTimeout(() => {
-          const element = document.querySelector(hash);
-          if (element) {
-            element.scrollIntoView({ behavior: 'smooth' });
-          } else {
-            window.scrollTo(0, 0);
-          }
-        }, 100);
-      } else {
-        window.scrollTo(0, 0);
-      }
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const navigationEntry = window.performance.getEntriesByType(
+      'navigation'
+    )[0] as PerformanceNavigationTiming | undefined;
+    const isReload = isFirstMount.current && navigationEntry?.type === 'reload';
+    isFirstMount.current = false;
+
+    // 뒤로가기/앞으로가기로 돌아온 경우 브라우저가 이전 스크롤 위치를 복원하도록 건드리지 않음
+    if (isPopState.current) {
+      isPopState.current = false;
       return;
     }
 
-    // 홈페이지에서 해시가 있는 상태로 새로고침한 경우 → 홈 상단으로 이동
+    const hash = window.location.hash;
+
+    // 홈페이지에서 해시가 있는 상태로 새로고침한 경우에만 홈 상단으로
     if (isReload && pathname === '/' && hash) {
-      // 해시 제거하고 홈 상단으로 이동
       window.history.replaceState(null, '', '/');
       window.scrollTo(0, 0);
       return;
     }
 
-    // 다른 페이지는 새로고침 시 홈으로 이동
-    if (isReload && pathname !== '/') {
-      router.push('/');
-      return;
-    }
-
-    // 일반적인 경우: 해시가 있으면 해당 섹션으로, 없으면 상단으로
-    if (hash && !isReload) {
+    // 해시가 있으면 해당 섹션으로 스크롤
+    if (hash) {
       setTimeout(() => {
         const element = document.querySelector(hash);
         if (element) {
           element.scrollIntoView({ behavior: 'smooth' });
-        } else {
-          window.scrollTo(0, 0);
         }
       }, 100);
-    } else if (pathname === '/' && !hash) {
+      return;
+    }
+
+    // 새 페이지로 진입 시 상단으로 스크롤
+    if (pathname.startsWith('/projects') || pathname.startsWith('/magazine')) {
       window.scrollTo(0, 0);
     }
-  }, [pathname, router]);
+  }, [pathname]);
 
   return null;
 }
-

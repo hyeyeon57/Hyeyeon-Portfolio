@@ -3,37 +3,168 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>새 프로젝트 만들기</title>
+  <title>Jang hyeyeon · 새 프로젝트 등록</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Gelasio:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/admin.css">
   <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    body {
+      background-color: #FFFFFF !important;
+      color: #1E293B;
+    }
+    /* Deep Navy 상단 바 (대시보드와 통일) */
+    .bo-topbar {
+      background-color: #1B365D !important;
+      color: #FFFFFF !important;
+      height: 56px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    /* 폼 전체를 Finance Admin 스타일의 2열 키-밸류 표 레이아웃으로 변환 */
+    #projectForm {
+      background-color: #FFFFFF !important;
+      border: 1px solid #E2E8F0 !important;
+      border-radius: 4px !important;
+      box-shadow: none !important;
+      padding: 0 !important;
+      display: block !important;
+    }
+    #projectForm > div {
+      margin-top: 0 !important;
+      border-bottom: 1px solid #E2E8F0;
+    }
+    #projectForm > div:last-child {
+      border-bottom: none;
+      padding: 20px 24px !important;
+      background-color: #FFFFFF !important;
+    }
+    /* 단일 필드 행: 좌측 라벨(#F2F5F9, 200px) + 우측 입력/도움말 영역(#FFFFFF) */
+    #projectForm > div:not(.grid):not(:last-child) {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+    }
+    #projectForm > div:not(.grid):not(:last-child) > label:first-child {
+      grid-column: 1;
+      grid-row: 1 / span 10;
+      background-color: #F2F5F9;
+      color: #1E293B;
+      font-size: 13px;
+      font-weight: 600;
+      margin: 0 !important;
+      padding: 12px 18px;
+      border-right: 1px solid #E2E8F0;
+      display: flex;
+      align-items: center;
+      word-break: keep-all;
+      line-height: 1.4;
+    }
+    #projectForm > div:not(.grid):not(:last-child) > :not(label:first-child) {
+      grid-column: 2;
+      margin: 8px 18px;
+    }
+    #projectForm > div:not(.grid):not(:last-child) > p {
+      margin-top: -2px !important;
+      margin-bottom: 10px !important;
+    }
+    /* 2열 그리드 행도 좌측 라벨 열 너비를 200px로 동일하게 맞춤 */
+    #projectForm > div.grid {
+      gap: 0 !important;
+    }
+    #projectForm > div.grid > div {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      border-right: 1px solid #E2E8F0;
+    }
+    #projectForm > div.grid > div:last-child {
+      border-right: none;
+    }
+    #projectForm > div.grid > div > label:first-child {
+      grid-column: 1;
+      grid-row: 1 / span 10;
+      background-color: #F2F5F9;
+      color: #1E293B;
+      font-size: 13px;
+      font-weight: 600;
+      margin: 0 !important;
+      padding: 12px 18px;
+      border-right: 1px solid #E2E8F0;
+      display: flex;
+      align-items: center;
+      word-break: keep-all;
+      line-height: 1.4;
+    }
+    #projectForm > div.grid > div > :not(label:first-child) {
+      grid-column: 2;
+      margin: 8px 18px;
+    }
+    #projectForm input[type="text"],
+    #projectForm input[type="url"],
+    #projectForm input[type="number"],
+    #projectForm textarea,
+    #projectForm select {
+      border-radius: 4px !important;
+      border-color: #CBD5E1 !important;
+      font-size: 14px;
+    }
+    #projectForm input:focus,
+    #projectForm textarea:focus,
+    #projectForm select:focus {
+      border-color: #1B365D !important;
+      box-shadow: 0 0 0 2px rgba(27, 54, 93, 0.12) !important;
+      outline: none !important;
+    }
+    @media (max-width: 768px) {
+      #projectForm > div:not(.grid):not(:last-child),
+      #projectForm > div.grid > div {
+        grid-template-columns: 1fr;
+      }
+      #projectForm > div:not(.grid):not(:last-child) > label:first-child,
+      #projectForm > div.grid > div > label:first-child {
+        border-right: none;
+        border-bottom: 1px solid #E2E8F0;
+      }
+    }
+  </style>
 </head>
-<body class="bg-gray-50">
+<body class="bg-white">
   <div id="app">
-    <!-- 헤더 -->
-    <header class="bg-white shadow-sm border-b sticky top-0 z-40">
-      <div class="max-w-4xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center">
-          <div>
-            <h1 class="text-3xl font-bold text-gray-900">새 프로젝트 만들기</h1>
-            <p class="text-gray-500 mt-1">프로젝트 정보를 입력하세요</p>
-          </div>
-          <div class="flex gap-3">
-            <a href="/admin" class="px-4 py-2 rounded-lg transition flex items-center gap-2" style="background-color: #E8E4FF; color: #7A68F6;" onmouseover="this.style.backgroundColor='#D8D0FF'" onmouseout="this.style.backgroundColor='#E8E4FF'">
-              <i data-lucide="arrow-left" class="w-4 h-4"></i>
-              돌아가기
-            </a>
-            <button onclick="logout()" class="px-4 py-2 rounded-lg transition flex items-center gap-2" style="background-color: #E8E4FF; color: #7A68F6;" onmouseover="this.style.backgroundColor='#D8D0FF'" onmouseout="this.style.backgroundColor='#E8E4FF'">
-              <i data-lucide="log-out" class="w-4 h-4"></i>
-              로그아웃
-            </button>
-          </div>
-        </div>
+    <!-- 딥 네이비 상단 바 -->
+    <header class="bo-topbar flex items-center justify-between px-6">
+      <div class="flex items-center gap-3">
+        <a href="/admin" style="font-family: 'Gelasio', Georgia, serif; font-size: 20px; font-weight: 500; color: #FFFFFF; text-decoration: none;">Jang hyeyeon</a>
+        <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.1em; padding: 3px 10px; border-radius: 6px; background: rgba(255,255,255,0.14); color: #E2E8F0;">ADMIN</span>
+      </div>
+      <div class="flex items-center gap-4 text-sm">
+        <a href="/admin" class="flex items-center gap-1.5 text-slate-200 hover:text-white transition">
+          <i data-lucide="arrow-left" class="w-4 h-4"></i>
+          목록으로
+        </a>
+        <span style="color: rgba(255,255,255,0.25);">|</span>
+        <button onclick="logout()" class="text-white hover:text-slate-200 transition">
+          로그아웃
+        </button>
       </div>
     </header>
 
     <!-- 폼 -->
-    <div class="max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-      <form id="projectForm" class="bg-white rounded-xl shadow-sm border p-8 space-y-6">
+    <div class="max-w-5xl mx-auto px-6 py-8">
+      <div class="text-xs text-slate-500 mb-3 flex items-center gap-1.5">
+        <a href="/admin" onclick="try{localStorage.setItem('admin-dashboard-active-tab','documents')}catch(e){}" class="hover:text-[#1B365D] hover:underline transition">HOME</a>
+        <span>&gt;</span>
+        <a href="/admin" onclick="try{localStorage.setItem('admin-dashboard-active-tab','documents')}catch(e){}" class="hover:text-[#1B365D] hover:underline transition">콘텐츠 관리</a>
+        <span>&gt;</span>
+        <a href="/admin" onclick="try{localStorage.setItem('admin-dashboard-active-tab','projects')}catch(e){}" class="hover:text-[#1B365D] hover:underline transition">프로젝트 관리</a>
+        <span>&gt;</span>
+        <strong class="text-slate-900">새 프로젝트 등록</strong>
+      </div>
+      <div class="mb-6">
+        <h1 class="text-2xl font-bold text-slate-900 tracking-tight mb-1.5">새 프로젝트 등록</h1>
+        <p class="text-sm text-slate-500">프로젝트 정보를 입력하고 저장하세요.</p>
+      </div>
+      <form id="projectForm" class="bg-white border">
         <!-- 제목 -->
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">
@@ -84,45 +215,44 @@
           ></textarea>
         </div>
 
-        <!-- 카테고리와 태그 -->
-        <div class="grid grid-cols-2 gap-6">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-              카테고리 <span class="text-red-500">*</span> (다중 선택 가능)
+        <!-- 카테고리 (가로형 라디오 버튼) -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            카테고리 <span class="text-red-500">*</span>
+          </label>
+          <div class="flex flex-wrap items-center gap-6 py-1.5">
+            <label class="inline-flex items-center gap-2 cursor-pointer text-sm text-slate-700">
+              <input type="radio" name="category" value="new" class="w-4 h-4" style="accent-color: #1B365D;" />
+              <span>신규</span>
             </label>
-            <div class="space-y-2 border border-gray-300 rounded-lg p-3 bg-white">
-              <label class="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors">
-                <input type="checkbox" name="category" value="new" class="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500 focus:ring-2" style="accent-color: #7A68F6;" />
-                <span class="ml-2 text-sm text-gray-700">신규</span>
-              </label>
-              <label class="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors">
-                <input type="checkbox" name="category" value="renewal" class="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500 focus:ring-2" style="accent-color: #7A68F6;" />
-                <span class="ml-2 text-sm text-gray-700">리뉴얼</span>
-              </label>
-              <label class="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors">
-                <input type="checkbox" name="category" value="proposal" class="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500 focus:ring-2" style="accent-color: #7A68F6;" />
-                <span class="ml-2 text-sm text-gray-700">제안서</span>
-              </label>
-              <label class="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors">
-                <input type="checkbox" name="category" value="design" class="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500 focus:ring-2" style="accent-color: #7A68F6;" />
-                <span class="ml-2 text-sm text-gray-700">화면설계서</span>
-              </label>
-              <label class="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors">
-                <input type="checkbox" name="category" value="etc" class="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500 focus:ring-2" style="accent-color: #7A68F6;" />
-                <span class="ml-2 text-sm text-gray-700">기타</span>
-              </label>
-            </div>
-            <p class="text-xs text-gray-500 mt-1">원하는 카테고리를 클릭하여 선택하세요. 여러 개 선택 가능합니다.</p>
+            <label class="inline-flex items-center gap-2 cursor-pointer text-sm text-slate-700">
+              <input type="radio" name="category" value="renewal" class="w-4 h-4" style="accent-color: #1B365D;" />
+              <span>리뉴얼</span>
+            </label>
+            <label class="inline-flex items-center gap-2 cursor-pointer text-sm text-slate-700">
+              <input type="radio" name="category" value="proposal" class="w-4 h-4" style="accent-color: #1B365D;" />
+              <span>제안서</span>
+            </label>
+            <label class="inline-flex items-center gap-2 cursor-pointer text-sm text-slate-700">
+              <input type="radio" name="category" value="design" class="w-4 h-4" style="accent-color: #1B365D;" />
+              <span>화면설계서</span>
+            </label>
+            <label class="inline-flex items-center gap-2 cursor-pointer text-sm text-slate-700">
+              <input type="radio" name="category" value="etc" class="w-4 h-4" style="accent-color: #1B365D;" />
+              <span>기타</span>
+            </label>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">태그 (쉼표로 구분)</label>
-            <input
-              type="text"
-              name="tags"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              placeholder="UX 디자인, 사용성 평가, 기획"
-            />
-          </div>
+        </div>
+
+        <!-- 태그 -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">태그 (쉼표로 구분)</label>
+          <input
+            type="text"
+            name="tags"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            placeholder="UX 디자인, 사용성 평가, 기획"
+          />
         </div>
 
         <!-- 날짜, 팀, 기간 -->
@@ -219,7 +349,7 @@
             <label class="block text-sm font-medium text-gray-700">화면 설계서 PDF</label>
             <div class="flex items-center gap-3 flex-wrap">
               <input type="file" accept="application/pdf" id="designPdfFile" class="text-sm" />
-              <button type="button" onclick="uploadPdf('design')" class="px-3 py-2 text-white rounded text-sm" style="background-color: #7A68F6;" onmouseover="this.style.backgroundColor='#6B5AE5'" onmouseout="this.style.backgroundColor='#7A68F6'">
+              <button type="button" onclick="uploadPdf('design')" class="px-3 py-2 text-white rounded text-sm" style="background-color: #1B365D;" onmouseover="this.style.backgroundColor='#142A4A'" onmouseout="this.style.backgroundColor='#1B365D'">
                 업로드
               </button>
               <span id="designPdfStatus" class="text-sm text-gray-600"></span>
@@ -231,7 +361,7 @@
             <label class="block text-sm font-medium text-gray-700">프로젝트 상세보기 PDF</label>
             <div class="flex items-center gap-3 flex-wrap">
               <input type="file" accept="application/pdf" id="detailPdfFile" class="text-sm" />
-              <button type="button" onclick="uploadPdf('detail')" class="px-3 py-2 text-white rounded text-sm" style="background-color: #7A68F6;" onmouseover="this.style.backgroundColor='#6B5AE5'" onmouseout="this.style.backgroundColor='#7A68F6'">
+              <button type="button" onclick="uploadPdf('detail')" class="px-3 py-2 text-white rounded text-sm" style="background-color: #1B365D;" onmouseover="this.style.backgroundColor='#142A4A'" onmouseout="this.style.backgroundColor='#1B365D'">
                 업로드
               </button>
               <span id="detailPdfStatus" class="text-sm text-gray-600"></span>
@@ -247,19 +377,19 @@
           <div id="achievementsContainer" class="space-y-2">
             <div class="flex gap-2 items-start achievement-item">
               <div class="flex items-center justify-center w-8 h-8 mt-1 flex-shrink-0">
-                <span class="text-purple-600 text-lg">🎯</span>
+                <span class="text-slate-400 text-xs font-semibold w-4 text-center">·</span>
               </div>
               <textarea name="achievements[]" rows="2" placeholder="성과 1 (엔터로 줄바꿈 가능)" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-y"></textarea>
             </div>
             <div class="flex gap-2 items-start achievement-item">
               <div class="flex items-center justify-center w-8 h-8 mt-1 flex-shrink-0">
-                <span class="text-purple-600 text-lg">🎯</span>
+                <span class="text-slate-400 text-xs font-semibold w-4 text-center">·</span>
               </div>
               <textarea name="achievements[]" rows="2" placeholder="성과 2 (엔터로 줄바꿈 가능)" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-y"></textarea>
             </div>
             <div class="flex gap-2 items-start achievement-item">
               <div class="flex items-center justify-center w-8 h-8 mt-1 flex-shrink-0">
-                <span class="text-purple-600 text-lg">🎯</span>
+                <span class="text-slate-400 text-xs font-semibold w-4 text-center">·</span>
               </div>
               <textarea name="achievements[]" rows="2" placeholder="성과 3 (엔터로 줄바꿈 가능)" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-y"></textarea>
             </div>
@@ -281,17 +411,18 @@
 
         <!-- 대표 프로젝트 -->
         <div>
-          <label class="flex items-center">
-            <input
-              type="checkbox"
-              name="featured"
-              class="w-4 h-4 border-gray-300 rounded"
-              style="color: #7A68F6; accent-color: #7A68F6;"
-              onfocus="this.style.outlineColor='#7A68F6'"
-            />
-            <i data-lucide="pin" class="w-4 h-4 ml-2" style="color: #7A68F6;" fill="currentColor"></i>
-            <span class="ml-2 text-sm text-gray-700">대표 프로젝트로 고정</span>
-          </label>
+          <label class="block text-sm font-medium text-gray-700">대표 설정</label>
+          <div class="flex items-center py-1">
+            <label class="inline-flex items-center gap-2 cursor-pointer text-sm text-slate-700">
+              <input
+                type="checkbox"
+                name="featured"
+                class="w-4 h-4 border-gray-300 rounded"
+                style="accent-color: #1B365D;"
+              />
+              <span>대표 프로젝트로 고정</span>
+            </label>
+          </div>
         </div>
 
         <!-- 제출 버튼 -->
@@ -300,11 +431,11 @@
             type="submit"
             id="submitBtn"
             class="flex-1 text-white py-3 rounded-lg transition disabled:bg-gray-400 disabled:cursor-not-allowed font-medium"
-            style="background-color: #7A68F6;"
-            onmouseover="if(!this.disabled) this.style.backgroundColor='#6B5AE5'"
-            onmouseout="if(!this.disabled) this.style.backgroundColor='#7A68F6'"
+            style="background-color: #1B365D;"
+            onmouseover="if(!this.disabled) this.style.backgroundColor='#142A4A'"
+            onmouseout="if(!this.disabled) this.style.backgroundColor='#1B365D'"
           >
-            ✅ 프로젝트 생성
+            프로젝트 생성
           </button>
           <a
             href="/admin"
@@ -400,7 +531,7 @@
       const categories = formData.getAll('category').filter(c => c && c.trim() !== '');
       if (categories.length === 0) {
         submitBtn.disabled = false;
-        submitBtn.textContent = '✅ 프로젝트 생성';
+        submitBtn.textContent = '프로젝트 생성';
         alert('카테고리를 최소 1개 이상 선택해주세요.');
         return;
       }
@@ -486,25 +617,25 @@
             updateUploadProgress(totalFiles, totalFiles, 100, '업로드 완료!');
             setTimeout(() => {
               hideUploadProgress();
-              alert('프로젝트가 생성되었습니다! ✅');
+              alert('프로젝트가 생성되었습니다.');
               window.location.href = '/admin';
             }, 500);
           } else {
-            alert('프로젝트가 생성되었습니다! ✅');
+            alert('프로젝트가 생성되었습니다.');
             window.location.href = '/admin';
           }
         } else {
           if (totalFiles > 0) hideUploadProgress();
           alert(`프로젝트 생성에 실패했습니다: ${result.error || '알 수 없는 오류'}`);
           submitBtn.disabled = false;
-          submitBtn.textContent = '✅ 프로젝트 생성';
+          submitBtn.textContent = '프로젝트 생성';
         }
       } catch (error) {
         console.error('프로젝트 생성 오류:', error);
         if (totalFiles > 0) hideUploadProgress();
         alert(`오류가 발생했습니다: ${error.message || '알 수 없는 오류'}`);
         submitBtn.disabled = false;
-        submitBtn.textContent = '✅ 프로젝트 생성';
+        submitBtn.textContent = '프로젝트 생성';
       }
     });
 
@@ -541,7 +672,7 @@
         }
 
         hiddenInput.value = result.path;
-        statusEl.innerHTML = `<a href="${result.path}" target="_blank" class="underline text-sm" style="color: #7A68F6;">업로드 완료: ${result.filename}</a>`;
+        statusEl.innerHTML = `<a href="${result.path}" target="_blank" class="underline text-sm" style="color: #1B365D;">업로드 완료: ${result.filename}</a>`;
         fileInput.value = '';
       } catch (error) {
         console.error('PDF 업로드 오류:', error);
@@ -696,11 +827,11 @@
         </p>
         
         <div class="flex items-center gap-6 text-sm">
-          <a href="/admin/viewer" class="text-gray-500 transition-colors flex items-center gap-2" style="--hover-color: #7A68F6;" onmouseover="this.style.color='#7A68F6'" onmouseout="this.style.color=''">
+          <a href="/admin/viewer" class="text-gray-500 transition-colors flex items-center gap-2" style="--hover-color: #1B365D;" onmouseover="this.style.color='#1B365D'" onmouseout="this.style.color=''">
             <i data-lucide="eye" class="w-4 h-4"></i>
             Viewer Access
           </a>
-          <a href="/admin" class="text-gray-500 transition-colors flex items-center gap-2" style="--hover-color: #7A68F6;" onmouseover="this.style.color='#7A68F6'" onmouseout="this.style.color=''">
+          <a href="/admin" class="text-gray-500 transition-colors flex items-center gap-2" style="--hover-color: #1B365D;" onmouseover="this.style.color='#1B365D'" onmouseout="this.style.color=''">
             <i data-lucide="settings" class="w-4 h-4"></i>
             관리자 대시보드
           </a>
