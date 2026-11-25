@@ -513,9 +513,9 @@
     document.getElementById('projectForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       
-      // 카테고리 필수 검증
-      const categoryCheckboxes = e.target.querySelectorAll('input[name="category"][type="checkbox"]:checked');
-      if (!categoryCheckboxes || categoryCheckboxes.length === 0) {
+      // 카테고리 필수 검증 (라디오 버튼 기준: 신규/리뉴얼/제안서/화면설계서/기타 중 1개 이상)
+      const categoryChecked = e.target.querySelectorAll('input[name="category"]:checked');
+      if (!categoryChecked || categoryChecked.length === 0) {
         alert('카테고리를 최소 1개 이상 선택해주세요.');
         return;
       }
